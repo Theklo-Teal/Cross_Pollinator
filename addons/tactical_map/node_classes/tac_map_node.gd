@@ -2,9 +2,6 @@
 extends Area3D
 class_name TacMap
 
-signal zone_entered(zone:StringName, chara:TacCharacter)  ## The character entered a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
-signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
-
 ## A node edited by the TacMap Plugin that stores location of obstacles and
 ## places walls and floors for levels of a grid-based turn-based tactical combat game
 ## like XCom, Phantom Doctrine or Phoenix Point.[br]
@@ -13,7 +10,6 @@ signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited
 ## NOTE: Maps can overlay if they are different TacNav layers (height), 
 ## but please don't overlap them on the same layer.
 
-#TODO Test if we can extend this script and the storage and zone logic still works properly.
 #TODO Auto-tile upon rebuild
 
 @export var size := Vector2i(12, 12) : 
@@ -31,7 +27,6 @@ signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited
 
 # Actual useful map contents, built upon «_ready()».
 var placed : Dictionary[Vector2i, Array]  # Array of Node3D at given coordinate.
-var zoned : Dictionary[Vector2i, Array]  # Association of tile with a zone
 
 #region Inspector Buttons
 @export_tool_button("Crop Map") var crop_map_func = crop_map  ## Clear tiles that are outside map area. Usually they are preserved to have persistance when offseting the tiles.
@@ -133,14 +128,6 @@ func _ready() -> void:
 		#TODO How may I click through empty tiles and detect maps beyond this shape?
 		collision_layer = Con.phys_layer["tacmap"]
 		input_ray_pickable = true
-		
-		# Set zones to tiles
-		for z in zones:
-			var area = zones[z]
-			for y in range(area.position.y, area.end.y):
-				for x in range(area.position.x, area.end.x):
-					var tile = zoned.get_or_add(Vector2i(x,y), [])
-					tile.append(z)
 	
 	print("TacMap loaded: «", name,"»; Tiles defined: ", tiles.size())
 
@@ -228,27 +215,3 @@ func get_spatial_height() -> float:
 	assert(get_parent() is TacNav)
 	var tacnav : TacNav = get_parent()
 	return snappedf(position.y, get_tile_height()) + tacnav.position.y
-
-#region Entity Access
-
-func check_zone(actor:TacCharacter, ini:Vector2i, end:Vector2i):
-	var ini_zones = zoned.get(ini, [])
-	var end_zones = zoned.get(end, [])
-	var exit_zones : Array[String]
-	var enter_zones : Array[String]
-	
-	for zone in ini_zones:
-		if not zone in end_zones:
-			exit_zones.append(zone)
-	for zone in end_zones:
-		if not zone in ini_zones:
-			enter_zones.append(zone)
-	
-	for zone in exit_zones:
-		actor.exited_zone(zone)
-		zone_exited.emit(zone, actor)
-	for zone in enter_zones:
-		actor.entered_zone(zone)
-		zone_entered.emit(zone, actor)
-	return OK
-#endregion

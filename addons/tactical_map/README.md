@@ -1,7 +1,7 @@
-By default, the plugin uses assets in its "Assets" folder. To change the location edit «settings.ini».
+By default, the plugin uses assets in its "Assets" plugin folder. To change the location edit «settings.ini».
 The actions of characters are also picked from the folder specified in the «settings.ini». The actions of the default location are always loaded, but may be overriden at the given location.
 
-When using the plugin, the first thing you do is add a "TacNav" node to you scene. It groups maps together and make navigation from map-to-map possible.
+When using the plugin, the first thing you do is add a "TacNav" node to your scene. It groups maps together and makes navigation from map-to-map possible.
 Having multiple maps lets you have areas of the world that are modular, altering them doesn't interfer with others, or avoid calculating a lot of empty grid cells, if there's long narrow corridor between two rooms, for example.
 Maps can also have different heights (layers), so you could make platforms or different floors to a building, for example.
 

@@ -36,11 +36,33 @@ func _input(event: InputEvent) -> void:  #TODO make work with _unhandled_input()
 		#if chara_coord.distance_to(self_coord) <= interact_distance:
 			#interacted.emit(self, Ses.curr_unit())
 
-
 func interaction():
 	_interaction()
 
 func _interaction():
+	pass
+
+func move_on_map(destination:Vector2i, teleport:=false):
+	var tacnav = get_tacnav()
+	if destination == get_nav_coord():
+		return
+	
+	var last_step = get_nav_coord()
+	var traject : Array[Vector2i]
+	if teleport:
+		traject = [destination]
+	else:
+		traject = tacnav.get_traject(self, destination)
+		traject.reverse()
+		traject.pop_back()  # Remove the starting point.
+	while not traject.is_empty():
+		var step = traject.pop_back()
+		var zones = tacnav.check_zone(self, last_step, step)
+		_step_on_map(step, zones.exited, zones.entered)
+		last_step = step
+
+## Override this function to define what happens when the character moves from one tile to the other.
+func _step_on_map(_step:Vector2i, zones_exited, zones_entered):
 	pass
 
 ### It returns if interaction was successful.
@@ -58,6 +80,7 @@ func _interaction():
 	
 ## Get the TacNav this object is part of.
 func get_tacnav() -> TacNav:
+	assert(get_parent() is TacNav)
 	return get_parent()
 ## In which Tactical Grid is this object on top?[br]
 func get_tacmap() -> TacMap:

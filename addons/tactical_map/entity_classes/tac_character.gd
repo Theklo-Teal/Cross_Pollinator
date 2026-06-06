@@ -53,13 +53,6 @@ func switch_state(next_state:StringName = &""):
 	prev.exit(next)
 	next.enter(prev)
 
-## Override this if the character responds to a certain TacMap zone in a particular way.
-func entered_zone(_zone:String):
-	pass
-## Override this if the character responds to a certain TacMap zone in a particular way.
-func exited_zone(_zone:String):
-	pass
-
 func _process(delta: float) -> void:
 	stt.back().process(delta)
 func _unhandled_input(event: InputEvent) -> void:

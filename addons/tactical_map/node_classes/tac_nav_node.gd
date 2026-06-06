@@ -5,6 +5,9 @@ class_name TacNav
 ## A node that handles the navigation of multiple TacMaps and places characters where spawners are marked.
 
 signal navproxy_changed(tile_coord : Array[Vector3i])
+signal zone_entered(zone:StringName, chara:TacCharacter)  ## The character entered a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
+signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
+
 
 #FIXME Test object placements
 
@@ -17,7 +20,7 @@ signal navproxy_changed(tile_coord : Array[Vector3i])
 
 @export_storage var unique_spawners : Dictionary[StringName, TacEntitySpawner]
 var charas : Array[TacCharacter]  ## Reference to placed characters.
-var zones : Dictionary[Vector2i, StringName]
+var zoned : Dictionary[Vector2i, Array]  ## [nav_coordi][i] -> StringName; Association of tile with a zone
 #var ladders : Dictionary[Vector2i, StringName]  ## Coordinate of tiles connecting to a "ladder" of common name with other TacMaps.
 
 
@@ -74,7 +77,6 @@ func get_traject(entity:TacCharacter, destination : Vector2i) -> PackedVector2Ar
 	var stop = Saliko.vec2i_id(destination)
 	return navgraph[loc.tacmap.get_nav_layer()][entity.attitude].get_point_path(start, stop, true)
 
-
 ## Find the map and coordinate of a TacEntity.
 ## It will give the map closest to the entity with a lower Y position.
 func locate_entity(entity:TacEntity) -> Dictionary:
@@ -92,6 +94,27 @@ func locate_entity(entity:TacEntity) -> Dictionary:
 		"tacmap": null,
 		"nav_coord": coord
 		}
+
+## Allows to tell which zones a character entered or exited while moving between two tiles
+## And triggers signals and functions about that.
+func check_zone(actor:TacEntity, ini:Vector2i, end:Vector2i) -> Dictionary:
+	var ini_zones = zoned.get(ini, [])
+	var end_zones = zoned.get(end, [])
+	var exit_zones : Array[String]
+	var enter_zones : Array[String]
+	
+	for zone in ini_zones:
+		if not zone in end_zones:
+			exit_zones.append(zone)
+	for zone in end_zones:
+		if not zone in ini_zones:
+			enter_zones.append(zone)
+ 	
+	for zone in exit_zones:
+		zone_exited.emit(zone, actor)
+	for zone in enter_zones:
+		zone_entered.emit(zone, actor)
+	return {"entered": enter_zones, "exited":exit_zones}
 
 ## Produce a sprite that fits a tile. Optionally provide a map if the [code]coord[/code] is relative to it.
 func place_tile_sprite(texture:Texture2D, coord:Vector2i, map:TacMap=null) -> Sprite3D:
@@ -236,6 +259,14 @@ func _ready() -> void:
 					for trans in range(Tac.Trans.size()):
 						var graph : AStar2D = navgraph[layer][trans]
 						graph.add_point(tile_id, nav_tile)
+					
+					# Set zones to tiles
+					for z in map.zones:
+						var zone_area = map.zones[z]
+						for y in range(zone_area.position.y, zone_area.end.y):
+							for x in range(zone_area.position.x, zone_area.end.x):
+								var tile_at_zone = zoned.get_or_add(map2nav(Vector2i(x,y), map), [])
+								tile_at_zone.append(z)
 		
 		if not OS.has_feature("editor_hint"):
 			# Connect points in the graph of current layer.
