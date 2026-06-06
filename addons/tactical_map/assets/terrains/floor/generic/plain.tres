@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="FloorInfo" format=3 uid="uid://baal4guq7nueq"]
+
+[ext_resource type="Texture2D" uid="uid://bcjpurkroyf86" path="res://addons/tactical_map/assets/terrains/floor/assets/generic.png" id="1_rhd1s"]
+[ext_resource type="Script" uid="uid://cc17nwpwmc2h" path="res://addons/tactical_map/resource_classes/floor_info.gd" id="1_x8vv0"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_byhgc"]
+atlas = ExtResource("1_rhd1s")
+region = Rect2(0, 0, 32, 32)
+
+[resource]
+script = ExtResource("1_x8vv0")
+name = &"Plain"
+atlas = SubResource("AtlasTexture_byhgc")
+tiles = Dictionary[String, Vector2i]({
+"Grid Cell": Vector2i(0, 32),
+"Plain": Vector2i(0, 0)
+})
+metadata/_custom_type_script = "uid://cc17nwpwmc2h"
+metadata/terrain_family = "floor"

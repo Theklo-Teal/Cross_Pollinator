@@ -1,0 +1,21 @@
+Placeholder Voiceovers
+[completion_1_alex.wav
+completion_2_karen.wav
+completion_4_karen.wav
+completion_8_karen.wav
+completion_8_sean.wav
+confirmation_4_alex.wav
+confirmation_5_karen.wav
+farewell_3_karen.wav
+greetings_3_alex.wav
+greeting_10_karen.wav
+miscellaneous_8_alex.wav
+refusal_4_alex.wav
+refusal_6_karen.wav]
+From Super Dialogue Audio Pack V1
+Produced by Dillon Becker (dillonbecker.com)
+Under Attribution 4.0 International (CC BY 4.0)
+Actors:
+[Alex Brodie (brodievoices@gmail.com)
+Karen Cenon (karencenon@gmail.com)
+Sean Lenhart (theseanlenhart@gmail.com)]

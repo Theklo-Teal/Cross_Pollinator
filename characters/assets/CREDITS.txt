@@ -1,0 +1,4 @@
+[male_police.glb
+female_gunner_002.glb
+] and associated assets
+Copyright [2025] Neko Ninja Labs

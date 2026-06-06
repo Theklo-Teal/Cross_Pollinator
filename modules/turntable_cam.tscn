@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://cxfeoyapo1k04"]
+
+[sub_resource type="GDScript" id="GDScript_qc7yt"]
+resource_name = "turntable_cam"
+script/source = "extends Node3D
+@export var min_speed : float = 5.0  ## Speed scales with height of the camera. This is the top speed at [code]min_height[/code].
+@export var max_speed : float = 10.0  ## Speed scales with height of the camera. This is the top speed at [code]max_height[/code].
+@export var torque : float = 0.3  ## Rotation speed for pitching or yaw.
+@export var min_height : int = 2  ## Camera Floor
+@export var max_height : int = 12  ## Camera Ceiling
+@export var focus_distance : float = 4.0  ## How far is the camera from the gimbal it rotates around.
+
+var target_height := 0.0 : 
+	set(val):
+		target_height = clamp(val, min_height, max_height)
+
+var disabled := false  # Can the player control the camera?
+
+func _ready():
+	target_height = clamp(position.y, min_height, max_height)
+	$Cam.position.z = focus_distance
+
+func _physics_process(delta):
+	if disabled:
+		return
+	var sway = Input.get_axis(\"cam_truck_left\", \"cam_truck_right\")
+	var surge = Input.get_axis(\"cam_dolly_forth\", \"cam_dolly_back\")
+	var scaled_speed = remap(target_height, min_height, max_height, min_speed, max_speed)
+	position += (basis.x * Vector3(1,0,1)) * sway * delta * scaled_speed
+	position += (basis.z * Vector3(1,0,1)) * surge * delta * scaled_speed
+	if not is_equal_approx(position.y, target_height):
+		position.y = move_toward(position.y, target_height, delta * min_speed)
+
+func _unhandled_input(event):
+	if disabled:
+		return
+	
+	if event.is_action_pressed(\"cam_elev_up\"):
+		target_height = min(max_height, target_height + 1)
+	elif event.is_action_pressed(\"cam_elev_down\"):
+		target_height = max(min_height, target_height - 1)
+
+	if event is InputEventMouseButton:
+		# Constrain Mouse for rotation
+		if event.button_index == MOUSE_BUTTON_MIDDLE:
+			if event.is_pressed():
+				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			elif event.is_released():
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+				
+	
+	if event is InputEventMouseMotion:
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE):
+			# Rotate Camera
+			rotation_degrees.y -= event.relative.x * torque
+			rotation.y = wrap(rotation.y, -PI, PI)
+			$Cam.rotation_degrees.x -= event.relative.y * torque
+			$Cam.rotation.x = clamp($Cam.rotation.x, -PI * 0.5, PI * 0.5)
+"
+
+[node name="CamGimbal" type="Node3D" unique_id=1014619467]
+script = SubResource("GDScript_qc7yt")
+
+[node name="Cam" type="Camera3D" parent="." unique_id=1157287681]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+fov = 55.0

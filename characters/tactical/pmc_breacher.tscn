@@ -1,0 +1,96 @@
+[gd_scene format=3 uid="uid://baklc8tkjmqmr"]
+
+[ext_resource type="Script" uid="uid://7joc0mi1ivb5" path="res://characters/tactical/behaving_character.gd" id="1_oe238"]
+[ext_resource type="PackedScene" uid="uid://b0ow53pi801j7" path="res://characters/assets/PMC/male_police.glb" id="2_d7mxy"]
+[ext_resource type="Texture2D" uid="uid://nm1ni7d50dp1" path="res://addons/tactical_map/assets/trollface.png" id="2_mgh5f"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_mgh5f"]
+height = 1.7998047
+radius = 0.22802734
+
+[node name="PmcBreacher" type="Area3D" unique_id=539317064]
+script = ExtResource("1_oe238")
+proper_name = "Joe Schmoe"
+alias = "Breacher"
+codename = "Two Clubs"
+portrait = ExtResource("2_mgh5f")
+team = 2
+sex = 1
+blood = 12
+max_health = 5
+max_stamina = 6
+max_mental = 3
+appeal = 3
+speed = 2
+will = 5
+metadata/_custom_type_script = "uid://7joc0mi1ivb5"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=526780206]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.89990234, 0)
+shape = SubResource("CylinderShape3D_mgh5f")
+
+[node name="male_police" parent="." unique_id=632188372 instance=ExtResource("2_d7mxy")]
+
+[node name="Skeleton3D" parent="male_police/RIG male police" parent_id_path=PackedInt32Array(632188372, 1859954790) index="0" unique_id=1269886203]
+bones/0/position = Vector3(-2.3386183e-18, 0.9137534, -0.0018728776)
+bones/0/rotation = Quaternion(0.056703888, 1.1901752e-07, 6.759628e-09, 0.99839103)
+bones/1/rotation = Quaternion(-0.098282255, -2.3726425e-07, -4.4408914e-14, 0.9951586)
+bones/2/rotation = Quaternion(0.99739975, 0.009660861, 0.0047143903, 0.07126184)
+bones/3/rotation = Quaternion(0.10162402, 0.016343461, -0.010971883, 0.9946282)
+bones/4/rotation = Quaternion(0.026341287, 0.019812806, 0.013180236, 0.99936974)
+bones/5/rotation = Quaternion(0.9973996, -0.009660841, -0.0047142007, 0.071263686)
+bones/6/rotation = Quaternion(0.10162598, -0.01634344, 0.010971908, 0.99462795)
+bones/7/rotation = Quaternion(0.02634309, -0.019812822, -0.013180388, 0.99936974)
+bones/11/position = Vector3(6.9364667e-15, 1.273039, 0.0065166336)
+bones/11/rotation = Quaternion(0.016622884, 1.19193096e-07, 1.981608e-09, 0.9998619)
+bones/12/position = Vector3(0.05451474, 0.19889322, -0.010577087)
+bones/12/rotation = Quaternion(0.6642165, 0.42339662, 0.4747695, -0.39261392)
+bones/13/rotation = Quaternion(-0.50891, 0.1409732, 0.03143508, 0.848616)
+bones/14/rotation = Quaternion(0.031606607, 0.1304439, -0.058011398, 0.9892524)
+bones/15/rotation = Quaternion(-0.021376926, -0.0022754776, -0.09188783, 0.9955373)
+bones/16/rotation = Quaternion(0.08280184, -0.14106302, 0.110503174, 0.98032343)
+bones/17/rotation = Quaternion(-0.4971813, 0.014207263, -0.0042103496, 0.8675202)
+bones/19/position = Vector3(0.050034232, 0.0340875, -0.025085947)
+bones/19/rotation = Quaternion(-0.0337354, -0.26287636, -0.031761907, 0.9637164)
+bones/20/rotation = Quaternion(0.037524313, 0.18013933, 0.06211943, 0.9809602)
+bones/21/rotation = Quaternion(0.03173843, 0.0060029263, -0.0031066858, 0.9994734)
+bones/22/rotation = Quaternion(0.7209665, -0.0020196987, 0.0069263745, 0.6929324)
+bones/23/position = Vector3(-0.05451473, 0.19889323, -0.010577097)
+bones/23/rotation = Quaternion(0.6642166, -0.42339662, -0.47476932, -0.39261404)
+bones/24/rotation = Quaternion(-0.50890887, -0.14097404, -0.0314364, 0.8486164)
+bones/25/rotation = Quaternion(0.031603903, -0.13044216, 0.05801238, 0.9892526)
+bones/26/rotation = Quaternion(-0.021375444, 0.002273933, 0.091889724, 0.99553716)
+bones/27/rotation = Quaternion(0.082802184, 0.14106257, -0.11050447, 0.9803234)
+bones/28/rotation = Quaternion(-0.49718118, -0.014207424, 0.0042106644, 0.8675202)
+bones/30/position = Vector3(-0.050032414, 0.034188192, -0.025132399)
+bones/30/rotation = Quaternion(-0.12963225, 0.2662439, 0.0049133967, 0.95513636)
+bones/31/rotation = Quaternion(0.015630059, -0.17353116, -0.07128994, 0.98212034)
+bones/32/position = Vector3(0.117148615, 0.14078286, -0.016621932)
+bones/32/rotation = Quaternion(0.9575907, 0.02135475, 0.0064062015, 0.28726828)
+bones/33/rotation = Quaternion(-0.007368235, 0.8803603, -0.47405085, 0.013683634)
+bones/34/position = Vector3(-0.117148615, 0.14078271, -0.01662203)
+bones/34/rotation = Quaternion(0.95759046, -0.021354772, -0.006406206, 0.2872689)
+bones/35/rotation = Quaternion(0.0073682377, 0.8803605, -0.47405055, -0.013683644)
+
+[node name="leg1_L" parent="male_police/RIG male police/Skeleton3D" index="0" unique_id=372565019]
+transform = Transform3D(0.9997689, 0.018599605, 0.0107809305, 0.01890627, -0.9993985, -0.029078111, 0.010233601, 0.029275224, -0.9995192, 0.09784861, 0.9509813, 0.06956216)
+
+[node name="slide" parent="male_police/RIG male police/Skeleton3D" index="1" unique_id=1362489804]
+transform = Transform3D(-0.06633486, 0.016945839, -0.99765354, -0.99127746, 0.112989776, 0.06783019, 0.11387408, 0.99345076, 0.009302931, -0.18396884, 0.8370825, 0.046813536)
+
+[node name="core" parent="male_police/RIG male police/Skeleton3D" index="2" unique_id=2058026890]
+transform = Transform3D(-0.06633486, 0.01694584, -0.9976536, -0.99127746, 0.11298978, 0.06783019, 0.11387408, 0.9934508, 0.009302932, -0.18494394, 0.8305809, -0.010351812)
+
+[node name="leg1_R" parent="male_police/RIG male police/Skeleton3D" index="3" unique_id=1683014718]
+transform = Transform3D(0.99976885, -0.018599499, -0.010781053, -0.01890621, -0.99939805, -0.029081829, -0.010233657, 0.029278934, -0.9995188, -0.09784864, 0.9509813, 0.06956216)
+
+[node name="head" parent="male_police/RIG male police/Skeleton3D" index="4" unique_id=507814113]
+transform = Transform3D(0.99999946, -0.0009793481, 0.00013455554, 1.5250407e-07, -0.13596106, -0.9907142, 0.0009885477, 0.9907137, -0.1359609, 0.00067560916, 1.6024659, 0.023976084)
+
+[node name="spine3" parent="male_police/RIG male police/Skeleton3D" index="5" unique_id=888425541]
+transform = Transform3D(1, -2.6645353e-15, 2.3841912e-07, 7.925334e-09, 0.99944735, -0.033241175, -2.3828736e-07, 0.033241175, 0.99944735, 6.9364667e-15, 1.273039, 0.0065166336)
+
+[node name="AnimationPlayer" parent="male_police" index="1" unique_id=1129150111]
+autoplay = &"act_idle"
+
+[editable path="male_police"]

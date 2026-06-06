@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CharacterID" format=3 uid="uid://n265vq23g8y8"]
+
+[ext_resource type="Texture2D" uid="uid://opfbn6hgkjrs" path="res://addons/tactical_map/assets/chad_wojak.png" id="1_21w6t"]
+[ext_resource type="Script" uid="uid://cd1xjw6enffjq" path="res://characters/chara_identity.gd" id="2_nw001"]
+
+[resource]
+script = ExtResource("2_nw001")
+codename = "Dandelion"
+proper_name = Array[String](["Ethan Joe Lennox"])
+alias = Array[String](["Ace of Spades"])
+sex = 2
+blood = 4
+flavor = "Savvy in traps and clever quips."
+metadata/_custom_type_script = "uid://cd1xjw6enffjq"

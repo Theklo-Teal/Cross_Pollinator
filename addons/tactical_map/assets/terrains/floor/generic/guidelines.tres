@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="FloorInfo" format=3 uid="uid://dh858fhl8eea1"]
+
+[ext_resource type="Script" uid="uid://cc17nwpwmc2h" path="res://addons/tactical_map/resource_classes/floor_info.gd" id="1_00gwd"]
+[ext_resource type="Texture2D" uid="uid://bcjpurkroyf86" path="res://addons/tactical_map/assets/terrains/floor/assets/generic.png" id="1_s7ujw"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mjmk3"]
+atlas = ExtResource("1_s7ujw")
+region = Rect2(96, 32, 32, 32)
+
+[resource]
+script = ExtResource("1_00gwd")
+name = &"Guide Lines"
+atlas = SubResource("AtlasTexture_mjmk3")
+tiles = Dictionary[String, Vector2i]({
+"Arrow": Vector2i(96, 32),
+"Corner": Vector2i(64, 0),
+"End": Vector2i(32, 0),
+"Straight": Vector2i(32, 32),
+"T-Cross": Vector2i(64, 32),
+"X-Cross": Vector2i(96, 0)
+})
+metadata/_custom_type_script = "uid://cc17nwpwmc2h"
+metadata/terrain_family = "floor"

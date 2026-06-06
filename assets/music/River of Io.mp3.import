@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://uawlu5k4n8tv"
+path="res://.godot/imported/River of Io.mp3-b9447b3d23e730d9582b8b1befaed216.mp3str"
+
+[deps]
+
+source_file="res://assets/music/River of Io.mp3"
+dest_files=["res://.godot/imported/River of Io.mp3-b9447b3d23e730d9582b8b1befaed216.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

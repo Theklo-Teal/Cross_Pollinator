@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CharacterID" format=3 uid="uid://dipk3baj0jn7s"]
+
+[ext_resource type="Texture2D" uid="uid://opfbn6hgkjrs" path="res://addons/tactical_map/assets/chad_wojak.png" id="1_p51o0"]
+[ext_resource type="Script" uid="uid://cd1xjw6enffjq" path="res://characters/chara_identity.gd" id="2_35uqi"]
+
+[resource]
+script = ExtResource("2_35uqi")
+codename = "Katydid"
+proper_name = Array[String](["Katherine Klein"])
+sex = 3
+blood = 18
+flavor = "Warehouse researcher and the last remaining of the first to analyze Agarthian technology. Unwitting exposure to Agarthian gene therapy has altered her physiology in unexpected ways and allowed to live up to 88 years without much aging.
+In 2025 she is working on decyphering Numbers Stations which had be found to be of Agarthian origin. The radio broadcasts transmit communications under psycho-acoustic camoflage, making someone but Agarthians to hear random memories from their own minds instead."
+metadata/_custom_type_script = "uid://cd1xjw6enffjq"

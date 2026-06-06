@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://wyu876xnc73d"
+path="res://.godot/imported/I Feel You.mp3-514dfe42ea136393e54ae0d1897daad2.mp3str"
+
+[deps]
+
+source_file="res://assets/music/I Feel You.mp3"
+dest_files=["res://.godot/imported/I Feel You.mp3-514dfe42ea136393e54ae0d1897daad2.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

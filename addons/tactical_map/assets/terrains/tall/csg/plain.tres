@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WallInfo" format=3 uid="uid://qe6vkc1vpl6x"]
+
+[ext_resource type="Script" uid="uid://d2naahh01f7l8" path="res://addons/tactical_map/resource_classes/wall_info.gd" id="1_m3f7j"]
+[ext_resource type="Texture2D" uid="uid://385i0fp0lgjk" path="res://addons/tactical_map/assets/terrains/tall/csg/thumb/single_plain.png" id="2_c44fk"]
+
+[resource]
+script = ExtResource("1_m3f7j")
+name = &"Plain"
+thumbnail = ExtResource("2_c44fk")
+transition = 3
+asset_single = &"uid://c24d8bdewuerx"
+asset_corner = &"uid://bvhyqa61iofkp"
+metadata/_custom_type_script = "uid://d2naahh01f7l8"

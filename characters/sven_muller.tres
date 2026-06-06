@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CharacterID" format=3 uid="uid://dkhaa14algcg1"]
+
+[ext_resource type="Texture2D" uid="uid://opfbn6hgkjrs" path="res://addons/tactical_map/assets/chad_wojak.png" id="1_odpgc"]
+[ext_resource type="Script" uid="uid://cd1xjw6enffjq" path="res://characters/chara_identity.gd" id="2_w3kaa"]
+
+[resource]
+script = ExtResource("2_w3kaa")
+codename = "Commodore"
+proper_name = Array[String](["Sven Muller"])
+alias = Array[String](["Jack of Clubs"])
+sex = 2
+blood = 9
+metadata/_custom_type_script = "uid://cd1xjw6enffjq"

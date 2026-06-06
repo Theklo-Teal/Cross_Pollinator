@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bvhyqa61iofkp"]
+
+[node name="CornerPlain" type="CSGCombiner3D" unique_id=358403433]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=1946040170]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, 0.1)
+size = Vector3(1, 2, 0.2)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="." unique_id=1336930071]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.9, 1, 0.5)
+size = Vector3(1, 2, 0.2)

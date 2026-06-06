@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://8xdvbddoca3k"]
+
+[ext_resource type="Texture2D" uid="uid://b001fw7qgf0b6" path="res://XPoll_logo.png" id="1_g8ogf"]
+[ext_resource type="AudioStream" uid="uid://btdcctxcg05lq" path="res://assets/music/Clean Soul.mp3" id="2_dftu7"]
+
+[sub_resource type="GDScript" id="GDScript_g8ogf"]
+script/source = "extends Control
+
+
+func _on_quit_pressed() -> void:
+	get_tree().quit(OK)
+
+func _on_new_save_pressed() -> void:
+	get_tree().change_scene_to_file(Con.sett.get_value(\"Session\", \"game_mode\", \"res://scenarios/gm_regular/main.tscn\"))
+
+func _on_last_save_pressed() -> void:
+	get_tree().change_scene_to_file(\"res://Sandbox.tscn\")
+"
+
+[node name="MainMenu" type="Control" unique_id=575489396]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_g8ogf")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1612075126]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 129.0
+grow_vertical = 2
+alignment = 1
+
+[node name="New_Save" type="Button" parent="VBoxContainer" unique_id=836124608]
+layout_mode = 2
+text = "New Adventure"
+
+[node name="Last_Save" type="Button" parent="VBoxContainer" unique_id=2037583874]
+layout_mode = 2
+text = "Continue"
+
+[node name="Load_Save" type="Button" parent="VBoxContainer" unique_id=896998179]
+layout_mode = 2
+text = "Load"
+
+[node name="Quit" type="Button" parent="VBoxContainer" unique_id=1652932708]
+layout_mode = 2
+text = "Quit"
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1808130008]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -128.0
+offset_top = -64.0
+offset_bottom = 64.0
+grow_horizontal = 0
+grow_vertical = 2
+texture = ExtResource("1_g8ogf")
+
+[node name="BG_Music" type="AudioStreamPlayer" parent="." unique_id=904167886]
+stream = ExtResource("2_dftu7")
+autoplay = true
+
+[connection signal="pressed" from="VBoxContainer/New_Save" to="." method="_on_new_save_pressed"]
+[connection signal="pressed" from="VBoxContainer/Last_Save" to="." method="_on_last_save_pressed"]
+[connection signal="pressed" from="VBoxContainer/Quit" to="." method="_on_quit_pressed"]

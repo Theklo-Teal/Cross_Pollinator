@@ -1,0 +1,37 @@
+[Maps]
+unlocked = ["entrance",]
+
+[Team]
+characters = ["seigro_gamma",]
+carapace = false
+mayfly = false
+sensokugol = false
+exokiraso = false
+items = []
+
+[seigro_gamma]
+health = 5
+mental = 5
+rank = 0
+status = []
+armor = []
+actions = []
+
+[ethan_lennox]
+health = 5
+mental = 5
+rank = 0
+status = []
+armor = []
+actions = []
+
+[sven_muller]
+health = 5
+mental = 5
+rank = 0
+status = []
+armor = []
+actions = []
+
+[katherine_klein]
+rank = 0

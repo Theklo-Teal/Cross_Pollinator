@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WallInfo" format=3 uid="uid://dde4siryu2vx8"]
+
+[ext_resource type="Script" uid="uid://d2naahh01f7l8" path="res://addons/tactical_map/resource_classes/wall_info.gd" id="1_kxj5w"]
+[ext_resource type="Texture2D" uid="uid://btiisj4wyqkka" path="res://addons/tactical_map/assets/terrains/tall/csg/thumb/single_window.png" id="2_rhypm"]
+
+[resource]
+script = ExtResource("1_kxj5w")
+name = &"Plain Window"
+thumbnail = ExtResource("2_rhypm")
+transition = 3
+asset_single = &"uid://bi3fvela4rdfv"
+asset_corner = &"uid://c0axll76s4mar"
+metadata/_custom_type_script = "uid://d2naahh01f7l8"

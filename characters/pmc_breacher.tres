@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CharacterID" format=3 uid="uid://raphky7pwq87"]
+
+[ext_resource type="Texture2D" uid="uid://opfbn6hgkjrs" path="res://addons/tactical_map/assets/chad_wojak.png" id="1_22gjq"]
+[ext_resource type="Script" uid="uid://cd1xjw6enffjq" path="res://characters/chara_identity.gd" id="2_d01y2"]
+
+[resource]
+script = ExtResource("2_d01y2")
+codename = "Knight"
+alias = Array[String](["Lockpick", "Boomstick"])
+blood = 31
+flavor = "A mercenary from a Private Military Corporation that wields a shotgun."
+metadata/_custom_type_script = "uid://cd1xjw6enffjq"

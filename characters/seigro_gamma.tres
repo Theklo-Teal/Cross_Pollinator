@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CharacterID" format=3 uid="uid://cyry15hfrl5tl"]
+
+[ext_resource type="Texture2D" uid="uid://ckqg75yv72n1h" path="res://characters/assets/Seigro_Gamma/Seigro_Portrait.png" id="1_pyig4"]
+[ext_resource type="Script" uid="uid://cd1xjw6enffjq" path="res://characters/chara_identity.gd" id="2_n84kg"]
+
+[resource]
+script = ExtResource("2_n84kg")
+portrait = ExtResource("1_pyig4")
+codename = "Anthracite"
+proper_name = Array[String](["Seigro Gamma 1693"])
+alias = Array[String](["Heart Ace"])
+sex = 4
+blood = 19
+flavor = "In combat, a ruthless machine, but in peace barely even says anything.
+Trained in the use of Exokirasso. As an Agarthian, she is the only member capable of activating their devices.
+She possesses a symbiote which regulates bodily functions and will administer painkillers, atropine and stimulants into her bloodstream, making her immune to chemical weapons and most biological hazards.
+She also possesses a \"Smart Goo\" suit with many benefits, but is vulnerable radiation and electronic warefare.
+She is 18 years old in 2025, or 1711 in Agarthian calendar. Making her military career 12 years long, as Agarthians are born (or manufactured) fully developed as adults.
+Her Agarthian signature is petrichor or geosmin, an identifying quality that Katherine seems to pick up mysteriously.
+Her military training tattoo doesn't state a division, like most Agarthian soldiers, only depicting the emblem of Agartha."
+metadata/_custom_type_script = "uid://cd1xjw6enffjq"
