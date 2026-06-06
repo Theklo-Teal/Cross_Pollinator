@@ -8,8 +8,7 @@ signal navproxy_changed(tile_coord : Array[Vector3i])
 signal zone_entered(zone:StringName, chara:TacCharacter)  ## The character entered a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
 signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
 
-
-#FIXME Test object placements
+#FIXME navgraphs don't find coords mentioned by navqueue
 
 #NOTE This node only produces navigation graphs when first ready on an executed project. Otherwise it uses «navproxy» which is easily modified.
 # Modifications to children TacMap during execution will modify «navsession» variable, which initally is a copy of the graphs.
@@ -18,7 +17,7 @@ signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited
 @export var tile_size : float = 1.0  ## (meters) The lateral length of square tiles that all children maps abide to.
 @export var tile_height : float = 2.0  ## How high walls can get.
 
-@export_storage var unique_spawners : Dictionary[StringName, TacEntitySpawner]
+var unique_spawners : Dictionary[StringName, Dictionary]
 var charas : Array[TacCharacter]  ## Reference to placed characters.
 var zoned : Dictionary[Vector2i, Array]  ## [nav_coordi][i] -> StringName; Association of tile with a zone
 #var ladders : Dictionary[Vector2i, StringName]  ## Coordinate of tiles connecting to a "ladder" of common name with other TacMaps.
@@ -212,7 +211,8 @@ func _process(delta: float) -> void:
 					var adja_tile = coord2i + Tac.Dir_Vect[dir]
 					adja_ids.append(Saliko.vec2i_id(adja_tile))
 					adjacents.append(map.tiles.get(adja_tile))
-				var transcodes = this_tile.get_trans_codes(adjacents).sides
+				var transcodes : Array[Tac.Trans]
+				transcodes.assign(this_tile.get_trans_codes(adjacents).sides)
 				set_navigation(navsession, layer, Saliko.vec2i_id(coord2i), adja_ids, transcodes)
 
 
@@ -225,16 +225,16 @@ func _ready() -> void:
 		
 		# Instantiate navigation graphs to the layer of the map
 		if not layer in navgraph:
+			navgraph[layer] = {}
 			for trans in range(Tac.Trans.size()):
-				navgraph[layer] = {}
 				navgraph[layer][trans] = AStar2D.new()
 		
 		for map : TacMap in maps[layer]:
-			if OS.has_feature("editor_hint"):
+			if not OS.has_feature("editor_hint"):
 				# Place Entities/Characters
-				for map_coord in map.spawns:
+				for map_coord in map.spawners:
 					var spawn_nav_tile = map2nav(map_coord, map)
-					var characters = map.spawns[map_coord].generate(map_coord)
+					var characters = map.spawners[map_coord].generate(map_coord)
 					for chara : TacEntity in characters:
 						var chara_tile = map2nav(characters[chara], map)
 						chara.position = tile2spatial(chara_tile, layer, true)
@@ -272,7 +272,11 @@ func _ready() -> void:
 			# Connect points in the graph of current layer.
 			for nav_tile in layer_cells:
 				var tile_id = Saliko.vec2i_id(nav_tile)
-				set_navigation(navgraph, layer, tile_id, layer_cells[nav_tile].adjacent_ids, layer_cells[nav_tile].transcodes)
+				var adjacents : Array[int]
+				adjacents.assign(layer_cells[nav_tile].adjacent_ids)
+				var transcodes : Array[Tac.Trans]
+				transcodes.assign(layer_cells[nav_tile].transcodes)
+				set_navigation(navgraph, layer, tile_id, adjacents, transcodes)
 	
 	navsession = navgraph.duplicate_deep()
 

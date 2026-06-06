@@ -20,7 +20,39 @@ class_name TacMap
 
 # Info used to build the map.
 #NOTE: The spawners being in a dictionary ensures they are in unique coordinates. Also makes it fast to search if a coordinate is occupied.
-@export var spawns : Dictionary[Vector2i, TacEntitySpawner]  ## Where NPCs are added
+@export var spawners : Dictionary[Vector2i, TacEntitySpawner]  ## Where NPCs are added
+func add_spawner(where:Vector2i, which:TacEntitySpawner):
+	spawners[where] = which
+	var tacnav : TacNav = get_parent()
+	# Ensure whether uniques exist already.
+	if which.unique_to_tacnav in tacnav.unique_spawners:
+		var rival : Dictionary = tacnav.unique_spawners[which.unique_to_tacnav]
+		rival.map.rem_spawner(rival.coordi)
+	# Register as being unique.
+	if not which.unique_to_tacnav.is_empty():
+		tacnav.unique_spawners[which.unique_to_tacnav] = {
+			"map" : self,
+			"coordi" : where 
+			}
+	
+	var id = str(Saliko.vec2i_id(where))
+	if spawns.has_node(id):
+		# Ensure there isn't a sprite at that place already.
+		spawns.get_node(id).queue_free()
+	# Create new sprite.
+	var sprite := Sprite3D.new()
+	sprite.texture = which.icon
+	sprite.pixel_size = get_tile_size() / sprite.texture.get_width() * 0.65
+	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sprite.position = Saliko.Vec2AddAxis(where, 1, get_tile_height() * 0.2) + Vector3(0.5, 0, 0.5) * get_tile_size()
+	sprite.name = id
+	spawns.add_child.call_deferred(sprite, true, Node.INTERNAL_MODE_FRONT)
+func rem_spawner(where:Vector2i):
+	spawners.erase(where)
+	var id = str(Saliko.vec2i_id(where))
+	if spawns.has_node(id):
+		spawns.get_node(id).queue_free()
+
 @export_storage var ladders : Dictionary[Vector2i, String]  ## Tiles that will teleport characters to other tiles of any TacMap under the same TacNav with the same ladder title.
 @export_storage var zones : Dictionary[String, Rect2i]  ## Areas that emit a signal when a characters enters or leaves.
 @export_storage var tiles : Dictionary[Vector2i, TacTile]  ## Contents of grid cells.
@@ -99,7 +131,7 @@ func update_area():
 var area_collider := CollisionShape3D.new()
 var floors := Node3D.new()
 var walls := Node3D.new()
-var spawners := Node3D.new()
+var spawns := Node3D.new()
 func _ready() -> void:
 	area_collider.shape = BoxShape3D.new()
 	area_collider.shape.size = Vector3(size.x * get_tile_size(), 0.2, size.y * get_tile_size())
@@ -108,7 +140,7 @@ func _ready() -> void:
 	add_child(area_collider, true, INTERNAL_MODE_BACK)
 	add_child(floors, true, INTERNAL_MODE_BACK)
 	add_child(walls, true, INTERNAL_MODE_FRONT)
-	add_child(spawners, true, INTERNAL_MODE_FRONT)
+	add_child(spawns, true, INTERNAL_MODE_FRONT)
 	area_collider.name = "TacMapArea"
 	floors.name = "TacMapFloors"
 	walls.name = "TacMapWalls"
@@ -123,7 +155,12 @@ func _ready() -> void:
 				else:
 					queue_place.append(coord)
 	
-	if not OS.has_feature("editor_hint"):
+	if OS.has_feature("editor_hint"):
+		var former = spawners.duplicate_deep()
+		spawners.clear()
+		for each in former:
+			add_spawner(each, former[each])
+	else:
 		# Give parameters for the collision shape for mouse detection.
 		#TODO How may I click through empty tiles and detect maps beyond this shape?
 		collision_layer = Con.phys_layer["tacmap"]

@@ -103,7 +103,7 @@ func perform_action(_decision: Decision):
 #region
 var enemy_spotted : Dictionary[TacCharacter, Vector2i]  ## Remember which enemies were detected and where.
 
-func can_see(chara:TacCharacter) -> bool:
+func can_see(_chara:TacCharacter) -> bool:
 	## Is the "chara" in range and line of sight of this character?
 	#NOTE This assumes both this character the "chara" are in the same TacMap.
 	if "Blinded_Ailment" in info.ailment:

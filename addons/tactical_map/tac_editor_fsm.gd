@@ -474,11 +474,11 @@ class Player_Spawn_Mode extends Spawner_Mode:
 	
 	func left_release(alt:bool):
 		if me.within_map:
-			if me.map_hover_tile in me.curr_map.spawns:
-				me.curr_map.spawns.erase(me.map_hover_tile)
+			if me.map_hover_tile in me.curr_map.spawners:
+				me.curr_map.rem_spawner(me.map_hover_tile)
 			else:
-				me.curr_map.spawns.set(me.map_hover_tile, PlayerSpawn.new())
-		return super(alt)
+				me.curr_map.add_spawner(me.map_hover_tile, PlayerSpawn.new())
+			return super(alt)
 
 
 class NPC_Spawn_Mode extends Spawner_Mode:
@@ -518,7 +518,7 @@ class Coord_Capture extends TacEditorState:
 	func left_release(alternate:bool):
 		if me.within_map:
 			var hover_tile_nav = me.curr_nav.map2nav(me.map_hover_tile, me.curr_map)
-			var coordi = Vector3i(me.hover_tile.x, me.curr_map.get_nav_layer(), me.hover_tile.y)
+			var coordi = Vector3i(me.hover_tile.x, me.curr_map.get_layer(), me.hover_tile.y)
 			me.pallet.set_tile_info(
 				hover_tile_nav,
 				me.map_hover_tile,

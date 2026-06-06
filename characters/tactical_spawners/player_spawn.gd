@@ -3,6 +3,7 @@ extends TacEntitySpawner
 class_name PlayerSpawn
 
 func _init() -> void:
+	icon = preload("res://addons/tactical_map/assets/wojak_feels.png")
 	unique_to_tacnav = "PlayerSpawn"
 
 func generate(origin:Vector2i) -> Dictionary[TacEntity, Vector2i]:
