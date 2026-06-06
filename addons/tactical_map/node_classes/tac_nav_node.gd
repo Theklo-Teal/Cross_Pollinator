@@ -34,7 +34,7 @@ var maps : Dictionary[int, Array]  ## [map layer][i] -> TacMap; Reference to pla
 
 ## Called by TacMaps when they are added as children of this Node.
 func _map_added(map:TacMap):
-	var layer = map.get_nav_layer()
+	var layer = map.get_layer()
 	if not layer in maps:
 		maps[layer] = []
 	elif map in maps[layer]:
@@ -145,6 +145,7 @@ func _process(delta: float) -> void:
 		for layer in maps:
 			for map : TacMap in maps[layer]:
 				area = area.merge(map.nav_area)
+		print("TacNav: Computed total map area ", area)
 	
 	if not nav_queue.is_empty():
 		nav_queue.clear.call_deferred()
@@ -337,7 +338,7 @@ func map2nav(coordi:Vector2i, map:TacMap) -> Vector2i:
 ## TacMap tile coord goes in and TacNav coordinate where that is comes out.
 func map3nav(coordi:Vector2i, map:TacMap) -> Vector3i:
 	coordi = map2nav(coordi, map)
-	return Vector3i(coordi.x, map.get_nav_layer(), coordi.y)
+	return Vector3i(coordi.x, map.get_layer(), coordi.y)
 #endregion
 
 #region To TacMap

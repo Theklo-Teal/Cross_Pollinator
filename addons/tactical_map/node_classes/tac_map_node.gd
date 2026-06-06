@@ -16,25 +16,11 @@ signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited
 #TODO Test if we can extend this script and the storage and zone logic still works properly.
 #TODO Auto-tile upon rebuild
 
-var nav_area : Rect2i  ## The area, in tile units, in the parent TacNav.
-var global_area : Rect2i  ## Area of the map in global 3D space, but in tile size units.
 @export var size := Vector2i(12, 12) : 
 	set(val):
 		size = val.maxi(1)
-		if not is_node_ready():
-			await ready
-		update_areas()
+		notification(NOTIFICATION_LOCAL_TRANSFORM_CHANGED)
 		#TODO: update placements if size changes.
-
-func update_areas():
-	assert(get_parent() is TacNav)
-	var tacnav : TacNav = get_parent()
-	var tile_size = get_tile_size()
-	var map_nav_pos : Vector2i = tacnav.spatial2tile(Saliko.Vec3RemAxis(position))
-	var map_glob_pos : Vector2i = tacnav.nav2spatial_tile(map_nav_pos)
-	nav_area = Rect2i(map_nav_pos, size)
-	global_area = Rect2i(map_glob_pos, size)
-	tacnav.area_outdated = true
 
 # Info used to build the map.
 #NOTE: The spawners being in a dictionary ensures they are in unique coordinates. Also makes it fast to search if a coordinate is occupied.
@@ -86,12 +72,33 @@ func _get_configuration_warnings() -> PackedStringArray:
 func _enter_tree() -> void:
 	assert(get_parent() is TacNav)
 	var tacnav : TacNav = get_parent()
+	position.y = snapped(position.y, get_tile_height())
+	position.x = snapped(position.x, get_tile_size())
+	position.z = snapped(position.z, get_tile_size())
+	update_area()
 	tacnav._map_added(self)
 
 func _exit_tree() -> void:
 	assert(get_parent() is TacNav)
 	var tacnav : TacNav = get_parent()
 	tacnav._map_removed(self)
+
+var nav_area : Rect2i  ## The area, in tile units, in the parent TacNav.
+var global_area : Rect2i  ## Area of the map in global 3D space, but in tile size units.
+var area_outdated : bool = true
+func _notification(what: int) -> void:
+	if not is_node_ready():
+		return
+	if what == NOTIFICATION_TRANSFORM_CHANGED:
+		area_outdated = true
+
+func update_area():
+	var tacnav : TacNav = get_parent()
+	var map_nav_pos : Vector2i = tacnav.spatial2tile(Saliko.Vec3RemAxis(position))
+	var map_glob_pos : Vector2i = tacnav.nav2spatial_tile(map_nav_pos)
+	nav_area = Rect2i(map_nav_pos, size)
+	global_area = Rect2i(map_glob_pos, size)
+	print("TacMap: Computed area ", nav_area)
 
 
 var area_collider := CollisionShape3D.new()
@@ -141,6 +148,10 @@ func _process(_delta: float) -> void:
 	if not queue_place.is_empty():
 		place_assets(queue_place)
 	queue_place.clear()
+	
+	if area_outdated:
+		area_outdated = false
+		update_area()
 
 var queue_place : Array[Vector2i]  # Observer Pattern: We append all the coordinates that need contents updated here, then only on the next frame are they updated, once the decision of what to update is final.
 ## Update the visual assets from the TacTile UIDs
@@ -206,8 +217,7 @@ func get_layer() -> int:
 	return floori(inverse_lerp(0, get_tile_height(), position.y))
 ## Get the spatial height of the map, but snapped to the grid of the parent TacNav tile_height. Also corrects self position.y if it is offset.
 func get_height() -> float:
-	position.y = snappedf(position.y, get_tile_height())
-	return position.y
+	return snappedf(position.y, get_tile_height())
 ## Get the height of the map according to increments of the parent TacNav tile_height in the global 3D grid.
 func get_spatial_layer() -> int:
 	assert(get_parent() is TacNav)
@@ -217,8 +227,7 @@ func get_spatial_layer() -> int:
 func get_spatial_height() -> float:
 	assert(get_parent() is TacNav)
 	var tacnav : TacNav = get_parent()
-	position.y = snappedf(position.y, get_tile_height())
-	return position.y + tacnav.position.y
+	return snappedf(position.y, get_tile_height()) + tacnav.position.y
 
 #region Entity Access
 

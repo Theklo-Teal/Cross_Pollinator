@@ -17,6 +17,8 @@ var spawner_copy : TacEntitySpawner
 func _enter_tree() -> void:
 	super()
 	
+	cam = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
+	
 	modes = {
 		"floor": Floor_Mode.new(self),
 		"tall": Tall_Wall_Mode.new(self),
@@ -142,7 +144,6 @@ func _forward_3d_gui_input(camera:Camera3D, event:InputEvent):
 	if curr_map == null or curr_mode().is_empty():
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
 	
-	
 	if event is InputEventMouseMotion:
 		cam = camera
 		floor.d = curr_map.get_spatial_height()
@@ -213,8 +214,6 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 	#NOTE That all 3D coordinates used for drawing are in global space.
 	if curr_map == null or curr_mode().is_empty():
 		return
-	
-	curr_map.update_areas()
 	
 	if cam == null:
 		return
