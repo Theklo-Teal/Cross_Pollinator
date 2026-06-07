@@ -47,6 +47,8 @@ func _map_added(map:TacMap):
 ## The optional parameters are used for «_map_layer_changed()», so usually not meaningful.
 func _map_removed(map:TacMap, layer_change:bool=false, layer_before:int=0):
 	var layer = map.get_layer()
+	if layer_change:
+		layer = layer_before
 	maps[layer].erase(map)
 	if maps[layer].is_empty():
 		maps.erase(layer)
@@ -376,6 +378,7 @@ func map3spatial(coordi:Vector2i, map:TacMap, centered:=false) -> Vector3:
 #endregion
 
 #region To TacNav
+## Global space coordinate to TacNav space coordinate.
 func spatial2nav(coord:Vector3) -> Vector2:
 	return Saliko.Vec3RemAxis(coord - position)
 
@@ -405,10 +408,12 @@ func map3nav(coordi:Vector2i, map:TacMap) -> Vector3i:
 #endregion
 
 #region To TacMap
+## Tile in Global space coordinate to a tile in TacMap space.
 func spatial_tile2map_tile(coordi:Vector2i, map:TacMap) -> Vector2i:
 	var coord = Saliko.Vec3RemAxis(position + map.position)
 	return  coordi - spatial2tile(coord)
 
+## Global space coordinate to TacMap space.
 func spatial2map(coord:Vector3, map:TacMap) -> Vector2:
 	coord -= position + map.position
 	return Saliko.Vec3RemAxis(coord)

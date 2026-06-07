@@ -30,14 +30,16 @@ func _interaction():
 func idle_enter():
 	$body_model/AnimationPlayer.play(\"act_idle\")
 
-func walk_started():
+func _traversal_start(curr_error:Error, destination:Vector2i, teleport:=false) -> Error:
 	$body_model/AnimationPlayer.play(\"act_walk_PHY\")
 	$voice.stream = voice.on_the_way
 	$voice.play()
+	return OK
 
-func walk_finished():
+func _traversal_finish(condition:Error=OK) -> Error:
 	$voice.stream = voice.ready
 	$voice.play()
+	return OK
 "
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_4xrqf"]

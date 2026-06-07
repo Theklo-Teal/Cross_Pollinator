@@ -42,34 +42,67 @@ func interaction():
 func _interaction():
 	pass
 
-func move_on_map(destination:Vector2i, teleport:=false) -> Error:
-	var tacnav = get_tacnav()
+#region Entity movement on the map
+var last_step : Vector2i  ## When walking a path, this is the last tile the character was in.
+var next_step : Vector3  ## The spatial position the character must reach to achieve the current step in their trajectory.
+var trajectory : Array[Vector2i]  ## The path the character will try to walk along.
+## Writes to the [code]trajectory[/code] variable in preparation to initiate movement on the map.[br]
+## Returns [code]ERR_ALREADY_EXISTS[/code] if destination and current position are the same.[br]
+## Returns [code]ERR_QUERY_FAILED[/code] if a path to the destination wasn't found, so trajectory is
+## partial.
+func traversal_start(destination:Vector2i, teleport:=false) -> Error:
 	if destination == get_nav_coord():
-		return ERR_ALREADY_IN_USE
+		return ERR_ALREADY_EXISTS
 	var result : Error = OK
 	
-	var last_step = get_nav_coord()
-	var traject : Array[Vector2i]
+	last_step = get_nav_coord()
 	if teleport:
-		traject = [destination]
+		trajectory = [destination]
 	else:
-		traject = tacnav.get_traject(self, destination)
-		traject.reverse()
-		traject.pop_back()  # Remove the starting point.
-	while not traject.is_empty():
-		var step = traject.pop_back()
-		var zones = tacnav.check_zone(self, last_step, step)
-		result = _step_on_map(step, zones.exited, zones.entered)
-		if result == ERR_CANT_CONNECT:
-			break
+		trajectory.assign( get_tacnav().get_traject(self, destination) )
+		trajectory.reverse()
+		trajectory.pop_back()  # Remove the starting point.
+		if not trajectory[0] == destination: # Trajectory is a partial path.
+			result = ERR_QUERY_FAILED
+	next_step = get_tacnav().tile2spatial(trajectory.back(), 0, true) * get_tacnav().tile_size + Vector3(0,position.y,0)
+	result = _traversal_start(result, destination, teleport)
+	return result
+
+func _traversal_start(curr_error:Error, destination:Vector2i, teleport:=false) -> Error:
+	return curr_error
+
+## Take a step along the trajectory, popping one of its coordinates along the way
+## and performing any checks necessary. If it returns [code]ERR_CANT_CONNECT[/code]
+## the movement of the character must be aborted.[br]
+## Returning [code]ERR_ALREADY_EXISTS[/code] means the end of the traject (even if partial)
+## has been reached.
+func take_a_step() -> Error:
+	var result : Error = OK
+	if trajectory.is_empty():  #FIXME character is taking a step with empty trajectory.
+		return ERR_ALREADY_EXISTS
+	else:
+		var step = trajectory.pop_back()
+		next_step = get_tacnav().tile2spatial(step, 0, true) * get_tacnav().tile_size + Vector3(0,position.y,0)
+		var zones = get_tacnav().check_zone(self, last_step, step)
+		result = _take_a_step(step, zones.exited, zones.entered)
 		last_step = step
 	return result
 
 ## Override this function to define what happens when the character moves from one tile to the other.[br]
 ## Return whether the movement to the «step» tile was successful. Errors won't halt the movement
-## Except for [code]ERR_CANT_CONNECT[/code].
-func _step_on_map(_step:Vector2i, _zones_exited, _zones_entered) -> Error:
+## Return [code]ERR_CANT_CONNECT[/code] if travel must be aborted.
+func _take_a_step(step:Vector2i, _zones_exited, _zones_entered) -> Error:
+	#FIXME Node origin and target are the same position, look_at() failed
+	look_at(next_step, Vector3.UP, true)
 	return OK
+
+## Override to define what the entity does after movement is finished.[br]
+## [code]condition[/code] allows knowing the context of the end of travel.[br]
+## Return an error code to inform the caller function of the character situation.
+func _traversal_finish(condition:Error=OK) -> Error:
+	return OK
+
+#endregion
 
 ### It returns if interaction was successful.
 #func npc_interaction(chara:Character) -> bool:
@@ -86,7 +119,9 @@ func _step_on_map(_step:Vector2i, _zones_exited, _zones_entered) -> Error:
 	
 ## Get the TacNav this object is part of.
 func get_tacnav() -> TacNav:
-	assert(get_parent() is TacNav)
+	if not get_parent() is TacNav:
+		push_error("TacEntity: Parent is not a TacNav!")
+		return null
 	return get_parent()
 ## In which Tactical Grid is this object on top?[br]
 func get_tacmap() -> TacMap:

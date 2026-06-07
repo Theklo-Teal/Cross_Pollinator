@@ -146,7 +146,6 @@ func _ready() -> void:
 	add_child(area_collider, true, INTERNAL_MODE_BACK)
 	add_child(floors, true, INTERNAL_MODE_BACK)
 	add_child(walls, true, INTERNAL_MODE_FRONT)
-	add_child(spawns, true, INTERNAL_MODE_FRONT)
 	area_collider.name = "TacMapArea"
 	floors.name = "TacMapFloors"
 	walls.name = "TacMapWalls"
@@ -164,13 +163,15 @@ func _ready() -> void:
 	_layer = get_layer()
 	
 	if OS.has_feature("editor_hint"):
+		add_child(spawns, true, INTERNAL_MODE_FRONT)
+		spawns.name = "TacMapSpawns"
+	
 		var former = spawners.duplicate_deep()
 		spawners.clear()
 		for each in former:
 			add_spawner(each, former[each])
 	else:
 		# Give parameters for the collision shape for mouse detection.
-		#TODO How may I click through empty tiles and detect maps beyond this shape?
 		collision_layer = Con.phys_layer["tacmap"]
 		input_ray_pickable = true
 	

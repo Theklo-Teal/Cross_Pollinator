@@ -4,31 +4,23 @@ func store_history() -> bool:
 	return false
 	
 var stride := 1.6
-var path : Array[Vector2i]
-var step : Vector2i
-var next_pos : Vector3
 
 func enter(_prev:CharaAction):
 	var tacnav : TacNav = me.get_tacnav()
 	me.is_busy = true
-	var err = me.move_on_map(Ses.hover_tile)
-	var step_fail = err == ERR_CANT_CONNECT  # Failed to take a step
-	var move_fail = err == ERR_ALREADY_IN_USE  # Character already at destination from start
-	if move_fail or step_fail:
+	var err = me.traversal_start(Ses.hover_tile)
+	if err == ERR_ALREADY_EXISTS: # Character already at destination from start
 		me.switch_state(&"idle")
 		return
-	me.walk_started()
 
 func exit(_next:CharaAction):
-	me.walk_finished()
+	me._traversal_finish(OK)
 
 func process(delta:float):
-	if me.position.is_equal_approx(next_pos):
-		if path.is_empty():
-			me.switch_state("idle")
+	if me.position.is_equal_approx(me.next_step):
+		var error := me.take_a_step()
+		if error == ERR_ALREADY_EXISTS:
+			me.switch_state(&"idle")
 			return
-		var tacnav : TacNav = me.get_tacnav()
-		step = path.pop_back()
-		next_pos = tacnav.tile2spatial(step, 0, true)
 	else:
-		me.position = me.position.move_toward(next_pos, stride * delta)
+		me.position = me.position.move_toward(me.next_step, stride * delta)

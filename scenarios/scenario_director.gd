@@ -102,36 +102,36 @@ func _unhandled_input(event: InputEvent) -> void:
 	stt.back().input(event)
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:  #TODO test if we can select maps through the holes on other maps.
+	#TODO test if we can select maps through the holes on other maps.
+	#TODO test if it works with offset maps, getting the right tile height and through holes.
+	if event is InputEventMouseMotion: 
 		var camera = get_viewport().get_camera_3d()
 		if not camera == null:
-			var space_state = get_world_3d().direct_space_state
-			var ray_norm = get_viewport().get_camera_3d().project_ray_normal(event.position)
-			var ray_orig = get_viewport().get_camera_3d().project_ray_origin(event.position)
+			var ray_norm = camera.project_ray_normal(event.position)
+			var ray_orig = camera.project_ray_origin(event.position)
 			var ray_dest = ray_norm * camera.far
-			var ray_sect : Dictionary
-
-			var map_coord : Vector2i  # Tile coordinate on the map
-			var nav_coord : Vector2i  # Tile coordinate on the map, relative ot the nav.
+			
 			var except : Array[RID]
 			var is_hole : bool = true  # There's a hole in the floor where the mouse is.
 			while is_hole:
-				var ray_query = PhysicsRayQueryParameters3D.create(ray_orig, ray_dest, Con.phys_layer["tacmap"], except)
-				ray_sect = space_state.intersect_ray(ray_query)
-				if ray_sect.is_empty():  #Nothing could be ever be found by the raycast
+				var ray_query = PhysicsRayQueryParameters3D.create(ray_orig, ray_dest, Con.phys_layer["tacmap"])
+				ray_query.hit_back_faces = false
+				ray_query.hit_from_inside = false
+				ray_query.collide_with_areas = true
+				ray_query.exclude = except
+				
+				var ray_sect : Dictionary = get_world_3d().direct_space_state.intersect_ray(ray_query)
+				if ray_sect.is_empty():
+					#Nothing could be ever be found by the raycast
 					break
+				
 				Ses.hover_map = ray_sect.collider
 				Ses.hover_nav = Ses.hover_map.get_parent()
-				map_coord = Ses.hover_nav.spatial2map(ray_sect.position, Ses.hover_map)
-				nav_coord = Ses.hover_nav.spatial2nav(ray_sect.position)
+
+				var map_coord = Ses.hover_nav.spatial2map_tile(ray_sect.position, Ses.hover_map)
+				Ses.hover_tile = Ses.hover_nav.spatial2nav_tile(ray_sect.position)
 				# Change in parameters to try searching again.
 				var tile : TacTile = Ses.hover_map.tiles.get(map_coord)
 				is_hole = tile == null or tile.is_empty()
 				if is_hole:
 					except.append(ray_sect.rid)
-			
-			if ray_sect.is_empty():
-				Ses.hover_map = null
-			else:
-				Ses.hover_map = ray_sect.collider
-				Ses.hover_tile = nav_coord

@@ -33,8 +33,7 @@ func _ready():
 		Tac.actions[each].new(self)
 	stt.append(states[&"idle"])
 
-
-var is_busy : bool = false
+var is_busy : bool
 var stt : Array[CharaAction]  ## State stack. Current state is at the back.
 var states : Dictionary[StringName, CharaAction]
 func switch_state(next_state:StringName = &""):
@@ -57,12 +56,6 @@ func _process(delta: float) -> void:
 	stt.back().process(delta)
 func _unhandled_input(event: InputEvent) -> void:
 	stt.back().input(event)
-
-func _step_on_map(step:Vector2i, zones_exited, zones_entered) -> Error:
-	look_at(Saliko.Vec2AddAxis(step), Vector3.UP, true)
-	
-	
-	return OK
 
 ## Initiate action from external callers
 func enact(act : StringName) -> void:
