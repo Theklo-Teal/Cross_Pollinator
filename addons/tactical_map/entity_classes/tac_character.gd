@@ -58,6 +58,12 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	stt.back().input(event)
 
+func _step_on_map(step:Vector2i, zones_exited, zones_entered) -> Error:
+	look_at(Saliko.Vec2AddAxis(step), Vector3.UP, true)
+	
+	
+	return OK
+
 ## Initiate action from external callers
 func enact(act : StringName) -> void:
 	switch_state(act)

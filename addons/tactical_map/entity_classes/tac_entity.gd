@@ -42,10 +42,11 @@ func interaction():
 func _interaction():
 	pass
 
-func move_on_map(destination:Vector2i, teleport:=false):
+func move_on_map(destination:Vector2i, teleport:=false) -> Error:
 	var tacnav = get_tacnav()
 	if destination == get_nav_coord():
-		return
+		return ERR_ALREADY_IN_USE
+	var result : Error = OK
 	
 	var last_step = get_nav_coord()
 	var traject : Array[Vector2i]
@@ -58,12 +59,17 @@ func move_on_map(destination:Vector2i, teleport:=false):
 	while not traject.is_empty():
 		var step = traject.pop_back()
 		var zones = tacnav.check_zone(self, last_step, step)
-		_step_on_map(step, zones.exited, zones.entered)
+		result = _step_on_map(step, zones.exited, zones.entered)
+		if result == ERR_CANT_CONNECT:
+			break
 		last_step = step
+	return result
 
-## Override this function to define what happens when the character moves from one tile to the other.
-func _step_on_map(_step:Vector2i, zones_exited, zones_entered):
-	pass
+## Override this function to define what happens when the character moves from one tile to the other.[br]
+## Return whether the movement to the «step» tile was successful. Errors won't halt the movement
+## Except for [code]ERR_CANT_CONNECT[/code].
+func _step_on_map(_step:Vector2i, _zones_exited, _zones_entered) -> Error:
+	return OK
 
 ### It returns if interaction was successful.
 #func npc_interaction(chara:Character) -> bool:

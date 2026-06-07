@@ -8,8 +8,9 @@ signal navproxy_changed(tile_coord : Array[Vector3i])
 signal zone_entered(zone:StringName, chara:TacCharacter)  ## The character entered a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
 signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
 
-#NOTE This node only produces navigation graphs when first ready on an executed project. Otherwise it uses «navproxy» which is easily modified.
-# Modifications to children TacMap during execution will modify «navsession» variable, which initally is a copy of the graphs.
+#NOTE This node only produces navigation graphs when first ready on an executed project. 
+# Otherwise it uses «navproxy» which is easily modified. Modifications to children 
+# TacMap during execution will modify «navsession» variable, which initally is a copy of the graphs.
 
 
 @export var tile_size : float = 1.0  ## (meters) The lateral length of square tiles that all children maps abide to.

@@ -11,14 +11,12 @@ var next_pos : Vector3
 func enter(_prev:CharaAction):
 	var tacnav : TacNav = me.get_tacnav()
 	me.is_busy = true
-	path.assign( tacnav.get_traject(me, Ses.hover_tile) )
-	path.reverse()
-	if path.is_empty():
+	var err = me.move_on_map(Ses.hover_tile)
+	var step_fail = err == ERR_CANT_CONNECT  # Failed to take a step
+	var move_fail = err == ERR_ALREADY_IN_USE  # Character already at destination from start
+	if move_fail or step_fail:
 		me.switch_state(&"idle")
-	path.pop_back()  # Remove the starting coord.
-	step = path.pop_back()
-	next_pos = tacnav.tile2spatial(step, 0, true)
-	me.look_at(next_pos, Vector3.UP, true)
+		return
 	me.walk_started()
 
 func exit(_next:CharaAction):
@@ -32,6 +30,5 @@ func process(delta:float):
 		var tacnav : TacNav = me.get_tacnav()
 		step = path.pop_back()
 		next_pos = tacnav.tile2spatial(step, 0, true)
-		me.look_at(next_pos, Vector3.UP, true)
 	else:
 		me.position = me.position.move_toward(next_pos, stride * delta)
