@@ -333,10 +333,10 @@ func set_tile_asset(coord:Vector2i, side:Vector2i):
 		printerr("TacMap Editor: No valid active asset!")
 		return
 	curr_map.set_tile_asset(coord, side, asset_info_uid)
-	curr_nav.nav_queue.append(curr_nav.map3nav(coord, curr_map))
+	curr_nav.queue_nav(curr_nav.map3nav(coord, curr_map))
 
 func rem_tile_asset(coord:Vector2i, side:=Vector2i.ZERO):
-	curr_nav.nav_queue.append(curr_nav.map3nav(coord, curr_map))
+	curr_nav.queue_nav(curr_nav.map3nav(coord, curr_map))
 	var tile : TacTile = curr_map.tiles.get(coord)
 	if tile == null:
 		return

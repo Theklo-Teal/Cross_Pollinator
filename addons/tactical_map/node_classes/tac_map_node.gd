@@ -15,7 +15,7 @@ class_name TacMap
 @export var size := Vector2i(12, 12) : 
 	set(val):
 		size = val.maxi(1)
-		notification(NOTIFICATION_LOCAL_TRANSFORM_CHANGED)
+		notification(NOTIFICATION_TRANSFORM_CHANGED)
 		#TODO: update placements if size changes.
 
 # Info used to build the map.
@@ -68,6 +68,7 @@ func crop_map():
 	for coord in tiles:
 		if not area.has_point(coord):
 			tiles.erase(coord)
+			rem_spawner(coord)
 			if coord in placed:
 				for node in placed[coord]:
 					node.queue_free()
@@ -83,7 +84,8 @@ func clear_map():
 	placed.clear()
 	tiles.clear()
 	zones.clear()
-	spawns.clear()
+	for each in spawners:
+		rem_spawner(each)
 	var tacnav : TacNav = get_parent()
 	for coord in tacnav.navproxy:
 		tacnav.navproxy[coord] = {}
@@ -110,6 +112,7 @@ func _exit_tree() -> void:
 	var tacnav : TacNav = get_parent()
 	tacnav._map_removed(self)
 
+var _layer : int  ## The last layer this map was found to be on.
 var nav_area : Rect2i  ## The area, in tile units, in the parent TacNav.
 var global_area : Rect2i  ## Area of the map in global 3D space, but in tile size units.
 var area_outdated : bool = true
@@ -125,7 +128,10 @@ func update_area():
 	var map_glob_pos : Vector2i = tacnav.nav2spatial_tile(map_nav_pos)
 	nav_area = Rect2i(map_nav_pos, size)
 	global_area = Rect2i(map_glob_pos, size)
-	print("TacMap: Computed area ", nav_area)
+	if _layer != get_layer():
+		tacnav._map_layer_changed(self, _layer)
+		_layer = get_layer()
+	tacnav.queue_area(get_layer())
 
 
 var area_collider := CollisionShape3D.new()
@@ -154,6 +160,8 @@ func _ready() -> void:
 					tiles.erase(coord)
 				else:
 					queue_place.append(coord)
+	
+	_layer = get_layer()
 	
 	if OS.has_feature("editor_hint"):
 		var former = spawners.duplicate_deep()

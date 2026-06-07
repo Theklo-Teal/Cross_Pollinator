@@ -8,8 +8,6 @@ signal navproxy_changed(tile_coord : Array[Vector3i])
 signal zone_entered(zone:StringName, chara:TacCharacter)  ## The character entered a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
 signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
 
-#FIXME navgraphs don't find coords mentioned by navqueue
-
 #NOTE This node only produces navigation graphs when first ready on an executed project. Otherwise it uses «navproxy» which is easily modified.
 # Modifications to children TacMap during execution will modify «navsession» variable, which initally is a copy of the graphs.
 
@@ -30,7 +28,7 @@ func _get_configuration_warnings() -> PackedStringArray:
 	return ["TacNav is intended to be used with TacMap children, otherwise it does nothing."]
 
 #region TacMap handling
-var area : Rect2i  ## Total area enclosing all maps, given their positions and sizes.
+var area : Dictionary[int, Rect2i]  ## Total area enclosing all maps of each layer, given their positions and sizes.
 var maps : Dictionary[int, Array]  ## [map layer][i] -> TacMap; Reference to placed maps.
 
 
@@ -42,26 +40,29 @@ func _map_added(map:TacMap):
 	elif map in maps[layer]:
 		return
 	maps[layer].append(map)
-	area_outdated = true
+	queue_area(layer)
 
 ## Called by TacMaps if about to leave this Node.
-func _map_removed(map:TacMap):
-	var layer = map.get_nav_layer()
+## The optional parameters are used for «_map_layer_changed()», so usually not meaningful.
+func _map_removed(map:TacMap, layer_change:bool=false, layer_before:int=0):
+	var layer = map.get_layer()
 	maps[layer].erase(map)
 	if maps[layer].is_empty():
 		maps.erase(layer)
-	area_outdated = true
+	queue_area(layer)
+
+func _map_layer_changed(map:TacMap, before:int):
+	_map_removed(map, true, before)
+	_map_added(map)
 
 ## Given a navigation tile coordinate, which maps are there? They will be sorted by layer.
 func get_maps_at(coord:Vector2i) -> Array[TacMap]:
 	var found : Array[TacMap]
 	for layer : int in maps:
 		for map : TacMap in maps[layer]:
-			var map_coord = spatial2tile(Saliko.Vec3RemAxis(map.position))
-			var area = Rect2i(map_coord, map.size)
-			if area.has_point(coord):
+			if map.nav_area.has_point(coord):
 				found.append(map)
-	found.sort_custom(func(a,b): return a.get_nav_layer() < b.get_nav_layer())
+	found.sort_custom(func(a,b): return a.get_layer() < b.get_layer())
 	return found
 #endregion
 
@@ -74,7 +75,7 @@ func get_traject(entity:TacCharacter, destination : Vector2i) -> PackedVector2Ar
 		return []
 	var start = Saliko.vec2i_id(loc.nav_coord)
 	var stop = Saliko.vec2i_id(destination)
-	return navgraph[loc.tacmap.get_nav_layer()][entity.attitude].get_point_path(start, stop, true)
+	return navgraph[loc.tacmap.get_layer()][entity.attitude].get_point_path(start, stop, true)
 
 ## Find the map and coordinate of a TacEntity.
 ## It will give the map closest to the entity with a lower Y position.
@@ -83,7 +84,7 @@ func locate_entity(entity:TacEntity) -> Dictionary:
 	var relevant_maps = get_maps_at(coord)
 	for idx in range(relevant_maps.size() - 1, -1, -1):
 		var map : TacMap = relevant_maps[idx]
-		if map.get_nav_height() <= entity.position.y:
+		if map.get_height() <= entity.position.y:
 			return {
 				"tacmap": map,  # Map where the entity belongs
 				"map_coord": nav2map(coord, map),  # Coordinate relative to the map
@@ -136,15 +137,17 @@ func place_tile_sprite(texture:Texture2D, coord:Vector2i, map:TacMap=null) -> Sp
 func set_navigation(graph:Dictionary, layer:int, cell_id:int, adjacent:Array[int], transcodes:Array[Tac.Trans]):
 	var dir : int = -1
 	for adja in adjacent:
+		if not area[layer].has_point(Saliko.id_vec2i(adja)):  # Trying to disconnect or connect to non established cell.
+			continue
 		dir += 1
 		if transcodes[dir] == Tac.Trans.PASS:
-			for trans in range(graph[layer].size()):
-				var nav : AStar2D = graph[layer][trans]
+			for trans_type in graph[layer]:
+				var nav : AStar2D = graph[layer][trans_type]
 				nav.connect_points(cell_id, adja, false)
 			continue
 		else:
-			for trans in range(graph[layer].size()):
-				var nav : AStar2D = graph[layer][trans]
+			for trans_type in graph[layer]:
+				var nav : AStar2D = graph[layer][trans_type]
 				nav.disconnect_points(cell_id, adja, false)
 			if transcodes[dir] == null:
 				continue
@@ -153,31 +156,52 @@ func set_navigation(graph:Dictionary, layer:int, cell_id:int, adjacent:Array[int
 
 # Any modification to a map's terrain should update the «nav_queue», so many modifications can be performed in
 # a process frame and only committed once at the end of the frame.
-# Changes in map size or position should set «area_outdated» true.
-var area_outdated : bool = true  ## Set true if a TacMap changed place or size.
-var nav_queue : Array[Vector3i]  ## In TacNav relative space. Add coordinates of TacNav cells that had terrain altered.
+# Changes in map size or position should call «queue_area».
+var area_outdated : PackedInt32Array  ## The layer where a map changed size or position.
+var nav_outdated : Array[Vector3i]  ## In TacNav relative space. Add coordinates of TacNav cells that had terrain altered.
 var navsession : Dictionary[int, Dictionary]  ## [Map Layer][Tac.Trans] -> AStart2D; A copy of «navgraph» that can be modified during a game session without losing the original for reference of what's default.
 var navproxy : Dictionary[Vector3i, Dictionary]  ## [cell coord][TacTile.generate()] -> obstacle_codes;  Used to produce the navigation overlay. Faster than recreating AStar2D all the time. The coordinate is that of a tile with layer included. The value Dictionary is the return of «TacTile.get_trans_codes()».
 
-func _process(delta: float) -> void:
-	if area_outdated:
-		# Finds a Rect2i that fully encloses the children maps.
-		area_outdated = false
-		area = Rect2i()
-		for layer in maps:
-			for map : TacMap in maps[layer]:
-				area = area.merge(map.nav_area)
-		print("TacNav: Computed total map area ", area)
+func queue_nav(coordi:Vector3i):
+	#NOTE Can't check if «coordi» is in the area here, because during «_ready()» 
+	# there will be «queue_nav()» calls that will be filtered out as the «area_queue»
+	# hasn't been processed yet, the associated Rect2i will have no size, so there
+	# won't be areas that contain the «coordi».
+	var in_area = area[coordi.y].has_point(Saliko.Vec3RemAxis(coordi))
+	if not coordi in nav_outdated and in_area:
+		nav_outdated.append(coordi)
+
+func queue_area(layer:int):
+	if not layer in area:
+		area[layer] = Rect2i()
+	if not layer in area_outdated:
+		area_outdated.append(layer)
+
+# Finds a Rect2i that fully encloses the children maps on each given layer.
+func compute_area(layers:PackedInt32Array):
+	for layer in layers:
+		area[layer] = Rect2i()
+		for map : TacMap in maps[layer]:
+			area[layer] = area[layer].merge(map.nav_area)
+		if not area[layer].has_area():
+			area.erase(layer)
+	print("TacNav: Computed total map area ", area)
+
+func _process(_delta: float) -> void:
+	if not area_outdated.is_empty():
+		compute_area(area_outdated)
+		area_outdated.clear()
 	
-	if not nav_queue.is_empty():
-		nav_queue.clear.call_deferred()
-		for coord3i in nav_queue:
+	if not nav_outdated.is_empty():
+		# Set navigation connections according to changes in map obstacles.
+		nav_outdated.clear.call_deferred()
+		for coord3i in nav_outdated:
 			var layer = coord3i.y
 			var coord2i = Vector2i(coord3i.x, coord3i.z)
-			if not area.has_point(coord2i):
+			if not area[layer].has_point(coord2i):
 				printerr("TacNav: Coordinate not within area! ", coord2i)
 				continue
-			var map : TacMap
+			var map : TacMap = null
 			for each : TacMap in maps[layer]:
 				if each.nav_area.has_point(coord2i):
 					map = each
@@ -202,7 +226,7 @@ func _process(delta: float) -> void:
 					var adja_tile = map_coord + dir
 					adjacents.append(map.tiles.get(adja_tile))
 				navproxy[coord3i] = this_tile.get_trans_codes(adjacents)
-				navproxy_changed.emit(nav_queue)
+				navproxy_changed.emit(nav_outdated)
 			else:
 				# Change «navsession» with in-game changes to terrain.
 				var adjacents : Array[TacTile] = []
@@ -220,8 +244,12 @@ var navgraph : Dictionary[int, Dictionary]  ## [Map Layer][Tac.Trans] -> AStart2
 func _ready() -> void:
 	# Build «navgraph» at the beginning of a game session.
 	
+	if not area_outdated.is_empty():
+		compute_area(area_outdated)
+		area_outdated.clear()
+	
 	for layer in maps:
-		var layer_cells : Dictionary[Vector2i, Dictionary] # [nav_tile][transcodes / adjacent_ids] -> Array[int] / Array[int]
+		var layer_cells : Dictionary[int, Dictionary] # [tile_id][transcodes / adjacent_ids] -> Array[int] / Array[int]
 		
 		# Instantiate navigation graphs to the layer of the map
 		if not layer in navgraph:
@@ -244,16 +272,16 @@ func _ready() -> void:
 			for map_tile : Vector2i in map.tiles:
 				var tile : TacTile = map.tiles[map_tile]
 				var nav_tile = map2nav(map_tile, map)
-				nav_queue.append(Vector3i(nav_tile.x, layer, nav_tile.y))
 				var tile_id = Saliko.vec2i_id(nav_tile)
-				layer_cells[nav_tile] = {}
-				layer_cells[nav_tile]["adjacent_ids"] = []
+				layer_cells[tile_id] = {}
+				layer_cells[tile_id]["adjacent_ids"] = []
 				var adja_tiles : Array[TacTile] = []
 				for dir in Tac.Dir:
 					var adja_coord = nav_tile + Tac.Dir_Vect[dir]
-					layer_cells[nav_tile]["adjacent_ids"].append(Saliko.vec2i_id(adja_coord))
+					var adja_id = Saliko.vec2i_id(adja_coord)
+					layer_cells[tile_id]["adjacent_ids"].append(adja_id)
 					adja_tiles.append(map.tiles.get(adja_coord))
-				layer_cells[nav_tile]["transcodes"] = tile.get_trans_codes(adja_tiles).sides
+				layer_cells[tile_id]["transcodes"] = tile.get_trans_codes(adja_tiles).sides
 				
 				if not OS.has_feature("editor_hint"):
 					for trans in range(Tac.Trans.size()):
@@ -270,12 +298,11 @@ func _ready() -> void:
 		
 		if not OS.has_feature("editor_hint"):
 			# Connect points in the graph of current layer.
-			for nav_tile in layer_cells:
-				var tile_id = Saliko.vec2i_id(nav_tile)
+			for tile_id in layer_cells:
 				var adjacents : Array[int]
-				adjacents.assign(layer_cells[nav_tile].adjacent_ids)
+				adjacents.assign(layer_cells[tile_id].adjacent_ids)
 				var transcodes : Array[Tac.Trans]
-				transcodes.assign(layer_cells[nav_tile].transcodes)
+				transcodes.assign(layer_cells[tile_id].transcodes)
 				set_navigation(navgraph, layer, tile_id, adjacents, transcodes)
 	
 	navsession = navgraph.duplicate_deep()
@@ -397,7 +424,7 @@ func spatial3map_tile(coord:Vector3, map:TacMap, layer_from_spatial:=false) -> V
 	coord -= position + map.position
 	var coordi = spatial3tile(coord)
 	if not layer_from_spatial:
-		coordi.y = map.get_nav_layer()
+		coordi.y = map.get_layer()
 	return coordi
 
 func spatial3map(coord:Vector3, map:TacMap, height_from_spatial:=false) -> Vector3:

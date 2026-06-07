@@ -243,10 +243,10 @@ func set_help(text:String):
 func set_tile_info(nav_coord:Vector2i, map_coord:Vector2i, obstacle_code:Dictionary, tile:TacTile):
 	%Coordi_Text.text = str([map_coord, nav_coord][int(%nav_tile.button_pressed)])
 	if obstacle_code.is_empty():
-		%Obstacles.text = -255
+		%Obstacles.text = str(-255)
 		%Obstacles.tooltip_text = \"Transitions: Invalid Navigation!\"
 	else:
-		%Obstacles.text = String.num_uint64(obstacle_code.code, 2)
+		%Obstacles.text = String.num_uint64(obstacle_code.code, 2).lpad(8, \"0\")
 		%Obstacles.tooltip_text = \"Transitions:\\nEast:\\t\"+str(obstacle_code.sides[0])+\"\\nSouth:\\t\"+str(obstacle_code.sides[1])+\"\\nWest:\\t\"+str(obstacle_code.sides[2])+\"\\nNorth:\\t\"+str(obstacle_code.sides[3])
 #endregion
 
@@ -429,7 +429,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-current_tab = 0
+current_tab = 4
 close_with_middle_mouse = false
 tab_count = 5
 tab_0/title = "Floor"
@@ -451,10 +451,11 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_8tvhu")
-current_tab = 0
+current_tab = 4
 tabs_visible = false
 
 [node name="floor" type="HBoxContainer" parent="VBoxContainer2/Terrains" unique_id=420945205]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -673,7 +674,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="other" type="HBoxContainer" parent="VBoxContainer2/Terrains" unique_id=960753359]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 4
 
