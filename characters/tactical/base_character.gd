@@ -15,6 +15,8 @@ func get_alias():
 @export var max_health : int
 @export var max_stamina : int
 @export var max_mental : int
+@export var max_spritilo : int
+@export var max_ectoplasm : int
 
 @export var appeal : int  ## Charisma
 @export var speed : int  ## Movement
@@ -23,6 +25,8 @@ func get_alias():
 var health : int
 var stamina : int
 var mental : int
+var spritilo : int
+var ectoplasm : int
 
 
 func _ready():

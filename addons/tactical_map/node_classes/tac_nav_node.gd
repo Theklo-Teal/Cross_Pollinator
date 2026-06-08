@@ -19,7 +19,8 @@ signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited
 var unique_spawners : Dictionary[StringName, Dictionary]
 var charas : Array[TacCharacter]  ## Reference to placed characters.
 var zoned : Dictionary[Vector2i, Array]  ## [nav_coordi][i] -> StringName; Association of tile with a zone
-#var ladders : Dictionary[Vector2i, StringName]  ## Coordinate of tiles connecting to a "ladder" of common name with other TacMaps.
+#var map_ladders : Dictionary[TacMap, StringName]  ## Which ladders each map has.
+#var ladders : Dictionary[StringName, Vector2i]  ## Coordinate of tiles connecting to a "ladder" of common name with other TacMaps.
 
 
 func _get_configuration_warnings() -> PackedStringArray:
@@ -90,12 +91,14 @@ func locate_entity(entity:TacEntity) -> Dictionary:
 		if map.get_height() <= entity.position.y:
 			return {
 				"tacmap": map,  # Map where the entity belongs
+				"layer": map.get_layer(),
 				"map_coord": nav2map(coord, map),  # Coordinate relative to the map
 				"nav_coord": coord  # Coordinate relative to this TacNav
 				}
 	return {
 		"tacmap": null,
-		"nav_coord": coord
+		"layer": 0,
+		"nav_coord": coord,
 		}
 
 ## Allows to tell which zones a character entered or exited while moving between two tiles
@@ -188,7 +191,6 @@ func compute_area(layers:PackedInt32Array):
 			area[layer] = area[layer].merge(map.nav_area)
 		if not area[layer].has_area():
 			area.erase(layer)
-	print("TacNav: Computed total map area ", area)
 
 func _process(_delta: float) -> void:
 	if not area_outdated.is_empty():

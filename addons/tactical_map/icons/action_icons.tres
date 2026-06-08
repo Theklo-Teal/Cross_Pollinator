@@ -1,0 +1,6 @@
+[gd_resource type="AtlasTexture" format=3 uid="uid://bh6brl3mxn0ok"]
+
+[ext_resource type="Texture2D" uid="uid://espr7uc8thnb" path="res://addons/tactical_map/icons/action_icons.png" id="1_ydxr8"]
+
+[resource]
+atlas = ExtResource("1_ydxr8")

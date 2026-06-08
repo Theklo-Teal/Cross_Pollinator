@@ -28,7 +28,7 @@ func _mouse_exit() -> void:
 	mouse_hover = false
 func _input(event: InputEvent) -> void:  #TODO make work with _unhandled_input()?
 	## A player's attemt to interact with this object.
-	if event.is_action_released(Tac.get_action(&"interact")) and mouse_hover:
+	if event.is_action_released(Tac.get_input_action(&"interact")) and mouse_hover:
 		interaction()
 		interacted.emit()
 		#var chara_coord = Ses.curr_unit().get_global_coord()
@@ -36,10 +36,19 @@ func _input(event: InputEvent) -> void:  #TODO make work with _unhandled_input()
 		#if chara_coord.distance_to(self_coord) <= interact_distance:
 			#interacted.emit(self, Ses.curr_unit())
 
-func interaction():
-	_interaction()
+func interaction() -> Error:
+	return _interaction()
 
-func _interaction():
+func _interaction() -> Error:
+	return OK
+
+func text_speak(speech:StringName):
+	pass
+
+func audio_speak(speech:StringName):
+	pass
+
+func animate(sequence:StringName, duration:float=NAN):
 	pass
 
 #region Entity movement on the map
@@ -47,10 +56,11 @@ var last_step : Vector2i  ## When walking a path, this is the last tile the char
 var next_step : Vector3  ## The spatial position the character must reach to achieve the current step in their trajectory.
 var trajectory : Array[Vector2i]  ## The path the character will try to walk along.
 ## Writes to the [code]trajectory[/code] variable in preparation to initiate movement on the map.[br]
+## The [code]destination[/code] is a TacNav coordinate at the given layer.[br]
 ## Returns [code]ERR_ALREADY_EXISTS[/code] if destination and current position are the same.[br]
 ## Returns [code]ERR_QUERY_FAILED[/code] if a path to the destination wasn't found, so trajectory is
 ## partial.
-func traversal_start(destination:Vector2i, teleport:=false) -> Error:
+func traversal_start(destination:Vector2i, layer:int, teleport:=false) -> Error:
 	if destination == get_nav_coord():
 		return ERR_ALREADY_EXISTS
 	var result : Error = OK
@@ -59,12 +69,19 @@ func traversal_start(destination:Vector2i, teleport:=false) -> Error:
 	if teleport:
 		trajectory = [destination]
 	else:
+		if get_tacmap().get_layer() != layer:
+			# Character is trying to climb a layer.
+			#TODO implement this after implementing ladders
+			pass
 		trajectory.assign( get_tacnav().get_traject(self, destination) )
-		trajectory.reverse()
-		trajectory.pop_back()  # Remove the starting point.
-		if not trajectory[0] == destination: # Trajectory is a partial path.
-			result = ERR_QUERY_FAILED
-	next_step = get_tacnav().tile2spatial(trajectory.back(), 0, true) * get_tacnav().tile_size + Vector3(0,position.y,0)
+		if trajectory.is_empty():
+			result = ERR_ALREADY_EXISTS
+		else:
+			trajectory.reverse()
+			trajectory.pop_back()  # Remove the current entity position.
+			if not trajectory[0] == destination: # Trajectory is a partial path.
+				result = ERR_QUERY_FAILED
+			take_a_step()  # Update information where the character goes first.
 	result = _traversal_start(result, destination, teleport)
 	return result
 
@@ -92,9 +109,11 @@ func take_a_step() -> Error:
 ## Return whether the movement to the «step» tile was successful. Errors won't halt the movement
 ## Return [code]ERR_CANT_CONNECT[/code] if travel must be aborted.
 func _take_a_step(step:Vector2i, _zones_exited, _zones_entered) -> Error:
-	#FIXME Node origin and target are the same position, look_at() failed
 	look_at(next_step, Vector3.UP, true)
 	return OK
+
+func traversal_finish(condition:Error=OK) -> Error:
+	return _traversal_finish(condition)
 
 ## Override to define what the entity does after movement is finished.[br]
 ## [code]condition[/code] allows knowing the context of the end of travel.[br]
@@ -125,10 +144,13 @@ func get_tacnav() -> TacNav:
 	return get_parent()
 ## In which Tactical Grid is this object on top?[br]
 func get_tacmap() -> TacMap:
-	return get_tacnav().locate_chara(self).tacmap
+	return get_tacnav().locate_entity(self).tacmap
 
 func get_nav_coord() -> Vector2i:
 	return get_tacnav().locate_entity(self).nav_coord
 
 func get_map_coord() -> Vector2i:
 	return get_tacnav().locate_entity(self).map_coord
+
+func get_nav_layer() -> int:
+	return get_tacnav().locate_entity(self).layer

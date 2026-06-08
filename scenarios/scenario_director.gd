@@ -1,4 +1,4 @@
-extends Node3D
+extends TacInterface
 class_name ScenarioDirector
 
 ## A state machine defining the rules of a game mode.
@@ -60,9 +60,6 @@ func setup_fsm():
 					each.hide()
 				each.visible = (each.name in ui) == visible
 
-	func chara_selected(_chara:TacCharacter):
-		pass
-	
 	func enter(_prev:ScenarioState):
 		pass
 	func exit(_next:ScenarioState):
@@ -76,8 +73,8 @@ func setup_fsm():
 class Roaming extends ScenarioState:
 	func input(event:InputEvent):
 		if event.is_action_pressed("interact", false):
-			if not Ses.select_chara == null and not Ses.select_chara.is_busy:
-				Ses.select_chara.enact("walk")
+			if not Tac.select_chara == null and not Tac.select_chara.is_busy():
+				Tac.select_chara.enact("walk")
 
 class PauseMenu extends ScenarioState:
 	func store_history() -> bool:
@@ -87,6 +84,7 @@ class PauseMenu extends ScenarioState:
 
 
 func _ready() -> void:
+	Ses.scenario = self
 	add_to_group("observer_character_select")
 	setup_fsm()
 	assert(stt.size() > 0, "There are no states set up for the FSM.")
@@ -100,38 +98,3 @@ func _process(delta: float) -> void:
 	stt.back().process(delta)
 func _unhandled_input(event: InputEvent) -> void:
 	stt.back().input(event)
-
-func _input(event: InputEvent) -> void:
-	#TODO test if we can select maps through the holes on other maps.
-	#TODO test if it works with offset maps, getting the right tile height and through holes.
-	if event is InputEventMouseMotion: 
-		var camera = get_viewport().get_camera_3d()
-		if not camera == null:
-			var ray_norm = camera.project_ray_normal(event.position)
-			var ray_orig = camera.project_ray_origin(event.position)
-			var ray_dest = ray_norm * camera.far
-			
-			var except : Array[RID]
-			var is_hole : bool = true  # There's a hole in the floor where the mouse is.
-			while is_hole:
-				var ray_query = PhysicsRayQueryParameters3D.create(ray_orig, ray_dest, Con.phys_layer["tacmap"])
-				ray_query.hit_back_faces = false
-				ray_query.hit_from_inside = false
-				ray_query.collide_with_areas = true
-				ray_query.exclude = except
-				
-				var ray_sect : Dictionary = get_world_3d().direct_space_state.intersect_ray(ray_query)
-				if ray_sect.is_empty():
-					#Nothing could be ever be found by the raycast
-					break
-				
-				Ses.hover_map = ray_sect.collider
-				Ses.hover_nav = Ses.hover_map.get_parent()
-
-				var map_coord = Ses.hover_nav.spatial2map_tile(ray_sect.position, Ses.hover_map)
-				Ses.hover_tile = Ses.hover_nav.spatial2nav_tile(ray_sect.position)
-				# Change in parameters to try searching again.
-				var tile : TacTile = Ses.hover_map.tiles.get(map_coord)
-				is_hole = tile == null or tile.is_empty()
-				if is_hole:
-					except.append(ray_sect.rid)

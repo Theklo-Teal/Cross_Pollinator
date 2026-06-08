@@ -22,7 +22,7 @@ The story is about a secret government organization investigating an occult sect
 
 As part of an independent expedition to verify rumours of an extensive secret tunnel network, the player will find all kinds of strange machinery, wild science labs, derelict industry and even ancient ruins as they reveal the source all paranormal activity.
 
-Some basic concepts of the story take inspiration from the secret experiments in the [STALKER series](https://www.stalker-game.com/en), but also there are references to things in other fiction set in the underground, like [Metro 2033](https://en.wikipedia.org/wiki/Metro_2033).
+Some basic concepts of the story take inspiration from the secret experiments in the [STALKER series](https://www.stalker-game.com/en), but also there are references to things in other fiction set in the underground, like [Metro 2033](https://en.wikipedia.org/wiki/Metro_2033) and [Half-Life](https://en.wikipedia.org/wiki/Half-Life_(video_game)).
 
 ## The story
 The government is generically referred as The Warehouse, collecting highly advanced mysterious artifacts who they found to have been made by a secret society of Agartha, but can't find them, nor are their motivations clear. This takes the concept of the [SCP Foundation](https://scp-wiki.wikidot.com/) or in stories like [Control](https://www.remedygames.com/games/control).

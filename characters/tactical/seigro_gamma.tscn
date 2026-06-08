@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://qldsf3cxfwuq"]
 
-[ext_resource type="Resource" uid="uid://cyry15hfrl5tl" path="res://characters/seigro_gamma.tres" id="1_3cysv"]
 [ext_resource type="PackedScene" uid="uid://cp1bci8yh7skh" path="res://characters/assets/Seigro_Gamma/female_gunner_002.glb" id="1_4xrqf"]
 [ext_resource type="AudioStream" uid="uid://bjwd3m2pu6nf" path="res://assets/voices/greeting_10_karen.wav" id="2_cobcf"]
 
@@ -14,31 +13,34 @@ var voice = {
 	\"greeting\" : preload(\"res://assets/voices/greeting_10_karen.wav\"),
 	\"complete\" : preload(\"res://assets/voices/completion_8_karen.wav\"),
 	\"ready\" : preload(\"res://assets/voices/completion_4_karen.wav\"),
+	\"refusal\" : preload(\"res://assets/voices/refusal_6_karen.wav\"),
+	\"later\" : preload(\"res://assets/voices/farewell_3_karen.wav\"),
 	}
 
-func _interaction():
-	if not is_busy:
-		is_busy = true
-		$voice.stream = voice.greeting
-		$voice.play()
-		$body_model/AnimationPlayer.play(\"pose_T\")
-		await $body_model/AnimationPlayer.animation_finished
-		await get_tree().create_timer(0.5).timeout
-		$body_model/AnimationPlayer.play(\"act_idle\")
-		is_busy = false
+func audio_speak(speech:StringName):
+	$voice.stream = voice[speech]
+	$voice.play()
+	return await $voice.finished
 
-func idle_enter():
-	$body_model/AnimationPlayer.play(\"act_idle\")
+func animate(seq:StringName, duration:=NAN):
+	$body_model/AnimationPlayer.play(seq)
+	if is_inf(duration):
+		return
+	if not is_nan(duration):
+		await get_tree().create_timer(duration).timeout
+		$body_model/AnimationPlayer.stop(true)
+		return
+	await $body_model/AnimationPlayer.animation_finished
+	$body_model/AnimationPlayer.stop(true)
+	return
 
 func _traversal_start(curr_error:Error, destination:Vector2i, teleport:=false) -> Error:
-	$body_model/AnimationPlayer.play(\"act_walk_PHY\")
-	$voice.stream = voice.on_the_way
-	$voice.play()
+	animate(\"act_walk_PHY\", INF)
+	audio_speak(\"on_the_way\")
 	return OK
 
 func _traversal_finish(condition:Error=OK) -> Error:
-	$voice.stream = voice.ready
-	$voice.play()
+	audio_speak(\"ready\")
 	return OK
 "
 
@@ -48,13 +50,6 @@ radius = 0.25683594
 
 [node name="SeigroGamma" type="Area3D" unique_id=1830958031]
 script = SubResource("GDScript_yp348")
-info = ExtResource("1_3cysv")
-max_health = 4
-max_stamina = 5
-max_mental = 3
-appeal = 5
-speed = 5
-will = 5
 metadata/_custom_type_script = "uid://7joc0mi1ivb5"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1685824102]

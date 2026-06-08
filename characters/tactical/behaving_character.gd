@@ -22,14 +22,7 @@ enum APPR{
 	PANIC
 }
 
-# Who am I?
-var curr_team : Team  ## Team which may be modified during combat.
 var approach : APPR
-
-# Where am I?
-var coord : Vector2i
-var tacmap : TacMap
-
 
 class Decision:
 	var path : Array[Vector2i]

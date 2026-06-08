@@ -3,6 +3,7 @@ extends Node
 const RENEW_SETT = true
 const MAX_STT = 256  # How many past states to record in a state machine.
 
+#NOTE Actions are stored in TacMapGlobal
 var statuses : Dictionary[StringName, Status]
 var phys_layer : Dictionary[StringName, int]
 var sett := ConfigFile.new()
@@ -20,6 +21,7 @@ func _ready() -> void:
 	for file in DirAccess.get_files_at("res://equipment/status/"):
 		if file.get_extension() == "gd":
 			statuses[file.get_basename()] = load("res://equipment/status/"+file).new()
+			
 
 func _exit_tree() -> void:
 	sett.save("user://savedata/settings.cfg")

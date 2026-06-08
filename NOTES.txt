@@ -1,0 +1,46 @@
+General ideas for implementing in the game.
+
+Human characters can be promoted in rank. Each rank allows one of two abilities to add to the character.
+Agarthian characters don't rank up, but they have a "spritilo" and "ectoplasm" counts. Capturing certain Agarthian technology either increases one or the other. These are then consumed to use abilities based on Agarthian technology.
+Ectoplasm can be found:
+	Orgone Reactors in derelict Agarthian facilities.
+	Experimental Railgun Power Cells.
+	Certain Noosphere labs experimenting on people, like the "Coffin Room".
+	Memorilo, which also unlocks intel data
+Ectoplasm serves a power source or a cooling substance:
+	Required to use Exokirasso or Exoframo.
+	Higher amount to use Exoframo with manipulators.
+	Ammunition for the Letargio weapon.
+Spritilo can be found:
+	Lost Medallions.
+	Pools of rogue or inactive Spritilo in the environment.
+	Disabled Agarthian weapons.
+Spritilo allows between several special abilities depending on the amount owned:
+	Increases speed or stamina when the character is exposed to a strong light.
+	Temperature Control, so it can traverse areas too hot or too cold without penalties.
+	Silk Shot, similar to Snare ability.
+	Electronic Warefare (remotely disables certain enemy abilities, like night vision or auto-sentries).
+	Active camouflage (Allows the character recover the Stealth Status).
+
+There's no cell phone or satellite uplinks underground, so characters need to lay down telephone cable to progress, like a secondary save system.
+The cable requires connecting to particular sockets. Sometimes only accessible in crawl spaces.
+It allows to replay the combat on visited maps.
+The map of the underground follows the path of the wires layed down.
+
+In XCOM parlance, should all characters have "Run And Gun" by default? Maybe disable it in heavier characters? Or make it a perk like in XCOM?
+
+Characters might be able to traverse/climb floors at different heights outside combat. Combat with verticality is more dubious.
+
+Scenario/Mission ideas:
+	Regular Skirmishes
+	Infiltration Scenarios
+	Exfiltration Scenarios
+	Stealth Mission akin to Metal Gear Solid, where the characters need to remain undetected towards an exit or objective.
+	Puzzle to activate or deactivate some machine
+	While in combat, particular locations need to be reached to plant demolition charges
+
+In illuminated maps, terrain can be seen, but enemies are hiddens as fog-of-war.
+In maps with "Darkness" hazard, terrain can't be seen until explored with night-vision, sonar or similar equipment.
+In maps with "Smoke" hazard, only terrain in the vincinity of characters is not in fog-of-war.
+
+The Miracle Machine can be found in one map and will allow to convert certain equipment into improved or degraded versions of it by chance.

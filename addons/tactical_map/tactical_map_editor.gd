@@ -2,6 +2,7 @@
 extends "res://addons/tactical_map/tac_editor_fsm.gd"
 class_name TacticalMapEditor
 
+#TODO add TacInterface to the list of custom types.
 #TODO Test map crop, now that offset functions.
 #TODO Test zone enter/exit logic in TacMap
 

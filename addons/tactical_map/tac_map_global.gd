@@ -45,9 +45,28 @@ enum Hazard{
 	BRILE,  # Brilerato
 }
 
+# Context Things
+const DEFAULT_ACTIONS_PATH = "res://addons/tactical_map/assets/actions"
+const DEFAULT_TERRAIN_PATH = "res://addons/tactical_map/assets/terrains"
+const DEFAULT_ACTION_ICON = "res://addons/tactical_map/icons/action_icons.tres"
+var action_icon_atlas : AtlasTexture
 var setts : ConfigFile
-var actions : Dictionary[StringName, Resource]
 
+# Gameplay Things
+var hover_nav : TacNav  ## Navigation of TacMap under the mouse
+var hover_map : TacMap  ## TacMap under the mouse
+var hover_layer : int
+var hover_tile : Vector2i  ## TacNav relative coordinate
+var hover_tile_map : Vector2i  ## Like «hover_tile», but respective to the «hover_map»
+var hover_entity : TacEntity  # What is under the mouse
+var select_chara : TacCharacter :
+	set(val):
+		if val.curr_team == TacCharacter.Team.PLAYER:
+			select_chara = val
+			get_tree().call_group("observer_character_select", "_on_character_selected", val)
+var actions : Dictionary[StringName, CharaAction]
+
+# Level Editor Things
 var pallet_fam : Dictionary[StringName, PackedStringArray]  # Associate UID of asset info to a terrain family.
 var pallet_info : Dictionary[StringName, Resource]  # Associate UID of asset info to defining Resource
 var tag_info : Dictionary[StringName, Array]  #  [tag][idx] -> info_uid
@@ -58,20 +77,20 @@ var ui_tile_walk : Texture = load("res://assets/spatial_textures/grid_tile.png")
 var ui_tile_sprint : Texture = load("res://assets/spatial_textures/grid_tile.png")
 var ui_tile_weapon : Texture = load("res://assets/spatial_textures/grid_tile.png")
 
-const DEFAULT_ACTIONS_PATH = "res://addons/tactical_map/assets/actions"
-const DEFAULT_TERRAIN_PATH = "res://addons/tactical_map/assets/terrains"
 
 func _ready() -> void:
 	setts = ConfigFile.new()
 	setts.load("res://addons/tactical_map/settings.ini")
-
+	
+	action_icon_atlas = load(setts.get_value("Asset Paths", "action_icon_atlas", DEFAULT_ACTION_ICON))
+	
 	for file in DirAccess.get_files_at(DEFAULT_ACTIONS_PATH):
 		if file.get_extension() == "gd":
-			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file))
+			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file)).new()
 	var act_path = setts.get_value("Asset Paths", "Actions", DEFAULT_ACTIONS_PATH)
-	for file in DirAccess.get_files_at(DEFAULT_ACTIONS_PATH):
+	for file in DirAccess.get_files_at(act_path):
 		if file.get_extension() == "gd":
-			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file))
+			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file)).new()
 	
 	var terr_path : String = setts.get_value("Asset Paths", "Terrains", DEFAULT_TERRAIN_PATH)
 	for family in DirAccess.get_directories_at(terr_path):
@@ -95,48 +114,5 @@ func _exit_tree() -> void:
 	setts.save("res://addons/tactical_map/settings.ini")
 
 
-func get_action(act:StringName):
-	return setts.get_value("Context", act+"_action", act)
-
-#region Math Problems
-
-## Return a list of the grid coordinates surrounding the given cell.
-## Optionally, rotates the list to have the cell at a certain direction as the first element.
-static func adjacent_cells(center : Vector2i, first_cardinal:int=0, include_diagonal:=true) -> Array[Vector2i]:
-	const cardinals = [
-		Vector2i(0,-1),  # North
-		Vector2i(-1,-1),  # NW
-		Vector2i(-1,0),  # West
-		Vector2i(-1,1),  # SW
-		Vector2i(0,1),  # South
-		Vector2i(1,1),  # SE
-		Vector2i(1,0),  # East
-		Vector2i(1,-1),  # NE
-	]
-	
-	var rotated_list : Array[Vector2i]
-	for n in range(cardinals.size()):
-		if include_diagonal or n % 2 == 0:
-			rotated_list.append( cardinals[(n + first_cardinal) % 8] + center )
-	
-	return rotated_list
-
-## Find grid coordinates which are adjacent to a given tile.
-## It can take several tiles, as if contouring the shape produced.
-## Optionally, include a list of tiles allowed to be returned, as a boundary.
-static func contour_shape(shape : Array[Vector2i], boundary : Array[Vector2i] = []) -> Array[Vector2i]:
-	var contour : Array[Vector2i]
-	for coord in shape:
-		for adjacent in adjacent_cells(coord):
-			var rules = [
-				adjacent in shape,
-				adjacent in contour,
-				not ( adjacent in boundary or boundary.is_empty() ),  # If the boundary is empty, we ignore that feature.
-				]
-			if true in rules:  # The rules exclude coordinates from the solution.
-				continue
-			else:
-				contour.append(adjacent)
-	return contour
-
-#endregion
+func get_input_action(action:StringName):
+	return setts.get_value("Events", action+"_action", action)

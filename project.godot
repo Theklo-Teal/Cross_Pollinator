@@ -25,6 +25,16 @@ Con="*uid://sbrt0ltctq2"
 Ses="*uid://c4v00bpdocm1n"
 Tac="*uid://dglwlgu3v753o"
 
+[debug]
+
+gdscript/warnings/unused_parameter=0
+
+[editor]
+
+movie_writer/ogv/encoding_speed=2
+movie_writer/movie_file="/mnt/Expanse/Godot/Projects/Cross_Pollinator/media/Demo.ogv"
+movie_writer/fps=30
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/plugin_reload/plugin.cfg", "res://addons/tactical_map/plugin.cfg")
