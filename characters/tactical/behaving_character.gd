@@ -15,6 +15,9 @@ class_name Character
 ## [li]Pick actions according to approach and score their utility according to position.[/li]
 ## [/ol]
 
+#NOTE Try using:
+# Geometry2D.bresenham_line() for line of sight
+
 enum APPR{
 	DEFENSE,
 	OFFENSE,

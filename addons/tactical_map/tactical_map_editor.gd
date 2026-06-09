@@ -219,6 +219,7 @@ const VECTDIR = [  # Can't use Tac.Dir_Vect, sorry
 	Vector2(0, -0.5)  # North
 	]
 
+var view_size : Vector2
 func _forward_3d_draw_over_viewport(view: Control) -> void:
 	#NOTE That all 3D coordinates used for drawing are in global space.
 	if curr_map == null or curr_mode().is_empty():
@@ -227,16 +228,17 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 	if cam == null:
 		return
 	
+	view_size = view.size
+	
 	# Draw boundary of the TacMap
 	var corners = [  #FIXME If a coordinate is out of view, things get wonky.
 		Vector3(curr_map.global_area.position.x,curr_map.get_spatial_height(),curr_map.global_area.position.y),
 		Vector3(curr_map.global_area.position.x,curr_map.get_spatial_height(),curr_map.global_area.end.y),
 		Vector3(curr_map.global_area.end.x, curr_map.get_spatial_height(), curr_map.global_area.end.y),
 		Vector3(curr_map.global_area.end.x, curr_map.get_spatial_height(), curr_map.global_area.position.y),
-		Vector3(curr_map.global_area.position.x,curr_map.get_spatial_height(),curr_map.global_area.position.y),
 		]
 	var unprojected = unproject_area(corners)
-	draw_area_multiline(view, unprojected, Color.WEB_PURPLE, 8)
+	draw_area_polyline(view, unprojected, Color.WEB_PURPLE, 8)
 	
 	# Floor Overlay
 	if pallet.is_floor_overlay_visible():
@@ -276,7 +278,7 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 		Vector2i.UP : [3,4],
 		}
 		var side = lateral[_hover_tile_side]
-		if cam.is_position_in_frustum(tile_corners[side[0]]) and cam.is_position_in_frustum(tile_corners[side[1]]):
+		if cam.is_position_in_frustum(tile_corners[side[0]]) or cam.is_position_in_frustum(tile_corners[side[1]]):
 			view.draw_line(
 				cam.unproject_position(tile_corners[side[0]]),
 				cam.unproject_position(tile_corners[side[1]]),
@@ -286,42 +288,40 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 
 #endregion
 
-## Given points in 3D space, return screen coordinates to draw in a CanvasItem overlay.
 func unproject_area(verts:PackedVector3Array) -> PackedVector2Array:
-	var points : PackedVector2Array
-	var inters : PackedVector3Array
-	var planes := cam.get_frustum().slice(1, 5)  # Only care about sides of the frustrum, not the "near" or the "bottom".
-	for i in range(verts.size()):
-		var v1 = verts[i]
-		var v2 = verts[(i + 1) % 4]
-		if cam.is_position_in_frustum(v1) and cam.is_position_in_frustum(v2):
-			inters.append_array([v1, v2])
-		else:
-			for p : Plane in planes:
-				var sect = p.intersects_segment(v1, v2)
-				if not sect == null:
-					if inters.size() == 0:
-						continue
-					inters.append_array( [inters[-1], sect ] )
+	var polyline : PackedVector2Array
+	var view_poly = [
+		Vector2(0,0),
+		Vector2(view_size.x,0),
+		view_size,
+		Vector2(0,view_size.y),
+	]
 	
-	for p in inters:
-		points.append(cam.unproject_position(p))
+	var inside_frustrum : int = 0
+	for p in verts:
+		if cam.is_position_behind(p):
+			pass
+			#FIXME deal with points behind the camera.
+		polyline.append(cam.unproject_position(p))
+		if cam.is_position_in_frustum(p):
+			inside_frustrum += 1
 	
-	if points.size() < 2:
+	if inside_frustrum == 0:
 		return []
-	return points
+	
+	var intersect = Geometry2D.intersect_polygons(view_poly, polyline)
+	return intersect[0]
 
 ## From the output of [code]unproject_area()[/code], draw an outline.
-func draw_area_multiline(canvas:Control, points: PackedVector2Array, color:Color, thickness:int=-1):
-	if points.size() >= 2 and points.size() % 2 == 0:
-		canvas.draw_multiline(points, color, thickness)
+func draw_area_polyline(canvas:Control, points: PackedVector2Array, color:Color, thickness:int=-1):
+	if points.size() >= 3:
+		points.append(points[0])
+		canvas.draw_polyline(points, color, thickness)
 
 ## From the output of [code]unproject_area()[/code], draw a filled area.
 func draw_area_polygon(canvas:Control, points: PackedVector2Array, color:Color):
-	var simplified_points : PackedVector2Array
-	for i in range(0, points.size(), 2):
-		simplified_points.append(points[i])
-	canvas.draw_colored_polygon(simplified_points, color)
+	if points.size() >= 3:
+		canvas.draw_colored_polygon(points, color)
 
 #region Zoning and Ladders
 var sel_zones : PackedStringArray
