@@ -50,6 +50,7 @@ radius = 0.25683594
 
 [node name="SeigroGamma" type="Area3D" unique_id=1830958031]
 script = SubResource("GDScript_yp348")
+team = 1
 metadata/_custom_type_script = "uid://7joc0mi1ivb5"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1685824102]

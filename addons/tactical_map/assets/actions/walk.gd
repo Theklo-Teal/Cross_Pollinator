@@ -33,7 +33,3 @@ func process(delta:float):
 
 func interact_receive(from:TacCharacter=null):
 	me.audio_speak("later")
-
-func input(event:InputEvent):
-	if event.is_action_pressed(Tac.get_input_action(&"command")):
-		me.audio_speak("refusal")

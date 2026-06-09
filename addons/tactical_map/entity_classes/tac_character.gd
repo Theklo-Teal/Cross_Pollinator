@@ -24,6 +24,7 @@ enum ATT{
 	}
 
 enum Team{
+	NONE,  ## A catch for teams being improperly set.
 	PLAYER, ## Player controlled character
 	ALLY,  ## Characters with same objective as player, but not controllable.
 	HOSTILE,  ## NPCs that actively target Player characters.
@@ -43,6 +44,9 @@ var curr_team : Team  ## If a character defects or is mind-controlled, this keep
 var actions : Dictionary[StringName, CharaAction]
 
 func _ready():
+	super()
+	curr_team = team
+	
 	actions[&"idle"] = Tac.actions[&"idle"].new(self)
 	actions[&"walk"] = Tac.actions[&"walk"].new(self)
 	for each in equipment:
@@ -119,8 +123,8 @@ func _switch_state(external:bool, next:CharaAction=null) -> Error:
 
 ## Initiate the next action, called by another action. Pass an empty string to retrieve a previous action.
 ## Errors that could be returned:[br]
-## OK: The action was accepted an is now in effect.
-## ERR_SKIP: The action yielded to an action awaiting in the queue.
+## OK: The action was accepted an is now in effect.[br]
+## ERR_SKIP: The action yielded to an action awaiting in the queue.[br]
 ## ERR_ALREADY_IN_USE: The action was accepted, but is awaiting in queue.[br]
 ## ERR_BUSY: Action failed to be accepted because character is busy.[br]
 ## ERR_DOES_NOT_EXIST: There's no such action.[br]
@@ -137,8 +141,8 @@ func proceed(next_state:StringName = &"") -> Error:
 ## Initiate the next action from an external interface. Pass an empty string to retrieve a previous action.
 ## state in the history.[br]
 ## Errors that could be returned:[br]
-## OK: The action was accepted an is now in effect.
-## ERR_SKIP: The action yielded to an action awaiting in the queue.
+## OK: The action was accepted an is now in effect.[br]
+## ERR_SKIP: The action yielded to an action awaiting in the queue.[br]
 ## ERR_ALREADY_IN_USE: The action was accepted, but is awaiting in queue.[br]
 ## ERR_BUSY: Action failed to be accepted because character is busy.[br]
 ## ERR_DOES_NOT_EXIST: There's no such action.[br]

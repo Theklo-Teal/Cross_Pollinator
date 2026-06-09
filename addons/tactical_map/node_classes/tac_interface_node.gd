@@ -9,6 +9,7 @@ func _input(event: InputEvent) -> void:
 			var ray_orig = camera.project_ray_origin(event.position)
 			var ray_dest = ray_norm * camera.far
 			
+			# Find TacMap, TacNav and tile coords under the mouse and through holes in maps.
 			var except : Array[RID]
 			var is_hole : bool = true  # There's a hole in the floor where the mouse is.
 			while is_hole:
@@ -35,3 +36,14 @@ func _input(event: InputEvent) -> void:
 				is_hole = tile == null or tile.is_empty()
 				if is_hole:
 					except.append(ray_sect.rid)
+		
+			# Find TacEntity under the mouse and past already known map holes.
+			var ray_query = PhysicsRayQueryParameters3D.create(ray_orig, ray_dest, Con.phys_layer["tac_entity"])
+			ray_query.collide_with_areas = true
+			ray_query.exclude = except
+			
+			var ray_sect : Dictionary = get_world_3d().direct_space_state.intersect_ray(ray_query)
+			if ray_sect.is_empty():
+				Tac.hover_entity = null
+			else:
+				Tac.hover_entity = ray_sect.collider

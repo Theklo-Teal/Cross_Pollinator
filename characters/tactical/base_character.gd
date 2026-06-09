@@ -27,10 +27,3 @@ var stamina : int
 var mental : int
 var spritilo : int
 var ectoplasm : int
-
-
-func _ready():
-	super()
-	interact_action = &"interact"
-	command_action = &"command"
-	collision_layer = Con.phys_layer["tac_entity"]

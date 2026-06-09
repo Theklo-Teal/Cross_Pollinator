@@ -12,9 +12,27 @@ class_name TacticalMapEditor
 
 var curr_map : TacMap
 var curr_nav : TacNav  ## TacNav parent of the [code]curr_map[/code].
-var spawner_copy : TacEntitySpawner
 
 #region Boilerplate
+func _ready() -> void:
+	pallet = pallet.instantiate()
+	pallet.visible = false
+	pallet.zone_clicked.connect(_on_zone_clicked)
+	pallet.zones_selected.connect(_on_zones_selected)
+	pallet.zone_renamed.connect(_on_zone_renamed)
+	pallet.zone_deleted.connect(_on_zone_deleted)
+	pallet.ladder_clicked.connect(_on_ladder_clicked)
+	pallet.ladders_selected.connect(_on_ladders_selected)
+	pallet.ladder_renamed.connect(_on_ladder_renamed)
+	pallet.ladder_deleted.connect(_on_ladder_deleted)
+	pallet.mode_changed.connect(_on_state_changed)
+	pallet.paint_tool_changed.connect(_on_paint_tool_changed)
+	pallet.offset_map.connect(_on_offset_map)
+	pallet.nav_overlay.connect(func(shown):update_overlays())
+	pallet.floor_overlay.connect(func(shown):update_overlays())
+	
+
+
 func _enter_tree() -> void:
 	super()
 	
@@ -26,13 +44,12 @@ func _enter_tree() -> void:
 		"half": Half_Wall_Mode.new(self),
 		"crawl": Crawl_Wall_Mode.new(self),
 		"zoning": Zone_Mode.new(self),
-		"player": Player_Spawn_Mode.new(self),
-		"npc": NPC_Spawn_Mode.new(self),
 		"ladders": Ladder_Mode.new(self),
+		"spawner": Spawner_Mode.new(self),
 		"coordcapt": Coord_Capture.new(self)
 		}
 	
-	add_custom_type("CharaAction", "RefCounted", preload("res://addons/tactical_map/resource_classes/chara_action.gd"), preload("res://addons/tactical_map/icons/TacCharaAction.svg"))
+	add_custom_type("CharaAction", "RefCounted", preload("res://addons/tactical_map/node_classes/chara_action.gd"), preload("res://addons/tactical_map/icons/TacCharaAction.svg"))
 	add_custom_type("FloorInfo", "Resource", preload("res://addons/tactical_map/resource_classes/floor_info.gd"), preload("res://addons/tactical_map/icons/FloorInfo.svg"))
 	add_custom_type("WallInfo", "Resource", preload("res://addons/tactical_map/resource_classes/wall_info.gd"), preload("res://addons/tactical_map/icons/WallInfo.svg"))
 	add_custom_type("TacTile", "Resource", preload("res://addons/tactical_map/resource_classes/tac_tile.gd"), preload("res://addons/tactical_map/icons/TacTile.svg"))
@@ -42,18 +59,7 @@ func _enter_tree() -> void:
 	add_custom_type("TacNav", "Area3D", preload("res://addons/tactical_map/node_classes/tac_nav_node.gd"), preload("res://addons/tactical_map/icons/TacNav.svg"))
 	add_custom_type("TacMap", "Area3D", preload("res://addons/tactical_map/node_classes/tac_map_node.gd"), preload("res://addons/tactical_map/icons/TacMap.svg"))
 	add_custom_type("TacInterface", "Node3D", preload("res://addons/tactical_map/node_classes/tac_interface_node.gd"), preload("res://addons/tactical_map/icons/TacInterface.svg"))
-	
-	pallet = pallet.instantiate()
-	pallet.visible = false
-	pallet.zone_clicked.connect(_on_zone_clicked)
-	pallet.zones_selected.connect(_on_zones_selected)
-	pallet.zone_renamed.connect(_on_zone_renamed)
-	pallet.zone_deleted.connect(_on_zone_deleted)
-	pallet.mode_changed.connect(_on_state_changed)
-	pallet.paint_tool_changed.connect(_on_paint_tool_changed)
-	pallet.offset_map.connect(_on_offset_map)
-	pallet.nav_overlay.connect(func(_shown):update_overlays())
-	pallet.floor_overlay.connect(func(_shown):update_overlays())
+
 
 func _exit_tree() -> void:
 	remove_custom_type("Action")
@@ -229,9 +235,8 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 		Vector3(curr_map.global_area.end.x, curr_map.get_spatial_height(), curr_map.global_area.position.y),
 		Vector3(curr_map.global_area.position.x,curr_map.get_spatial_height(),curr_map.global_area.position.y),
 		]
-	corners = get_view_polyline(corners)
-	if corners.size() > 2:
-		view.draw_polyline(corners, Color.WEB_PURPLE, 4)
+	var unprojected = unproject_area(corners)
+	draw_area_multiline(view, unprojected, Color.WEB_PURPLE, 8)
 	
 	# Floor Overlay
 	if pallet.is_floor_overlay_visible():
@@ -252,53 +257,75 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 	# Hover Tile Indicator
 	var tile_rect = Saliko.get_area(Vector2(hover_tile), Vector2(hover_tile) + Vector2.ONE * curr_nav.tile_size)
 	var hei = curr_map.get_spatial_height()
-	var tile_area = [
-		cam.unproject_position(Vector3(tile_rect.end.x,hei,tile_rect.position.y)),
-		cam.unproject_position(Vector3(tile_rect.end.x,hei,tile_rect.end.y)),
-		cam.unproject_position(Vector3(tile_rect.position.x,hei,tile_rect.end.y)),
-		cam.unproject_position(Vector3(tile_rect.position.x, hei, tile_rect.position.y)),
-		cam.unproject_position(Vector3(tile_rect.end.x, hei, tile_rect.position.y)),
+	var tile_corners = [
+		Vector3(tile_rect.end.x,hei,tile_rect.position.y),
+		Vector3(tile_rect.end.x,hei,tile_rect.end.y),
+		Vector3(tile_rect.position.x,hei,tile_rect.end.y),
+		Vector3(tile_rect.position.x, hei, tile_rect.position.y),
+		Vector3(tile_rect.end.x, hei, tile_rect.position.y),
 		]
+	unprojected = unproject_area(tile_corners)
 	var fence_color = [Color.RED, Color.PURPLE][int(within_map)]
 	fence_color.a = 0.25
-	view.draw_colored_polygon(tile_area, fence_color)
+	draw_area_polygon(view, unprojected, fence_color)
 	if within_map:
 		var lateral = {
-		Tac.Dir_Vect.EAST : [0,1],
-		Tac.Dir_Vect.SOUTH : [1,2],
-		Tac.Dir_Vect.WEST : [2,3],
-		Tac.Dir_Vect.NORTH : [3,4],
+		Vector2i.RIGHT : [0,1],
+		Vector2i.DOWN : [1,2],
+		Vector2i.LEFT : [2,3],
+		Vector2i.UP : [3,4],
 		}
 		var side = lateral[_hover_tile_side]
-		view.draw_line(
-			tile_area[side[0]],
-			tile_area[side[1]],
-			Color.PURPLE, 6)
+		if cam.is_position_in_frustum(tile_corners[side[0]]) and cam.is_position_in_frustum(tile_corners[side[1]]):
+			view.draw_line(
+				cam.unproject_position(tile_corners[side[0]]),
+				cam.unproject_position(tile_corners[side[1]]),
+				Color.PURPLE, 6)
 	
 	modes[curr_mode()].draw(view)
-	
-	#for layer in curr_nav.maps:
-		#for map : TacMap in curr_nav.maps[layer]:
-			#for coordi in map.spawns:
-				#var spawner : TacEntitySpawner = map.spawns[coordi]
-				#var position = cam.unproject_position(Saliko.Vec2AddAxis(coordi, 1, layer))
-				#view.draw_texture(spawner.icon, position)
+
 #endregion
 
 ## Given points in 3D space, return screen coordinates to draw in a CanvasItem overlay.
-func draw_area(verts:PackedVector3Array) -> PackedVector2Array:
+func unproject_area(verts:PackedVector3Array) -> PackedVector2Array:
 	var points : PackedVector2Array
-	var planes := cam.get_frustum()
-	for v in verts:
-		if cam.is_position_in_frustum(v):
-			points.append(cam.unproject_position(v))
+	var inters : PackedVector3Array
+	var planes := cam.get_frustum().slice(1, 5)  # Only care about sides of the frustrum, not the "near" or the "bottom".
+	for i in range(verts.size()):
+		var v1 = verts[i]
+		var v2 = verts[(i + 1) % 4]
+		if cam.is_position_in_frustum(v1) and cam.is_position_in_frustum(v2):
+			inters.append_array([v1, v2])
+		else:
+			for p : Plane in planes:
+				var sect = p.intersects_segment(v1, v2)
+				if not sect == null:
+					if inters.size() == 0:
+						continue
+					inters.append_array( [inters[-1], sect ] )
+	
+	for p in inters:
+		points.append(cam.unproject_position(p))
+	
 	if points.size() < 2:
-		return[]
+		return []
 	return points
 
+## From the output of [code]unproject_area()[/code], draw an outline.
+func draw_area_multiline(canvas:Control, points: PackedVector2Array, color:Color, thickness:int=-1):
+	if points.size() >= 2 and points.size() % 2 == 0:
+		canvas.draw_multiline(points, color, thickness)
 
-#region Zoning
+## From the output of [code]unproject_area()[/code], draw a filled area.
+func draw_area_polygon(canvas:Control, points: PackedVector2Array, color:Color):
+	var simplified_points : PackedVector2Array
+	for i in range(0, points.size(), 2):
+		simplified_points.append(points[i])
+	canvas.draw_colored_polygon(simplified_points, color)
+
+#region Zoning and Ladders
 var sel_zones : PackedStringArray
+var sel_ladders: PackedStringArray
 
 func _on_zone_clicked():
 	update_overlays()
@@ -314,6 +341,22 @@ func _on_zone_renamed(old:String, new:String):
 	curr_map.zones.erase(old)
 	sel_zones.erase(old)
 	sel_zones.append(new)
+	update_overlays()
+
+func _on_ladder_clicked():
+	update_overlays()
+func _on_ladders_selected(ladders:PackedStringArray):
+	sel_ladders = ladders
+	update_overlays()
+func _on_ladder_deleted(ladder:String):
+	curr_map.ladders.erase(ladder)
+	sel_ladders.erase(ladder)
+	update_overlays()
+func _on_ladder_renamed(old:String, new:String):
+	curr_map.ladders[new] = curr_map.ladders[old]
+	curr_map.ladders.erase(old)
+	sel_ladders.erase(old)
+	sel_ladders.append(new)
 	update_overlays()
 
 #endregion

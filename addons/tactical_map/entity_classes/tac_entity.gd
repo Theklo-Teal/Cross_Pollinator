@@ -5,12 +5,11 @@ signal interacted  ## The player tried to click on this object.
 
 @export var interact_distance : float = 2.4  ## How far, in meters, can an active character be from this entity and still allow it to interact.
 
-var interact_action : StringName
-var command_action : StringName
 var mouse_hover : bool  # Is the mouse over this area?
 
 func _ready():
 	input_ray_pickable = true
+	collision_layer = Con.phys_layer["tac_entity"]
 
 
 func _get_configuration_warnings() -> PackedStringArray:
@@ -28,7 +27,7 @@ func _mouse_exit() -> void:
 	mouse_hover = false
 func _input(event: InputEvent) -> void:  #TODO make work with _unhandled_input()?
 	## A player's attemt to interact with this object.
-	if event.is_action_released(Tac.get_input_action(&"interact")) and mouse_hover:
+	if event.is_action_released(Tac.interact_input()) and mouse_hover:
 		interaction()
 		interacted.emit()
 		#var chara_coord = Ses.curr_unit().get_global_coord()
@@ -135,7 +134,6 @@ func _traversal_finish(condition:Error=OK) -> Error:
 	#return true
 
 
-	
 ## Get the TacNav this object is part of.
 func get_tacnav() -> TacNav:
 	if not get_parent() is TacNav:

@@ -72,9 +72,15 @@ func setup_fsm():
 ## Exploration RPG-like mode, outside combat.
 class Roaming extends ScenarioState:
 	func input(event:InputEvent):
-		if event.is_action_pressed("interact", false):
-			if not Tac.select_chara == null and not Tac.select_chara.is_busy():
-				Tac.select_chara.enact("walk")
+		if event.is_action_released(Tac.interact_input()):
+			if Tac.hover_entity is TacCharacter and Tac.hover_entity.curr_team == TacCharacter.Team.PLAYER:
+				Tac.select_chara = Tac.hover_entity
+		#if not Tac.select_chara == null:
+			#TODO Make character transmit interaction.
+			#pass
+		if event.is_action_released(Tac.command_input()):
+			if Tac.select_chara != null:
+				Tac.select_chara.command(&"walk")
 
 class PauseMenu extends ScenarioState:
 	func store_history() -> bool:
@@ -85,14 +91,9 @@ class PauseMenu extends ScenarioState:
 
 func _ready() -> void:
 	Ses.scenario = self
-	add_to_group("observer_character_select")
 	setup_fsm()
 	assert(stt.size() > 0, "There are no states set up for the FSM.")
 	stt.back().enter(null)
-
-## Oportunity to update UI, for example.
-func _on_character_selected(chara:TacCharacter):
-	stt.back().chara_selected(chara)
 
 func _process(delta: float) -> void:
 	stt.back().process(delta)

@@ -55,10 +55,11 @@ var setts : ConfigFile
 # Gameplay Things
 var hover_nav : TacNav  ## Navigation of TacMap under the mouse
 var hover_map : TacMap  ## TacMap under the mouse
-var hover_layer : int
+var hover_layer : int  ## Layer of «hover_map» within its TacNav
 var hover_tile : Vector2i  ## TacNav relative coordinate
 var hover_tile_map : Vector2i  ## Like «hover_tile», but respective to the «hover_map»
-var hover_entity : TacEntity  # What is under the mouse
+var hover_entity : TacEntity  ## What is under the mouse
+var select_target : TacCharacter
 var select_chara : TacCharacter :
 	set(val):
 		if val.curr_team == TacCharacter.Team.PLAYER:
@@ -67,6 +68,7 @@ var select_chara : TacCharacter :
 var actions : Dictionary[StringName, Resource]
 
 # Level Editor Things
+var spawners : Dictionary[StringName, Resource]  # List of available spawners.
 var pallet_fam : Dictionary[StringName, PackedStringArray]  # Associate UID of asset info to a terrain family.
 var pallet_info : Dictionary[StringName, Resource]  # Associate UID of asset info to defining Resource
 var tag_info : Dictionary[StringName, Array]  #  [tag][idx] -> info_uid
@@ -84,15 +86,24 @@ func _ready() -> void:
 	
 	action_icon_atlas = load(setts.get_value("Asset Paths", "action_icon_atlas", DEFAULT_ACTION_ICON))
 	
+	# Get all the default action classes.
 	for file in DirAccess.get_files_at(DEFAULT_ACTIONS_PATH):
 		if file.get_extension() == "gd":
 			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file))
-	var act_path = setts.get_value("Asset Paths", "Actions", DEFAULT_ACTIONS_PATH)
+	# Get external action classes as well.
+	var act_path = setts.get_value("Asset Paths", "actions", DEFAULT_ACTIONS_PATH)
 	for file in DirAccess.get_files_at(act_path):
 		if file.get_extension() == "gd":
-			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file))
+			actions[file.get_basename()] = load(act_path.path_join(file))
 	
-	var terr_path : String = setts.get_value("Asset Paths", "Terrains", DEFAULT_TERRAIN_PATH)
+	var spawn_path : String = setts.get_value("Asset Paths", "entity_spawn", "")
+	if not spawn_path.is_empty():
+		for file in DirAccess.get_files_at(spawn_path):
+			if file.get_extension() == "gd":
+				var spawn_rsrc = load(spawn_path.path_join(file))
+				spawners[spawn_rsrc.display_name()] = spawn_rsrc
+	
+	var terr_path : String = setts.get_value("Asset Paths", "terrains", DEFAULT_TERRAIN_PATH)
 	for family in DirAccess.get_directories_at(terr_path):
 		pallet_fam[family] = []
 		for terrset in DirAccess.get_directories_at(terr_path.path_join(family)):
@@ -114,5 +125,7 @@ func _exit_tree() -> void:
 	setts.save("res://addons/tactical_map/settings.ini")
 
 
-func get_input_action(action:StringName):
-	return setts.get_value("Events", action+"_action", action)
+func interact_input():
+	return setts.get_value("Events", "interact_action", "interact")
+func command_input():
+	return setts.get_value("Events", "interact_action", "command")

@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://7joc0mi1ivb5" path="res://characters/tactical/behaving_character.gd" id="1_oe238"]
 [ext_resource type="PackedScene" uid="uid://b0ow53pi801j7" path="res://characters/assets/PMC/male_police.glb" id="2_d7mxy"]
-[ext_resource type="Texture2D" uid="uid://nm1ni7d50dp1" path="res://addons/tactical_map/assets/trollface.png" id="2_mgh5f"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_mgh5f"]
 height = 1.7998047
@@ -10,19 +9,13 @@ radius = 0.22802734
 
 [node name="PmcBreacher" type="Area3D" unique_id=539317064]
 script = ExtResource("1_oe238")
-proper_name = "Joe Schmoe"
-alias = "Breacher"
-codename = "Two Clubs"
-portrait = ExtResource("2_mgh5f")
-team = 2
-sex = 1
-blood = 12
 max_health = 5
 max_stamina = 6
 max_mental = 3
 appeal = 3
 speed = 2
 will = 5
+team = 3
 metadata/_custom_type_script = "uid://7joc0mi1ivb5"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=526780206]

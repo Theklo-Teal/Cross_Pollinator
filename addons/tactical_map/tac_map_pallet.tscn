@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dye5td1wctsvc"]
 
 [ext_resource type="Texture2D" uid="uid://ut87tnbjv7nc" path="res://addons/tactical_map/icons/ui_icons.png" id="1_lmyxv"]
+[ext_resource type="Texture2D" uid="uid://dn3uuwg0jtlog" path="res://addons/tactical_map/icons/Unique_Entity.png" id="2_8tvhu"]
 
 [sub_resource type="GDScript" id="GDScript_lmyxv"]
 resource_name = "Pallet_Panel"
@@ -16,6 +17,10 @@ signal zone_clicked()
 signal zones_selected(zones:PackedStringArray)
 signal zone_renamed(old_zone:String, new_zone:String)
 signal zone_deleted(zone:String)
+signal ladder_clicked()
+signal ladders_selected(ladders:PackedStringArray)
+signal ladder_renamed(old_ladder:String, new_ladder:String)
+signal ladder_deleted(ladder:String)
 signal nav_overlay(shown:bool)
 signal floor_overlay(shown:bool)
 
@@ -31,9 +36,8 @@ func _ready() -> void:
 	
 	other_mode.allow_unpress = true
 	%ZoneAdd.button_group = other_mode
-	%add_npc.button_group = other_mode
-	%add_team.button_group = other_mode
-	#%LadderAdd.button_group = other_mode
+	%add_spawner.button_group = other_mode
+	%LadderAdd.button_group = other_mode
 	%Coordi.button_group = other_mode
 	
 	other_mode.pressed.connect(_on_other_mode_pressed)
@@ -46,6 +50,9 @@ func _ready() -> void:
 	%ZoneContainer.item_clicked.connect(_on_zone_clicked.unbind(2))
 	%ZoneContainer.multi_selected.connect(_on_zone_multi_selected.unbind(2))
 	%ZoneTitle.text_submitted.connect(_on_zone_renamed)
+	%LadderContainer.item_clicked.connect(_on_ladder_clicked.unbind(2))
+	%LadderContainer.multi_selected.connect(_on_ladder_multi_selected.unbind(2))
+	%LadderTitle.text_submitted.connect(_on_ladder_renamed)
 	
 	%east.pressed.connect(func(): offset_map.emit(Vector2i.RIGHT))
 	%south.pressed.connect(func(): offset_map.emit(Vector2i.DOWN))
@@ -55,19 +62,29 @@ func _ready() -> void:
 	%Mode.tab_changed.connect(_on_mode_tab_selected)
 	
 	populate_thumbs.call_deferred()
-
+	
+	var unique_icon = preload(\"res://addons/tactical_map/icons/Unique_Entity.png\")
+	%Spawner_Opts.clear()
+	var i : int = -1
+	for spawn in Tac.spawners:
+		i += 1
+		%Spawner_Opts.add_item(spawn)
+		if not Tac.spawners[spawn].unique_to_tacnav().is_empty():
+			%Spawner_Opts.set_item_icon(i, unique_icon)
+	%Spawner_Opts.select( min(Tac.setts.get_value(\"ui\", \"spawner_opt\", 0), Tac.spawners.size()) )
+	%Spawner_Opts.item_selected.connect(func(idx):Tac.setts.set_value(\"ui\", \"spawner_opt\", idx))
+	
 	%Mode.current_tab = Tac.setts.get_value(\"ui\", \"mode\", 0)
 	_on_mode_tab_selected(%Mode.current_tab)
 	other_mode.get_buttons()[Tac.setts.get_value(\"ui\", \"other\", 0)]
 
 func map_changed(tacmap:TacMap):
-	if tacmap == null:
-		%ZoneAdd.disabled = true
-	else:
-		%ZoneAdd.disabled = false
-		%ZoneContainer.clear()
-		for zone in tacmap.zones:
-			%ZoneContainer.add_item(zone)
+	%ZoneContainer.clear()
+	for zone in tacmap.zones:
+		%ZoneContainer.add_item(zone)
+	%LadderContainer.clear()
+	for ladder in tacmap.ladders:
+		%LadderContainer.add_item(ladder)
 
 func _on_mode_tab_selected(idx:int):
 	Tac.setts.set_value(\"ui\", \"mode\", idx)
@@ -85,19 +102,9 @@ func _on_other_mode_pressed(button:Button):
 
 
 func show_spawner_copy(rsrc:TacEntitySpawner=null):
-	pass
-	#if rsrc == null:
-		#rsrc = TacEntitySpawner.new()
-	#var charas : String
-	#var i : int = -1
-	#var rank = 0
-	#for each in rsrc.characters:
-		#i += 1
-		#if i < rsrc.ranks.size():
-			#rank = rsrc.ranks[i]
-		#charas += \"\\n\" + each + \" \" + str(rank)
-	#%spawner_info.text = \"[b]min:[/b] \"+str(rsrc.min_amount)+\"\\n[b]max:[/b] \"+str(rsrc.max_amount)+\"\\n[b]chara | rank[/b] \" + charas
-
+	if rsrc == null:
+		return
+	%spawner_info.text = rsrc.editor_info()
 
 func _on_show_navigation_toggled(toggled_on: bool) -> void:
 	nav_overlay.emit(toggled_on)
@@ -169,6 +176,65 @@ func on_add_zone(existing:PackedStringArray) -> String:
 
 #endregion
 
+#region Ladders
+var last_sel_ladder_idx : int = -1
+var last_sel_ladder : String
+
+func select_ladders(ladders:PackedStringArray):
+	for idx in range(%LadderContainer.item_count):
+		var ladder = %LadderContainer.get_item_text(idx)
+		if ladder in ladders:
+			%LadderContainer.select(idx, false)
+		else:
+			%LadderContainer.deselect(idx)
+
+func _on_ladder_clicked(ladder_idx):
+	if %LadderContainer.is_selected(ladder_idx):
+		last_sel_ladder_idx = ladder_idx
+		last_sel_ladder = %LadderContainer.get_item_text(ladder_idx)
+		%LadderTitle.text = last_sel_ladder
+		ladder_clicked.emit()
+
+func _on_ladder_multi_selected():
+	var items : PackedStringArray
+	for i in %LadderContainer.get_selected_items():
+		var ladder = %LadderContainer.get_item_text(i)
+		items.append(ladder)
+	ladders_selected.emit(items)
+
+func _on_ladder_renamed(text:String):
+	if %LadderContainer.is_anything_selected():
+		if text.is_empty():  # Delete Ladder
+			%LadderContainer.remove_item(last_sel_ladder_idx)
+			ladder_deleted.emit(last_sel_ladder)
+			last_sel_ladder_idx = -1
+			last_sel_ladder = \"\"
+		elif last_sel_ladder_idx >= 0:  # Rename Ladder
+			text = text.c_escape()
+			%LadderContainer.set_item_text(last_sel_ladder_idx, text)
+			ladder_renamed.emit(last_sel_ladder, text)
+			last_sel_ladder = text
+
+func on_add_ladder(existing:PackedStringArray) -> String:
+	var text : String = %LadderTitle.text
+	text = text.c_escape()
+	if text.is_empty():
+		return \"\"
+	if text in existing: # If there's a ladder that was expected to be on the list, but isn't, we add it, then select it.
+		var idx : int = -1
+		for i in range(%LadderContainer.item_count):
+			if %LadderContainer.get_item_text(i) == text:
+				idx = i
+				break
+		if idx < 0:
+			idx = %LadderContainer.add_item(text)
+		%LadderContainer.select(idx)
+	else:  # It's a new ladder.
+		var idx = %LadderContainer.add_item(text)
+		%LadderContainer.select(idx)
+	return text
+#endregion
+
 #region Painting
 func set_active_asset(info_uid:StringName):
 	if not Tac.pallet_info.has(info_uid):
@@ -200,10 +266,8 @@ func get_mode() -> StringName:
 			else:
 				other = other.name
 			match other:
-				\"add_npc\":
-					return &\"npc\"
-				\"add_team\":
-					return &\"player\"
+				\"add_spawner\":
+					return &\"spawner\"
 				\"ZoneAdd\":
 					return &\"zoning\"
 				\"LadderAdd\":
@@ -214,6 +278,9 @@ func get_mode() -> StringName:
 					return \"\"
 		var mode:
 			return mode
+
+func get_spawner() -> StringName:
+	return %Spawner_Opts.get_item_text(%Spawner_Opts.selected)
 
 func get_paint_tool() -> String:
 	return paint_tool.get_pressed_button().name
@@ -287,7 +354,7 @@ func populate_thumbs():
 atlas = ExtResource("1_lmyxv")
 region = Rect2(96, 64, 32, 32)
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_lmyxv"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_8tvhu"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qkvba"]
 atlas = ExtResource("1_lmyxv")
@@ -342,7 +409,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_8tvhu"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_cxtx8"]
 allow_unpress = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8tvhu"]
@@ -398,7 +465,7 @@ size_flags_horizontal = 0
 tooltip_text = "Single Tile"
 toggle_mode = true
 button_pressed = true
-button_group = SubResource("ButtonGroup_lmyxv")
+button_group = SubResource("ButtonGroup_8tvhu")
 icon = SubResource("AtlasTexture_qkvba")
 
 [node name="Flood" type="Button" parent="VBoxContainer/PaintTools" unique_id=568791404]
@@ -406,7 +473,7 @@ layout_mode = 2
 size_flags_horizontal = 0
 tooltip_text = "Flood Fill"
 toggle_mode = true
-button_group = SubResource("ButtonGroup_lmyxv")
+button_group = SubResource("ButtonGroup_8tvhu")
 icon = SubResource("AtlasTexture_570co")
 
 [node name="Area" type="Button" parent="VBoxContainer/PaintTools" unique_id=384124221]
@@ -414,7 +481,7 @@ layout_mode = 2
 size_flags_horizontal = 0
 tooltip_text = "Drag Area"
 toggle_mode = true
-button_group = SubResource("ButtonGroup_lmyxv")
+button_group = SubResource("ButtonGroup_8tvhu")
 icon = SubResource("AtlasTexture_vit1w")
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="." unique_id=893390670]
@@ -680,34 +747,32 @@ metadata/_tab_index = 4
 [node name="VBoxContainer3" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=1304588091]
 layout_mode = 2
 
+[node name="Spawner_Opts" type="OptionButton" parent="VBoxContainer2/Terrains/other/VBoxContainer3" unique_id=1883321447]
+unique_name_in_owner = true
+layout_mode = 2
+icon_alignment = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "NPC Cluster"
+popup/item_0/id = 0
+popup/item_1/text = "Player Starting Point"
+popup/item_1/icon = ExtResource("2_8tvhu")
+popup/item_1/id = 1
+
 [node name="spawner_info" type="RichTextLabel" parent="VBoxContainer2/Terrains/other/VBoxContainer3" unique_id=1560923835]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
-text = "min: 00
-max: 00
-chara:"
+text = "No Spawner Picked Yet"
 horizontal_alignment = 3
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer2/Terrains/other/VBoxContainer3" unique_id=114713851]
-layout_mode = 2
-
-[node name="add_npc" type="Button" parent="VBoxContainer2/Terrains/other/VBoxContainer3/HBoxContainer" unique_id=1389620873]
+[node name="add_spawner" type="Button" parent="VBoxContainer2/Terrains/other/VBoxContainer3" unique_id=1389620873]
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
-button_group = SubResource("ButtonGroup_8tvhu")
-text = "NPC
-Spawn"
-
-[node name="add_team" type="Button" parent="VBoxContainer2/Terrains/other/VBoxContainer3/HBoxContainer" unique_id=953213860]
-unique_name_in_owner = true
-layout_mode = 2
-toggle_mode = true
-button_group = SubResource("ButtonGroup_8tvhu")
-text = "Player
-Spawn"
+button_group = SubResource("ButtonGroup_cxtx8")
+text = "Spawner"
 
 [node name="Zoning" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=386748457]
 custom_minimum_size = Vector2(150, 0)
@@ -732,7 +797,7 @@ allow_reselect = true
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
-button_group = SubResource("ButtonGroup_8tvhu")
+button_group = SubResource("ButtonGroup_cxtx8")
 text = "Zoning"
 
 [node name="Ladders" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=800851058]
@@ -760,6 +825,7 @@ allow_reselect = true
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
+button_group = SubResource("ButtonGroup_cxtx8")
 text = "Ladders"
 
 [node name="Spacer" type="Control" parent="VBoxContainer2/Terrains/other" unique_id=662946271]
@@ -853,7 +919,7 @@ layout_mode = 2
 size_flags_vertical = 3
 toggle_mode = true
 button_pressed = true
-button_group = SubResource("ButtonGroup_8tvhu")
+button_group = SubResource("ButtonGroup_cxtx8")
 text = "Capture Tile"
 
 [node name="Coordi_Opts" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=1870087275]

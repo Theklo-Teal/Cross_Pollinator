@@ -16,6 +16,7 @@ var on_abort : Callable  ## If this action can be interrupted to change to other
 
 func _init(character:TacCharacter) -> void:
 	me = character
+	me.add_to_group("observer_character_select")
 
 func my(node:NodePath):
 	return me.get_node(node)
@@ -39,6 +40,13 @@ func process(delta:float):
 	pass
 
 func input(event:InputEvent):
+	pass
+
+func _on_character_selected(chara:TacCharacter):
+	if chara == self:
+		on_being_selected()
+
+func on_being_selected():
 	pass
 
 ## Whether this character was clicked on or prompted. If [code]from[/code] is

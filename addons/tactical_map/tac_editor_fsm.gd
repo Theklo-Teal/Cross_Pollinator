@@ -23,11 +23,11 @@ func _disable_plugin() -> void:
 	remove_autoload_singleton("Tac")
 
 func _enter_tree() -> void:
-	undo_redo = get_undo_redo()
-	
 	#NOTE Have been having issues with «add_autoload_singleton()» not doing its job in «_enable_plugin()», so here we ensure «Tac» is set.
 	if not ProjectSettings.has_setting("autoload/Tac"):
 		add_autoload_singleton("Tac", "res://addons/tactical_map/tac_map_global.gd")
+	
+	undo_redo = get_undo_redo()
 
 #endregion
 
@@ -186,7 +186,7 @@ class Paint_Mode extends TacEditorState:
 
 class Zone_Mode extends Paint_Mode:
 	func help() -> String:
-		return "Type a zone title, then drag on map to create a new zone. Clicking zones from the list highlights them on the map.\nSubmitting a title renames the last clicked zone. Submitting an empty title deletes the last clicked zone."
+		return "Tiles contained by a zone will trigger events when characters step on them or out of them.\nType a zone title, then drag on map to create a new zone. Clicking zones from the list highlights them on the map.\nSubmitting a title renames the last clicked zone. Submitting an empty title deletes the last clicked zone."
 	
 	func enter():
 		me.pallet.force_paint_tool(&"Area")
@@ -199,8 +199,9 @@ class Zone_Mode extends Paint_Mode:
 	func left_release(alt:bool):
 		var zone_name = me.pallet.on_add_zone(me.curr_map.zones.keys())
 		if not zone_name.is_empty():
-			me.curr_map.zones[zone_name] = Rect2i(me.start_tile, Vector2i.ONE)
-			me.curr_map.zones[zone_name].end = me.hover_tile.clamp(Vector2i.ZERO, me.curr_map.size)
+			me.curr_map.zones[zone_name] = Rect2i(me.map_start_tile, Vector2i.ONE)
+			me.curr_map.zones[zone_name].end = me.map_hover_tile
+			me.curr_map.zones[zone_name] = me.curr_map.zones[zone_name].abs()
 			me.sel_zones.append(zone_name)
 		return super(alt)
 	
@@ -224,7 +225,7 @@ class Zone_Mode extends Paint_Mode:
 			canvas.draw_colored_polygon(area_polygon, color)
 			canvas.draw_polyline(area_polygon, Color.SEA_GREEN, 3)
 		
-		var hei = me.curr_map.get_nav_height() + 0.1
+		var hei = me.curr_map.get_height() + 0.1
 		for zone in me.sel_zones:
 			var rect = me.curr_map.zones[zone]
 			var area := get_map_area(
@@ -250,6 +251,46 @@ class Zone_Mode extends Paint_Mode:
 				fill.a = 0.4
 				canvas.draw_colored_polygon(zone_polygon, fill)
 				canvas.draw_polyline(zone_polygon, Color.DIM_GRAY, 3)
+
+class Ladder_Mode extends Paint_Mode:
+	func help() -> String:
+		return "Warp tiles of the same ladder in different maps will allow characters move between them. \nType a ladder title, then click on map to create a warp tile. Clicking ladders from the list highlights them on the map.\nSubmitting a title renames the last clicked ladder. Submitting an empty title deletes the last clicked ladder."
+	func enter():
+		me.pallet.force_paint_tool(&"Single")
+		me.update_overlays()
+	
+	func left_release(alt:bool):
+		if me.within_map:
+			var ladder_name = me.pallet.on_add_ladder(me.curr_map.ladders.keys())
+			if not ladder_name.is_empty():
+				me.curr_map.ladders[ladder_name] = me.map_hover_tile
+				me.sel_ladders.append(ladder_name)
+				me.update_overlays()
+			return EditorPlugin.AFTER_GUI_INPUT_STOP
+	
+	func draw(canvas:Control):
+		var hei = me.curr_map.get_height() + 0.1
+		for ladder in me.sel_ladders:
+			var area := Rect2i( me.curr_map.ladders[ladder], Vector2i.ONE )
+			var start = Vector3(area.position.x, hei, area.position.y)
+			var stop = Vector3(area.end.x, hei, area.end.y)
+			var ladder_polygon =  [
+				me.cam.unproject_position(start),
+				me.cam.unproject_position(Vector3(stop.x, hei, start.z)),
+				me.cam.unproject_position(stop),
+				me.cam.unproject_position(Vector3(start.x, hei, stop.z)),
+				me.cam.unproject_position(start),
+				]
+			if ladder == me.pallet.last_sel_ladder:
+				var fill = Color.DARK_KHAKI
+				fill.a = 0.4
+				canvas.draw_colored_polygon(ladder_polygon, fill)
+				canvas.draw_polyline(ladder_polygon, Color.KHAKI, 3)
+			else:
+				var fill = Color.DIM_GRAY
+				fill.a = 0.4
+				canvas.draw_colored_polygon(ladder_polygon, fill)
+				canvas.draw_polyline(ladder_polygon, Color.DIM_GRAY, 3)
 
 class Floor_Mode extends Paint_Mode:
 	func help() -> String:
@@ -457,57 +498,34 @@ class Crawl_Wall_Mode extends Wall_Mode:
 	pass
 
 class Spawner_Mode extends TacEditorState:
+	var spawner_copy : TacEntitySpawner
+	
+	func help() -> String:
+		return "Left-click anywhere to set the starting position of characters. Clicking on an existing spawn point removes it."
+	
 	func enter():
 		me.pallet.force_paint_tool(&"Single")
-	
-	func left_pressed(alternate:bool):
-		if me.within_map:
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
-
-	func left_release(alternate:bool):
-		if me.within_map:
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
-
-class Player_Spawn_Mode extends Spawner_Mode:
-	func help() -> String:
-		return "Left-click anywhere to set the player's team starting position. Clicking on an existing spawn point removes it (sets to Vector2i.ZERO)."
 	
 	func left_release(alt:bool):
 		if me.within_map:
 			if me.map_hover_tile in me.curr_map.spawners:
 				me.curr_map.rem_spawner(me.map_hover_tile)
 			else:
-				me.curr_map.add_spawner(me.map_hover_tile, PlayerSpawn.new())
-			return super(alt)
-
-
-class NPC_Spawn_Mode extends Spawner_Mode:
-	func help() -> String:
-		return "Left-click anywhere to set a spawner of NPCs. Clicking on an existing spawn point removes it.\nThe text above tells the parameters of a spawner clicked with the Picker tool. Placed spawners will give them the same parameters."
+				var spawner_class = me.pallet.get_spawner()
+				var spawner : TacEntitySpawner
+				if not spawner_copy == null and spawner_copy.display_name() == spawner_class:
+					spawner = spawner_copy.duplicate_deep()
+				else:
+					spawner = Tac.spawners[spawner_class].new()
+				me.curr_map.add_spawner(me.map_hover_tile, spawner)
+			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func left_release(alt:bool):
-		#if me.within_map:
-			#if me.hover_tile in me.curr_map.spawns:
-				#me.curr_map.rem_npc_spawner(me.hover_tile)
-			#else:
-				#me.curr_map.add_npc_spawner(me.hover_tile, me.spawner_copy.duplicate())
-		return super(alt)
-	
-	func pick_tool(alt:bool):
-		pass
-		#var hit = me.curr_map.spawns.get(me.hover_tile)
-		#if hit == null:
-			#return EditorPlugin.AFTER_GUI_INPUT_PASS
-		#else:
-			#me.spawner_copy = hit
-			#return EditorPlugin.AFTER_GUI_INPUT_STOP
-
-class Ladder_Mode extends TacEditorState:
-	func help() -> String:
-		return "Warp tiles of the same ladder in different maps will allow characters move between them. \nType a ladder title, then click on map to create a warp tile. Clicking ladders from the list highlights them on the map.\nSubmitting a title renames the last clicked ladder. Submitting an empty title deletes the last clicked ladder."
-	func enter():
-		me.pallet.force_paint_tool(&"Single")
-		me.update_overlays()
+	func pick_tool(alternate:bool):
+		if me.within_map:
+			if me.map_hover_tile in me.curr_map.spawners:
+				spawner_copy = me.curr_map.spawners[me.map_hover_tile]
+				me.pallet.show_spawner_copy(spawner_copy)
+			return EditorPlugin.AFTER_GUI_INPUT_STOP
 
 class Coord_Capture extends TacEditorState:
 	func help() -> String:

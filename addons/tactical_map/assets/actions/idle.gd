@@ -14,14 +14,9 @@ func store_history() -> bool:
 func enter(prev:CharaAction):
 	me.animate("act_idle")
 
-func interact_receive(from:TacCharacter=null):
+func on_being_selected():
 	cause_busy = true
 	me.audio_speak("greeting")
 	await me.animate("pose_T", 0.5)
 	me.animate("act_idle")
 	cause_busy = false
-
-
-func input(event:InputEvent):
-	if event.is_action_pressed(Tac.get_input_action(&"command")):
-		me.proceed(&"walk")

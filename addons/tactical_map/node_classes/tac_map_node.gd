@@ -7,7 +7,7 @@ class_name TacMap
 ## like XCom, Phantom Doctrine or Phoenix Point.[br]
 ## It includes a collision shape meant to detect mouse clicks so the player can interact
 ## with the map, like telling a character where to go.[br]
-## NOTE: Maps can overlay if they are different TacNav layers (height), 
+## NOTE: Maps can overlay if they are at different TacNav layers (height), 
 ## but please don't overlap them on the same layer.
 
 #TODO Auto-tile upon rebuild
@@ -25,12 +25,12 @@ func add_spawner(where:Vector2i, which:TacEntitySpawner):
 	spawners[where] = which
 	var tacnav : TacNav = get_parent()
 	# Ensure whether uniques exist already.
-	if which.unique_to_tacnav in tacnav.unique_spawners:
-		var rival : Dictionary = tacnav.unique_spawners[which.unique_to_tacnav]
+	if which.unique_to_tacnav() in tacnav.unique_spawners:
+		var rival : Dictionary = tacnav.unique_spawners[which.unique_to_tacnav()]
 		rival.map.rem_spawner(rival.coordi)
 	# Register as being unique.
-	if not which.unique_to_tacnav.is_empty():
-		tacnav.unique_spawners[which.unique_to_tacnav] = {
+	if not which.unique_to_tacnav().is_empty():
+		tacnav.unique_spawners[which.unique_to_tacnav()] = {
 			"map" : self,
 			"coordi" : where 
 			}
@@ -53,7 +53,7 @@ func rem_spawner(where:Vector2i):
 	if spawns.has_node(id):
 		spawns.get_node(id).queue_free()
 
-@export_storage var ladders : Dictionary[Vector2i, String]  ## Tiles that will teleport characters to other tiles of any TacMap under the same TacNav with the same ladder title.
+@export_storage var ladders : Dictionary[String, Vector2i]  ## Tiles that will teleport characters to other tiles of any TacMap under the same TacNav with the same ladder title.
 @export_storage var zones : Dictionary[String, Rect2i]  ## Areas that emit a signal when a characters enters or leaves.
 @export_storage var tiles : Dictionary[Vector2i, TacTile]  ## Contents of grid cells.
 
@@ -84,6 +84,7 @@ func clear_map():
 	placed.clear()
 	tiles.clear()
 	zones.clear()
+	ladders.clear()
 	for each in spawners:
 		rem_spawner(each)
 	var tacnav : TacNav = get_parent()
