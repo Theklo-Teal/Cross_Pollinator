@@ -38,13 +38,17 @@ var curr_team : Team  ## If a character defects or is mind-controlled, this keep
 @export var attitude : ATT  ## How the character navigates the environment.
 
 @export_group("Actions")
-@export var actions : Array[StringName]
+@export var equipment : Array[StringName]
+
+var actions : Dictionary[StringName, CharaAction]
 
 func _ready():
-	var idling = Tac.actions[&"idle"]
-	idling.me = self
-	stt.append(idling)
-	idling.enter(null)
+	actions[&"idle"] = Tac.actions[&"idle"].new(self)
+	actions[&"walk"] = Tac.actions[&"walk"].new(self)
+	for each in equipment:
+		actions[each] = Tac.actions[each].new(self)
+	stt.append(actions[&"idle"])
+	actions[&"idle"].enter(null)
 
 var queue : Array[CharaAction]  ## When an action was attempted while the character was busy, they go here and wait for character to not be busy.
 var stt : Array[CharaAction]  ## State history stack. Current state is at the back.
@@ -98,12 +102,10 @@ func _switch_state(external:bool, next:CharaAction=null) -> Error:
 		else:
 			result = OK
 		
-		prev.me = self
 		prev.exit(next)
 		if not is_restoring_past_state:
 			# We don't want to put a retrieved past state back into the history. That will just duplicate it.
 			stt.push_back(next)
-		next.me = self
 		next.enter(prev)
 		
 	# Limit the history size.
@@ -126,8 +128,8 @@ func _switch_state(external:bool, next:CharaAction=null) -> Error:
 func proceed(next_state:StringName = &"") -> Error:
 	if next_state.is_empty():
 		return _switch_state(false, null)
-	elif next_state in Tac.actions:
-		return _switch_state(false, Tac.actions[next_state])
+	elif next_state in actions:
+		return _switch_state(false, actions[next_state])
 	else:
 		printerr("TacCharacter/proceed(): Not a valid state. " + next_state)
 		return ERR_DOES_NOT_EXIST
@@ -144,19 +146,18 @@ func proceed(next_state:StringName = &"") -> Error:
 func command(next_state:StringName = &"") -> Error:
 	if next_state.is_empty():
 		return _switch_state(true, null)
-	elif next_state in Tac.actions:
-		return _switch_state(true, Tac.actions[next_state])
+	elif next_state in actions:
+		return _switch_state(true, actions[next_state])
 	else:
-		printerr("TacCharacter/switch_state(): Not a valid state. " + next_state)
+		printerr("TacCharacter/command(): Not a valid state. " + next_state)
 		return ERR_DOES_NOT_EXIST
-
 
 func _process(delta: float) -> void:
 	stt.back().process(delta)
 func _unhandled_input(event: InputEvent) -> void:
 	stt.back().input(event)
 
+# TODO Distinguish whether interactions represent this character acting on another or other on this one.
 func _interaction() -> Error:
-	stt.back().interact_transmit()
-	stt.back().interact_receive()
+	stt.back().interact_receive(null)
 	return OK

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d35bjoptq7euw"
-path="res://.godot/imported/TacMap.svg-deac2261f69f7a224947c6fef84c3143.ctex"
+uid="uid://b6qe30d6b444l"
+path="res://.godot/imported/TacInterface.svg-a22dd26b9b57cf2239d571daff7dff6b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/tactical_map/icons/TacMap.svg"
-dest_files=["res://.godot/imported/TacMap.svg-deac2261f69f7a224947c6fef84c3143.ctex"]
+source_file="res://addons/tactical_map/icons/TacInterface.svg"
+dest_files=["res://.godot/imported/TacInterface.svg-a22dd26b9b57cf2239d571daff7dff6b.ctex"]
 
 [params]
 

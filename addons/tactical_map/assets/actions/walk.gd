@@ -1,6 +1,7 @@
 extends CharaAction
 
-func _init() -> void:
+func _init(character:TacCharacter) -> void:
+	super(character)
 	cause_busy = true
 	yield_queue = false
 	can_queue = true

@@ -64,7 +64,7 @@ var select_chara : TacCharacter :
 		if val.curr_team == TacCharacter.Team.PLAYER:
 			select_chara = val
 			get_tree().call_group("observer_character_select", "_on_character_selected", val)
-var actions : Dictionary[StringName, CharaAction]
+var actions : Dictionary[StringName, Resource]
 
 # Level Editor Things
 var pallet_fam : Dictionary[StringName, PackedStringArray]  # Associate UID of asset info to a terrain family.
@@ -86,11 +86,11 @@ func _ready() -> void:
 	
 	for file in DirAccess.get_files_at(DEFAULT_ACTIONS_PATH):
 		if file.get_extension() == "gd":
-			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file)).new()
+			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file))
 	var act_path = setts.get_value("Asset Paths", "Actions", DEFAULT_ACTIONS_PATH)
 	for file in DirAccess.get_files_at(act_path):
 		if file.get_extension() == "gd":
-			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file)).new()
+			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file))
 	
 	var terr_path : String = setts.get_value("Asset Paths", "Terrains", DEFAULT_TERRAIN_PATH)
 	for family in DirAccess.get_directories_at(terr_path):

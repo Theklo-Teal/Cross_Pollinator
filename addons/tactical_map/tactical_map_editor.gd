@@ -41,6 +41,7 @@ func _enter_tree() -> void:
 	add_custom_type("TacCharacter", "TacEntity", preload("res://addons/tactical_map/entity_classes/tac_character.gd"), preload("res://addons/tactical_map/icons/TacChara.svg"))
 	add_custom_type("TacNav", "Area3D", preload("res://addons/tactical_map/node_classes/tac_nav_node.gd"), preload("res://addons/tactical_map/icons/TacNav.svg"))
 	add_custom_type("TacMap", "Area3D", preload("res://addons/tactical_map/node_classes/tac_map_node.gd"), preload("res://addons/tactical_map/icons/TacMap.svg"))
+	add_custom_type("TacInterface", "Node3D", preload("res://addons/tactical_map/node_classes/tac_interface_node.gd"), preload("res://addons/tactical_map/icons/TacInterface.svg"))
 	
 	pallet = pallet.instantiate()
 	pallet.visible = false
@@ -63,6 +64,7 @@ func _exit_tree() -> void:
 	remove_custom_type("TacCharacter")
 	remove_custom_type("TacNav")
 	remove_custom_type("TacMap")
+	remove_custom_type("TacInterface")
 	
 	if pallet.visible:
 		remove_control_from_bottom_panel(pallet)
@@ -284,8 +286,9 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 #endregion
 
 ## Given points in 3D space, return screen coordinates to draw in a CanvasItem overlay.
-func get_view_polyline(verts:PackedVector3Array) -> PackedVector2Array:
+func draw_area(verts:PackedVector3Array) -> PackedVector2Array:
 	var points : PackedVector2Array
+	var planes := cam.get_frustum()
 	for v in verts:
 		if cam.is_position_in_frustum(v):
 			points.append(cam.unproject_position(v))

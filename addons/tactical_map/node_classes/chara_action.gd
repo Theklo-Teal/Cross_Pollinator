@@ -14,6 +14,9 @@ var yield_queue : bool = true  ## When [code]cause_busy[/code] is [code]false[/c
 var can_queue : bool = true  ## Can this action be held to activate later if the character is busy?
 var on_abort : Callable  ## If this action can be interrupted to change to other action. What should it do? Unlike just setting [code]cause_busy[/code], aborting executes a function.
 
+func _init(character:TacCharacter) -> void:
+	me = character
+
 func my(node:NodePath):
 	return me.get_node(node)
 
@@ -38,8 +41,17 @@ func process(delta:float):
 func input(event:InputEvent):
 	pass
 
+## Whether this character was clicked on or prompted. If [code]from[/code] is
+## [code]null[/code] it means the interaction is direct from the player.
 func interact_receive(from:TacCharacter=null):
 	pass
 
+## Whether another character was clicked on or prompted while this one was active.
+## If it represents this character acting on the other. If [code]to[/code] is
+## [code]null[/code] it means the interaction is direct from the player.
 func interact_transmit(to:TacCharacter=null):
 	pass
+
+## Return a value from 0 to 1 about the confidence of whether an NPC should use this action.
+func utility_score() -> float:
+	return 0.5

@@ -16,7 +16,7 @@ class_name Character
 ## [/ol]
 
 enum APPR{
-	DEFENCE,
+	DEFENSE,
 	OFFENSE,
 	RETREAT,
 	PANIC
@@ -59,15 +59,15 @@ func assess_options() -> Dictionary:
 	# Markov Functions
 	var chance = randf()
 	var threat = threat_score()
-	var courage = 0.6  # Take values from character stats: Will * Mental
+	var courage = inverse_lerp(0, mental, max_mental)  # Account Will?
 	if threat > courage:
 		approach = APPR.PANIC
 	elif chance > courage:
-		approach = APPR.RETREAT
-	elif chance > threat:
-		approach = APPR.DEFENCE
-	elif chance < threat:
 		approach = APPR.OFFENSE
+	elif chance > threat:
+		approach = APPR.DEFENSE
+	elif chance < threat:
+		approach = APPR.DEFENSE
 	
 	#TODO couple approach to the actions available
 	 
