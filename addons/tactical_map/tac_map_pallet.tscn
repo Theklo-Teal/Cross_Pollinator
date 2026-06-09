@@ -751,7 +751,6 @@ layout_mode = 2
 [node name="Spawner_Opts" type="OptionButton" parent="VBoxContainer2/Terrains/other/VBoxContainer3" unique_id=1883321447]
 unique_name_in_owner = true
 layout_mode = 2
-icon_alignment = 2
 selected = 1
 item_count = 2
 popup/item_0/text = "NPC Cluster"

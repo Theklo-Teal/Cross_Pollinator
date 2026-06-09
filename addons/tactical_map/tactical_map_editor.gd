@@ -290,27 +290,10 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 
 func unproject_area(verts:PackedVector3Array) -> PackedVector2Array:
 	var polyline : PackedVector2Array
-	var view_poly = [
-		Vector2(0,0),
-		Vector2(view_size.x,0),
-		view_size,
-		Vector2(0,view_size.y),
-	]
-	
-	var inside_frustrum : int = 0
+	verts = Geometry3D.clip_polygon(verts, cam.get_frustum()[0])
 	for p in verts:
-		if cam.is_position_behind(p):
-			pass
-			#FIXME deal with points behind the camera.
 		polyline.append(cam.unproject_position(p))
-		if cam.is_position_in_frustum(p):
-			inside_frustrum += 1
-	
-	if inside_frustrum == 0:
-		return []
-	
-	var intersect = Geometry2D.intersect_polygons(view_poly, polyline)
-	return intersect[0]
+	return polyline
 
 ## From the output of [code]unproject_area()[/code], draw an outline.
 func draw_area_polyline(canvas:Control, points: PackedVector2Array, color:Color, thickness:int=-1):
