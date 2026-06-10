@@ -1,6 +1,10 @@
 extends Area3D
 class_name TacEntity
 
+## The base of all object placed by a TacNav that can be clicked on for interaction.
+
+#FIXME Traversal logic is not flowing as expected.
+
 signal interacted  ## The player tried to click on this object.
 
 @export var interact_distance : float = 2.4  ## How far, in meters, can an active character be from this entity and still allow it to interact.
@@ -71,14 +75,15 @@ func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Er
 		return ERR_CANT_CONNECT
 	if tacmap.tiles.get(destination) == null:
 		return ERR_CANT_CONNECT
-		
-	var result : Error = OK
+	
+	var result : Error = ERR_BUG
 	
 	var destin := Vector3i(destination.x, tacmap.get_layer(), destination.y)
 	
 	last_step = get_nav_coord3()
 	if teleport:
 		trajectory = [destin]
+		take_a_step()  # Update information where the character goes first.
 	else:
 		trajectory.assign( get_tacnav().get_traject(self, destination, tacmap) )
 		if trajectory.is_empty():
@@ -99,6 +104,7 @@ func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Er
 ## [code]ERR_QUERY_FAILED[/code]: [code]trajectory[/code] is partial. Probably
 ## because a path wasn't found.[br]
 func _traversal_start(curr_error:Error, destination:Vector3i, teleport:=false) -> Error:
+	print(error_string(curr_error))
 	return curr_error
 
 ## Take a step along the trajectory, popping one of its coordinates along the way
@@ -108,7 +114,8 @@ func _traversal_start(curr_error:Error, destination:Vector3i, teleport:=false) -
 ## has been reached.
 func take_a_step() -> Error:
 	var result : Error = OK
-	if trajectory.is_empty():  #FIXME character is about to take a step on an empty trajectory.
+	if trajectory.is_empty():
+		#character is about to take a step on an empty trajectory.
 		return ERR_ALREADY_EXISTS
 	else:
 		var step : Vector3i = trajectory.pop_back()

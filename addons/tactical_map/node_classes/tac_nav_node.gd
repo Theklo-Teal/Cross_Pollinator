@@ -449,8 +449,8 @@ func map2spatial(coordi:Vector2i, map:TacMap) -> Vector2:
 	return coord
 
 ## Returns tiles in 3D Global coordinate from tiles in a TacMaps.
-func map2spatial_tile(coord:Vector2i, map:TacMap) -> Vector2i:
-	return spatial2tile(map2spatial(coord, map))
+func map2spatial_tile(coordi:Vector2i, map:TacMap) -> Vector2i:
+	return coordi + spatial2tile(Saliko.Vec3RemAxis(position + map.position))
 
 ## Returns the Global 3D coordinate of a tile in the TacMap. Optionally point to the center of the tile on the XZ plane.
 func map3spatial(coordi:Vector2i, map:TacMap, centered:=false) -> Vector3:

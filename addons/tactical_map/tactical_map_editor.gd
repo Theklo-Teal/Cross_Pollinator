@@ -10,9 +10,6 @@ class_name TacticalMapEditor
 
 #WARNING We must not call for "Tac" (tac_map_global.gd) in this script. It can only enable or disable it.
 
-var curr_map : TacMap
-var curr_nav : TacNav  ## TacNav parent of the [code]curr_map[/code].
-
 #region Boilerplate
 func _ready() -> void:
 	pallet = pallet.instantiate()
@@ -49,7 +46,7 @@ func _enter_tree() -> void:
 		"coordcapt": Coord_Capture.new(self)
 		}
 	
-	add_custom_type("CharaAction", "RefCounted", preload("res://addons/tactical_map/node_classes/chara_action.gd"), preload("res://addons/tactical_map/icons/TacCharaAction.svg"))
+	add_custom_type("CharaAction", "RefCounted", preload("res://addons/tactical_map/entity_classes/chara_action.gd"), preload("res://addons/tactical_map/icons/TacCharaAction.svg"))
 	add_custom_type("FloorInfo", "Resource", preload("res://addons/tactical_map/resource_classes/floor_info.gd"), preload("res://addons/tactical_map/icons/FloorInfo.svg"))
 	add_custom_type("WallInfo", "Resource", preload("res://addons/tactical_map/resource_classes/wall_info.gd"), preload("res://addons/tactical_map/icons/WallInfo.svg"))
 	add_custom_type("TacTile", "Resource", preload("res://addons/tactical_map/resource_classes/tac_tile.gd"), preload("res://addons/tactical_map/icons/TacTile.svg"))
@@ -226,7 +223,6 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 	
 	if cam == null:
 		return
-
 	# Draw boundary of the TacMap
 	var fence = [
 		Vector3(curr_map.global_area.position.x,curr_map.get_spatial_height(),curr_map.global_area.position.y),
@@ -283,6 +279,9 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 
 #endregion
 
+## Produces a 2D polygon from a polygon in 3D space for purposes of
+## [code]Control._draw()[/code].[br]
+## Coordinates of [code]verts[/code] should be in Global 3D space.
 func unproject_area(verts:PackedVector3Array) -> PackedVector2Array:
 	var polyline : PackedVector2Array
 	verts = Geometry3D.clip_polygon(verts, cam.get_frustum()[0])
@@ -290,30 +289,40 @@ func unproject_area(verts:PackedVector3Array) -> PackedVector2Array:
 		polyline.append(cam.unproject_position(p))
 	return polyline
 
-## Draw the outline overlay of an area in 3D perspective.
+## Draw the outline overlay of an area in 3D perspective. Processes [code]corners[/code]
+## using [code]unproject_area[/code].
 func draw_area_outline(canvas:Control, corners: PackedVector3Array, color:Color, thickness:int=-1):
 	corners.append(corners[0])
 	var points = unproject_area(corners)
 	if points.size() >= 3:
 		canvas.draw_polyline(points, color, thickness)
 
-## Draw a filled polyong overlay of an area in 3D perspective.
+## Draw a filled polyong overlay of an area in 3D perspective. Processes [code]corners[/code]
+## using [code]unproject_area[/code].
 func draw_area_polygon(canvas:Control, corners: PackedVector3Array, color:Color):
 	var points = unproject_area(corners)
 	if points.size() >= 3:
 		canvas.draw_colored_polygon(points, color)
 
 ## Combines both [code]draw_area_outline()[/code] and [code]draw_area_polygon()[/code].
-func draw_area_outlined_polygon(canvas:Control, corners: PackedVector3Array, color:Color, thickness:int=-1):
+## Processes [code]corners[/code] using [code]unproject_area[/code].
+func draw_area_outlined_polygon(canvas:Control, corners: PackedVector3Array, fill_color:Color, perim_color:Color, thickness:int=-1):
 	corners.append(corners[0])
 	var points = unproject_area(corners)
 	if points.size() >= 3:
-		canvas.draw_colored_polygon(points, color)
-		canvas.draw_polyline(points, color, thickness)
+		canvas.draw_colored_polygon(points, fill_color)
+		canvas.draw_polyline(points, perim_color, thickness)
 
 #region Zoning and Ladders
 var sel_zones : PackedStringArray
 var sel_ladders: PackedStringArray
+
+func set_active_zone(zone_name:StringName):
+	sel_zones.append(zone_name)
+	pallet.set_active_zone(zone_name)
+func set_active_ladder(ladder_name:StringName):
+	sel_ladders.append(ladder_name)
+	pallet.set_active_ladder(ladder_name)
 
 func _on_zone_clicked():
 	update_overlays()

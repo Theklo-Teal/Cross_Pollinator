@@ -131,9 +131,13 @@ func _switch_state(external:bool, next:CharaAction=null) -> Error:
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
 func proceed(next_state:StringName = &"") -> Error:
 	if next_state.is_empty():
-		return _switch_state(false, null)
+		var err = _switch_state(false, null)
+		print("proceed: no state provided",  error_string(err))
+		return err
 	elif next_state in actions:
-		return _switch_state(false, actions[next_state])
+		var err = _switch_state(false, actions[next_state])
+		print("proceed: ", next_state, " - ", error_string(err))
+		return err
 	else:
 		printerr("TacCharacter/proceed(): Not a valid state. " + next_state)
 		return ERR_DOES_NOT_EXIST
@@ -149,9 +153,13 @@ func proceed(next_state:StringName = &"") -> Error:
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
 func command(next_state:StringName = &"") -> Error:
 	if next_state.is_empty():
-		return _switch_state(true, null)
+		var err = _switch_state(true, null)
+		print("command: no state provided", error_string(err))
+		return err
 	elif next_state in actions:
-		return _switch_state(true, actions[next_state])
+		var err = _switch_state(true, actions[next_state])
+		print("command: ", next_state, " - ", error_string(err))
+		return err
 	else:
 		printerr("TacCharacter/command(): Not a valid state. " + next_state)
 		return ERR_DOES_NOT_EXIST

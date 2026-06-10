@@ -4,8 +4,9 @@ extends EditorPlugin
 #TODO Undo/Redo
 #TODO Flood Fill
 #TODO Enable Picker Tool
-#TODO Ladders
 #TODO Tags for searching assets and the filter input
+#TODO Test Ladders
+#TODO Test Zone triggers
 
 #NOTE How to use undo_redo
 	##undo_redo.create_action("TacMap: set floor tiles")
@@ -14,6 +15,8 @@ extends EditorPlugin
 	##undo_redo.commit_action()
 
 #region Boilerplate
+var curr_map : TacMap
+var curr_nav : TacNav  ## TacNav parent of the [code]curr_map[/code].
 var pallet = preload("res://addons/tactical_map/tac_map_pallet.tscn")
 var undo_redo : EditorUndoRedoManager
 
@@ -44,6 +47,42 @@ func _on_paint_tool_changed(tool:StringName):
 	if not tool.is_empty():
 		pallet.set_help(modes[curr_mode()].help())
 
+## Given tiles, get an Rect2i contained by the TacMap's area in Global space
+## coordinates. Set [code]no_zero[/code] true if rect should alway have area.
+## By default assumes coordinates are in Global space, provide a TacMap to use 
+## that map's space.[br]
+func get_map_rect(from:Vector2i, to:Vector2i, no_zero:bool=false, tacmap:TacMap=null) -> Rect2i:
+	var rect := Rect2i(from, Vector2i.ONE)
+	rect.end = to
+	if not tacmap == null:
+		rect.position = curr_nav.map2spatial_tile(from, tacmap)
+		rect.end = curr_nav.map2spatial_tile(to, tacmap)
+	rect = rect.abs()
+	if no_zero:
+		rect = rect.grow_individual(0,0,1,1)
+	if not tacmap == null:
+		rect = rect.intersection(tacmap.global_area)
+	return rect
+
+## Given tiles, get an area contained by the TacMap's area in Global space
+## coordinates. Useful for a 2D overlay drawing.[br]
+## By default assumes coordinates are in Global space, provide a TacMap to use 
+## that map's space.[br]
+## Returns an area in 3D space according to the TacMap's height (if available)
+## and [code]offset[/code] height.
+func get_map_area(from:Vector2i, to:Vector2i, tacmap:TacMap=null, offset:float=0) -> PackedVector3Array:
+	var rect : Rect2 = get_map_rect(from, to, true, tacmap)
+	var polygon = Saliko.rect2polygon(rect)
+	var area : PackedVector3Array
+	for tile in polygon:
+		var vert : Vector3
+		vert = curr_nav.tile2spatial(tile)
+		vert.y = offset
+		if not tacmap == null:
+			vert.y += tacmap.get_height()
+		area.append(vert)
+	return area
+
 @abstract class TacEditorState:
 	var me : TacticalMapEditor
 	
@@ -57,17 +96,12 @@ func _on_paint_tool_changed(tool:StringName):
 		# Enable all tools
 		me.pallet.force_paint_tool(&"Single", &"Area", &"Flood")
 	
-	## Given tiles, get an area contained by the current TacMap.
-	## By default assumes Map coordinate system, but alternatively does Global space.
-	func get_map_area(from:Vector2i, to:Vector2i, map_space:=true) -> Rect2i:
-		var rect := Rect2i(from, Vector2i.ZERO)
-		rect.end = to
-		rect = rect.abs().grow_individual(0,0,1,1)
-		return rect.intersection([me.curr_map.global_area, Rect2i(Vector2i.ZERO, me.curr_map.size)][int(map_space)])
-	
 	func input(event:InputEvent):
+		if me.curr_map == null or me.curr_nav == null:
+			return
+		
 		var alternate = Input.is_key_pressed(KEY_CTRL)
-
+		
 		if event is InputEventMouseMotion and me.is_dragging:
 			var left_button = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 			var right_button = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
@@ -105,10 +139,13 @@ func _on_paint_tool_changed(tool:StringName):
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
 	
 	func draw(canvas:Control):
+		if me.is_dragging or me.camera_moved:
+			_draw(canvas)
+	func _draw(canvas:Control):
 		pass
 
 class Paint_Mode extends TacEditorState:
-	var area_polygon : PackedVector2Array  # The highlighted area as the mouse drags.
+	var area_polygon : PackedVector3Array  # The highlighted area as the mouse drags.
 	var last_placed : Vector2i  # Remember last affected tile, avoiding it constantly changing while the mouse button is held.
 	var has_placed : bool = false  # Whether to acknowledge «last_placed»
 	
@@ -169,19 +206,9 @@ class Paint_Mode extends TacEditorState:
 		if me.is_dragging:
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func draw(canvas:Control):
-		if me.is_dragging and me.pallet.get_paint_tool() == "Area":
-			var hei = me.curr_map.get_spatial_height() + 0.1
-			var area := get_map_area(me.start_tile, me.hover_tile, false)
-			var start = Vector3(area.position.x, hei, area.position.y)
-			var stop = Vector3(area.end.x, hei, area.end.y)
-			area_polygon =  [
-				me.cam.unproject_position(start),
-				me.cam.unproject_position(Vector3(stop.x, hei, start.z)),
-				me.cam.unproject_position(stop),
-				me.cam.unproject_position(Vector3(start.x, hei, stop.z)),
-				me.cam.unproject_position(start),
-				]
+	func _draw(canvas:Control):
+		if me.pallet.get_paint_tool() == "Area":
+			area_polygon = me.get_map_area(me.map_start_tile, me.map_hover_tile, me.curr_map, 0.1)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 
 class Zone_Mode extends Paint_Mode:
@@ -193,16 +220,15 @@ class Zone_Mode extends Paint_Mode:
 		me.update_overlays()
 	
 	func while_dragging(alt:bool, left, right):
-		if not right:
+		if left:
 			super(alt, left, right)
 	
 	func left_release(alt:bool):
 		var zone_name = me.pallet.on_add_zone(me.curr_map.zones.keys())
 		if not zone_name.is_empty():
-			me.curr_map.zones[zone_name] = Rect2i(me.map_start_tile, Vector2i.ONE)
-			me.curr_map.zones[zone_name].end = me.map_hover_tile
-			me.curr_map.zones[zone_name] = me.curr_map.zones[zone_name].abs()
-			me.sel_zones.append(zone_name)
+			var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
+			me.curr_map.zones[zone_name] = rect
+			me.set_active_zone(zone_name)
 		return super(alt)
 	
 	func pick_tool(alt:bool):  #TODO Test this
@@ -217,44 +243,34 @@ class Zone_Mode extends Paint_Mode:
 			me.pallet.select_zones(hits)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func draw(canvas:Control):
+	func _draw(canvas:Control):
 		super(canvas)
-		if not area_polygon.is_empty():
-			var color = Color.DARK_SLATE_GRAY
-			color.a = 0.4
-			canvas.draw_colored_polygon(area_polygon, color)
-			canvas.draw_polyline(area_polygon, Color.SEA_GREEN, 3)
-		
-		var hei = me.curr_map.get_height() + 0.1
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			if not area_polygon.is_empty():
+				var color = Color.DARK_SLATE_GRAY
+				color.a = 0.4
+				me.draw_area_outlined_polygon(canvas, area_polygon, color, Color.SEA_GREEN, 3)
+		var dirty_zones : PackedStringArray
 		for zone in me.sel_zones:
+			if not zone in me.curr_map.zones:
+				dirty_zones.append(zone)
+				continue
 			var rect = me.curr_map.zones[zone]
-			var area := get_map_area(
-				me.curr_nav.map2spatial_tile(rect.position, me.curr_map),
-				me.curr_nav.map2spatial_tile(rect.end, me.curr_map),
-				)
-			var start = Vector3(area.position.x, hei, area.position.y)
-			var stop = Vector3(area.end.x, hei, area.end.y)
-			var zone_polygon =  [
-				me.cam.unproject_position(start),
-				me.cam.unproject_position(Vector3(stop.x, hei, start.z)),
-				me.cam.unproject_position(stop),
-				me.cam.unproject_position(Vector3(start.x, hei, stop.z)),
-				me.cam.unproject_position(start),
-				]
+			var polygon := me.get_map_area(rect.position, rect.end, me.curr_map, 0.1)
 			if zone == me.pallet.last_sel_zone:
 				var fill = Color.WEB_GREEN
 				fill.a = 0.4
-				canvas.draw_colored_polygon(zone_polygon, fill)
-				canvas.draw_polyline(zone_polygon, Color.WEB_GREEN, 3)
+				me.draw_area_outlined_polygon(canvas, polygon, fill, Color.SEA_GREEN, 3)
 			else:
 				var fill = Color.DIM_GRAY
 				fill.a = 0.4
-				canvas.draw_colored_polygon(zone_polygon, fill)
-				canvas.draw_polyline(zone_polygon, Color.DIM_GRAY, 3)
+				me.draw_area_outlined_polygon(canvas, polygon, fill, Color.DARK_SLATE_GRAY, 3)
+		for each in dirty_zones:
+			me.sel_zones.erase(each)
 
 class Ladder_Mode extends Paint_Mode:
 	func help() -> String:
-		return "connects tiles of the same ladder title in maps of different layers allowing characters move between them. Can't have the same ladder title more than once on each map. \nType a ladder title, then click on map to create a warp tile. Clicking ladders from the list highlights them on the map.\nSubmitting a title renames the last clicked ladder. Submitting an empty title deletes the last clicked ladder."
+		return "Connects tiles of the same ladder title. Can't have the same ladder title more than once on each TacMap. \nType a ladder title, then click on map to create a warp tile. Clicking ladders from the list highlights them on the map.\nSubmitting a title renames the last clicked ladder. Submitting an empty title deletes the last clicked ladder."
 	func enter():
 		me.pallet.force_paint_tool(&"Single")
 		me.update_overlays()
@@ -264,33 +280,30 @@ class Ladder_Mode extends Paint_Mode:
 			var ladder_name = me.pallet.on_add_ladder(me.curr_map.ladders.keys())
 			if not ladder_name.is_empty():
 				me.curr_map.ladders[ladder_name] = me.map_hover_tile
-				me.sel_ladders.append(ladder_name)
-				me.update_overlays()
+				me.set_active_ladder(ladder_name)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func draw(canvas:Control):
+	func _draw(canvas:Control):
 		var hei = me.curr_map.get_height() + 0.1
+		var dirty_ladders : PackedStringArray
 		for ladder in me.sel_ladders:
-			var area := Rect2i( me.curr_map.ladders[ladder], Vector2i.ONE )
-			var start = Vector3(area.position.x, hei, area.position.y)
-			var stop = Vector3(area.end.x, hei, area.end.y)
-			var ladder_polygon =  [
-				me.cam.unproject_position(start),
-				me.cam.unproject_position(Vector3(stop.x, hei, start.z)),
-				me.cam.unproject_position(stop),
-				me.cam.unproject_position(Vector3(start.x, hei, stop.z)),
-				me.cam.unproject_position(start),
-				]
+			if not ladder in me.curr_map.ladders:
+				dirty_ladders.append(ladder)
+				continue
+			var tile := me.curr_map.ladders[ladder]
+			var polygon := Saliko.rect2polygon(Rect2(tile, Vector2i.ONE))
 			if ladder == me.pallet.last_sel_ladder:
 				var fill = Color.DARK_KHAKI
 				fill.a = 0.4
-				canvas.draw_colored_polygon(ladder_polygon, fill)
-				canvas.draw_polyline(ladder_polygon, Color.KHAKI, 3)
+				canvas.draw_colored_polygon(polygon, fill)
+				canvas.draw_polyline(polygon, Color.KHAKI, 3)
 			else:
 				var fill = Color.DIM_GRAY
 				fill.a = 0.4
-				canvas.draw_colored_polygon(ladder_polygon, fill)
-				canvas.draw_polyline(ladder_polygon, Color.DIM_GRAY, 3)
+				canvas.draw_colored_polygon(polygon, fill)
+				canvas.draw_polyline(polygon, Color.DIM_GRAY, 3)
+		for each in dirty_ladders:
+			me.sel_ladders.erase(each)
 
 class Floor_Mode extends Paint_Mode:
 	func help() -> String:
@@ -351,7 +364,7 @@ class Floor_Mode extends Paint_Mode:
 		has_placed = false
 		match me.pallet.get_paint_tool():
 			"Area":
-				var area = get_map_area(me.map_start_tile, me.map_hover_tile)
+				var area = me.get_map_rect(me.map_start_tile, me.map_hover_tile, false, me.curr_map)
 				for y in range(area.position.y, area.end.y):
 					for x in range(area.position.x, area.end.x):
 						var coord = Vector2i(x,y)
@@ -364,7 +377,7 @@ class Floor_Mode extends Paint_Mode:
 	func right_release(alt:bool):
 		match me.pallet.get_paint_tool():
 			"Area":
-				var area = get_map_area(me.map_start_tile, me.map_hover_tile)
+				var area = me.get_map_rect(me.map_start_tile, me.map_hover_tile, false, me.curr_map)
 				for y in range(area.position.y, area.end.y):
 					for x in range(area.position.x, area.end.x):
 						var coord = Vector2i(x,y)
@@ -388,13 +401,12 @@ class Floor_Mode extends Paint_Mode:
 			me.pallet.set_active_asset(info_uid)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func draw(canvas:Control):
+	func _draw(canvas:Control):
 		super(canvas)
 		if not area_polygon.is_empty():
 			var color = Color.WHEAT
 			color.a = 0.4
-			canvas.draw_colored_polygon(area_polygon, color)
-			canvas.draw_polyline(area_polygon, Color.BISQUE, 3)
+			me.draw_area_outlined_polygon(canvas, area_polygon, color, Color.BISQUE, 3)
 
 class Wall_Mode extends Paint_Mode:
 	
@@ -456,7 +468,7 @@ class Wall_Mode extends Paint_Mode:
 		has_placed = false
 		match me.pallet.get_paint_tool():
 			"Area":
-				var area = get_map_area(me.map_start_tile, me.map_hover_tile)
+				var area = me.get_map_rect(me.map_start_tile, me.map_hover_tile, false, me.curr_map)
 				for x in range(area.position.x, area.end.x):
 					if alt:  # Make exterior walls
 						me.set_tile_asset(Vector2i(x,area.position.y - 1), Vector2i.DOWN)
@@ -478,17 +490,17 @@ class Wall_Mode extends Paint_Mode:
 		has_placed = false
 		match me.pallet.get_paint_tool():
 			"Area":
-				var area = get_map_area(me.map_start_tile, me.map_hover_tile)
+				var area = me.get_map_rect(me.map_start_tile, me.map_hover_tile, false, me.curr_map)
 				for y in range(area.position.y, area.end.y):
 					for x in range(area.position.x, area.end.x):
 						var coord = Vector2i(x,y)
 						me.rem_tile_asset(coord)
 		return super(alt)
 	
-	func draw(canvas:Control):
+	func _draw(canvas:Control):
 		super(canvas)
 		if not area_polygon.is_empty():
-			canvas.draw_polyline(area_polygon, Color.WHEAT, 6)
+			me.draw_area_outline(canvas, area_polygon, Color.WHEAT, 3)
 
 class Tall_Wall_Mode extends Wall_Mode:
 	pass

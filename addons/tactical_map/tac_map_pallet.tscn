@@ -121,6 +121,13 @@ func is_floor_overlay_visible():
 var last_sel_zone_idx : int = -1
 var last_sel_zone : String
 
+func set_active_zone(zone_name):
+	for i in range(%ZoneContainer.item_count):
+		if %ZoneContainer.get_item_text(i) == zone_name:
+			last_sel_zone_idx = i
+			last_sel_zone = zone_name
+			break
+
 func select_zones(zones:PackedStringArray):
 	for idx in range(%ZoneContainer.item_count):
 		var zone = %ZoneContainer.get_item_text(idx)
@@ -180,6 +187,13 @@ func on_add_zone(existing:PackedStringArray) -> String:
 #region Ladders
 var last_sel_ladder_idx : int = -1
 var last_sel_ladder : String
+
+func set_active_ladder(ladder_name):
+	for i in range(%LadderContainer.item_count):
+		if %LadderContainer.get_item_text(i) == ladder_name:
+			last_sel_ladder_idx = i
+			last_sel_ladder = ladder_name
+			break
 
 func select_ladders(ladders:PackedStringArray):
 	for idx in range(%LadderContainer.item_count):
