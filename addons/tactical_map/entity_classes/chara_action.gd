@@ -43,6 +43,7 @@ func input(event:InputEvent):
 	pass
 
 func _on_character_selected(chara:TacCharacter):
+	#FIXME The character isn't executing this as expected.
 	if chara == self:
 		on_being_selected()
 

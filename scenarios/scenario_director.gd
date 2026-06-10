@@ -73,12 +73,14 @@ func setup_fsm():
 class Roaming extends ScenarioState:
 	func input(event:InputEvent):
 		if event.is_action_released(Tac.interact_input()):
+			print("interact: ", Tac.interact_input())
 			if Tac.hover_entity is TacCharacter and Tac.hover_entity.curr_team == TacCharacter.Team.PLAYER:
 				Tac.select_chara = Tac.hover_entity
 		#if not Tac.select_chara == null:
 			#TODO Make character transmit interaction.
 			#pass
 		if event.is_action_released(Tac.command_input()):
+			print("command: ", Tac.command_input())
 			if Tac.select_chara != null:
 				Tac.select_chara.command(&"walk")
 

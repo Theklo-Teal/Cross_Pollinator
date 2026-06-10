@@ -13,13 +13,16 @@ func store_history() -> bool:
 	return false
 
 var stride := 1.6
+var nav_error : Error
 
 func enter(_prev:CharaAction):
-	var err = me.traversal_start(Tac.hover_tile, Tac.hover_layer)
-	if err == ERR_ALREADY_EXISTS: # Character already at destination from start
+	nav_error = me.traversal_start(Tac.hover_tile, Tac.hover_map)
+	if nav_error == ERR_ALREADY_EXISTS or nav_error == ERR_CANT_CONNECT:
 		me.proceed(&"idle")
 
 func exit(_next:CharaAction):
+	if nav_error == OK:
+		me.audio_speak("ready")
 	me.traversal_finish(OK)
 
 func process(delta:float):

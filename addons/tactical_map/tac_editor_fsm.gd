@@ -254,7 +254,7 @@ class Zone_Mode extends Paint_Mode:
 
 class Ladder_Mode extends Paint_Mode:
 	func help() -> String:
-		return "Warp tiles of the same ladder in different maps will allow characters move between them. \nType a ladder title, then click on map to create a warp tile. Clicking ladders from the list highlights them on the map.\nSubmitting a title renames the last clicked ladder. Submitting an empty title deletes the last clicked ladder."
+		return "connects tiles of the same ladder title in maps of different layers allowing characters move between them. Can't have the same ladder title more than once on each map. \nType a ladder title, then click on map to create a warp tile. Clicking ladders from the list highlights them on the map.\nSubmitting a title renames the last clicked ladder. Submitting an empty title deletes the last clicked ladder."
 	func enter():
 		me.pallet.force_paint_tool(&"Single")
 		me.update_overlays()

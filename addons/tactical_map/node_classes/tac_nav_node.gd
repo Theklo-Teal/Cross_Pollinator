@@ -16,12 +16,15 @@ signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited
 @export var tile_size : float = 1.0  ## (meters) The lateral length of square tiles that all children maps abide to.
 @export var tile_height : float = 2.0  ## How high walls can get.
 
-var unique_spawners : Dictionary[StringName, Dictionary]
 var charas : Array[TacCharacter]  ## Reference to placed characters.
-var zoned : Dictionary[Vector2i, Array]  ## [nav_coordi][i] -> StringName; Association of tile with a zone
-#var map_ladders : Dictionary[TacMap, StringName]  ## Which ladders each map has.
-#var ladders : Dictionary[StringName, Vector2i]  ## Coordinate of tiles connecting to a "ladder" of common name with other TacMaps.
+var unique_spawners : Dictionary[StringName, Dictionary]
+var zoned : Dictionary[Vector3i, Array]  ## [nav_coordi][i] -> StringName; Association of tile with a zone
+var ladders : Dictionary[TacMap, Array]  ## [tacmap][i] -> Ladder; Which ladders each map has.
 
+class Ladder:
+	var name : StringName
+	var can_enter : bool  ## Whether a character can step into this ladder to get to another.
+	var can_exit : bool  # Whether a character can get to this ladder after entering another.
 
 func _get_configuration_warnings() -> PackedStringArray:
 	for each in get_children():
@@ -71,18 +74,63 @@ func get_maps_at(coord:Vector2i) -> Array[TacMap]:
 #endregion
 
 #region Entity Handling
-func get_traject(entity:TacCharacter, destination : Vector2i) -> PackedVector2Array:
+## Returns an array of tiles in the path between the entity and destination.
+## the tile coordinates include Y axis for map layer.[br]
+## It will return an empty array in the following situations:[br]
+## If the entity's map can't be found.[br]
+## The entity already is at the destination.[br]
+## The entity tried to move between layers, but its maps and destin_map don't
+## have ladders connecting them, or exiting ladders can't be used.[br]
+func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> PackedVector3Array:
 	var loc = locate_entity(entity)
 	if loc.tacmap == null:  # Couldn't find the map the entity is on.
 		return []
-	if loc.nav_coord == destination:  # Position didn't change.
+	if loc.nav_coord == destin_tile and loc.tacmap == destin_map:  # Position didn't change.
 		return []
+	
 	var start = Saliko.vec2i_id(loc.nav_coord)
-	var stop = Saliko.vec2i_id(destination)
-	return navgraph[loc.tacmap.get_layer()][entity.attitude].get_point_path(start, stop, true)
+	var stop = Saliko.vec2i_id(destin_tile)
+	var full_path : PackedVector3Array
+	
+	if destin_map == loc.tacmap:
+		#NOTE Ladders are intended for traversing between layers, so we'd check 
+		# if initial and final layers are the same, but it might be interesting
+		# to connect different maps on the same layer. There won't be conflict
+		# because maps have their own coordinate on their ladders.
+		for tile : Vector2i in navgraph[loc.layer][entity.attitude].get_point_path(start, stop, true):
+			full_path.append(Vector3(tile.x, loc.layer, tile.y))
+	else:
+		var ladders_from : Array[Ladder] = ladders.get(loc.map)
+		var ladders_to : Array[Ladder] = ladders.get(destin_map)
+		
+		var closest_ladder : StringName
+		var closest_path : Array[Vector2i]
+		for l_from : Ladder in ladders_from:
+			for l_to : Ladder in ladders_to:
+				if l_from.name == l_to.name and l_from.can_enter and l_to.can_exit:
+					# Ladder is in common between entity's map and destin_map, and can be used.
+					var enter_ladder = Saliko.vec2i_id(loc.tacmap.ladders[l_from.name])
+					var path_from = navgraph[loc.layer][entity.attitude].get_point_path(start, enter_ladder) 
+					if closest_path.size() > path_from.size():
+						closest_path = path_from
+						closest_ladder = l_from.name
+		
+		if closest_path.is_empty():
+			# No usable ladders in common between the entity's map and the destination map.
+			return []
+		
+		## AStar2D returns Vector2 coordinates, but we need Vector3.
+		for tile in closest_path:
+			full_path.append(Vector3i(tile.x, loc.layer, tile.y))
+		var exit_ladder = Saliko.vec2i_id(destin_map.ladders[closest_ladder]) 
+		for tile in navgraph[loc.layer][entity.attitude].get_point_path(exit_ladder, stop):
+			full_path.append(Vector3i(tile.x, destin_map.get_layer(), tile.y))
+		
+	return full_path
 
 ## Find the map and coordinate of a TacEntity.
-## It will give the map closest to the entity with a lower Y position.
+## It will give the map closest to the entity with a lower Y position.[br]
+## Returns `tacmap`, `layer`, `map_coord` and `nav_coord`.
 func locate_entity(entity:TacEntity) -> Dictionary:
 	var coord : Vector2i = spatial2nav_tile(entity.position) # TacNav tile of the entity position
 	var relevant_maps = get_maps_at(coord)
@@ -103,23 +151,23 @@ func locate_entity(entity:TacEntity) -> Dictionary:
 
 ## Allows to tell which zones a character entered or exited while moving between two tiles
 ## And triggers signals and functions about that.
-func check_zone(actor:TacEntity, ini:Vector2i, end:Vector2i) -> Dictionary:
-	var ini_zones = zoned.get(ini, [])
-	var end_zones = zoned.get(end, [])
-	var exit_zones : Array[String]
-	var enter_zones : Array[String]
+func check_zone(actor:TacEntity, ini:Vector3i, end:Vector3i) -> Dictionary:
+	var ini_zones : Array[StringName]
+	var end_zones : Array[StringName]
+	ini_zones.assign(zoned.get(ini, []))
+	end_zones.assign(zoned.get(end, []))
+	var exit_zones : Array[StringName]
+	var enter_zones : Array[StringName]
 	
 	for zone in ini_zones:
 		if not zone in end_zones:
 			exit_zones.append(zone)
+			zone_exited.emit(zone, actor)
 	for zone in end_zones:
 		if not zone in ini_zones:
 			enter_zones.append(zone)
- 	
-	for zone in exit_zones:
-		zone_exited.emit(zone, actor)
-	for zone in enter_zones:
-		zone_entered.emit(zone, actor)
+			zone_entered.emit(zone, actor)
+	
 	return {"entered": enter_zones, "exited":exit_zones}
 
 ## Produce a sprite that fits a tile. Optionally provide a map if the [code]coord[/code] is relative to it.
@@ -159,6 +207,21 @@ func set_navigation(graph:Dictionary, layer:int, cell_id:int, adjacent:Array[int
 				continue
 			var nav : AStar2D = graph[layer][transcodes[dir]]
 			nav.connect_points(cell_id, adja, false)
+
+## Makes a tile in [code]navsession[/code] disabled such it can't be entered.
+## Usually because there are characters occupying it.
+func block_navigation(tile:Vector2i, layer:int):
+	var cell_id : int = Saliko.vec2i_id(tile)
+	for trans in navsession[layer]:
+		var nav : AStar2D = navsession[layer][trans]
+		nav.set_point_disabled(cell_id, true)
+## Re-enable a tile in [code]navsession[/code].
+## Usually because a character moved out of it
+func unblock_navigation(tile:Vector2i, layer:int):
+	var cell_id : int = Saliko.vec2i_id(tile)
+	for trans in navsession[layer]:
+		var nav : AStar2D = navsession[layer][trans]
+		nav.set_point_disabled(cell_id, false)
 
 # Any modification to a map's terrain should update the «nav_queue», so many modifications can be performed in
 # a process frame and only committed once at the end of the frame.
@@ -253,6 +316,7 @@ func _ready() -> void:
 		compute_area(area_outdated)
 		area_outdated.clear()
 	
+	var chara_tiles : Array[Vector3i]  # Where characters are being placed, so we can block those tiles.
 	for layer in maps:
 		var layer_cells : Dictionary[int, Dictionary] # [tile_id][transcodes / adjacent_ids] -> Array[int] / Array[int]
 		
@@ -270,8 +334,27 @@ func _ready() -> void:
 					var characters = map.spawners[map_coord].generate(map_coord)
 					for chara : TacEntity in characters:
 						var chara_tile = map2nav(characters[chara], map)
+						chara_tiles.append(Vector3i(chara_tile.x, layer, chara_tile.y))
 						chara.position = tile2spatial(chara_tile, layer, true)
 						add_child(chara, false, Node.INTERNAL_MODE_DISABLED)
+				
+				# Register zones to tiles
+				for z in map.zones:
+					var zone_area = map.zones[z]
+					for y in range(zone_area.position.y, zone_area.end.y):
+						for x in range(zone_area.position.x, zone_area.end.x):
+							var tile_at_zone = zoned.get_or_add(map3nav(Vector2i(x,y), map), [])
+							tile_at_zone.append(z)
+			
+				# Register ladders
+				if not map in ladders and not map.ladders.is_empty():
+					ladders[map] = []
+				for l in map.ladders:
+					var ladder = Ladder.new()
+					ladder.name = l
+					ladder.can_enter = true
+					ladder.can_exit = true
+					ladders[map].append(ladder)
 			
 			# Create graph points for the map tiles.
 			for map_tile : Vector2i in map.tiles:
@@ -293,13 +376,6 @@ func _ready() -> void:
 						var graph : AStar2D = navgraph[layer][trans]
 						graph.add_point(tile_id, nav_tile)
 					
-					# Set zones to tiles
-					for z in map.zones:
-						var zone_area = map.zones[z]
-						for y in range(zone_area.position.y, zone_area.end.y):
-							for x in range(zone_area.position.x, zone_area.end.x):
-								var tile_at_zone = zoned.get_or_add(map2nav(Vector2i(x,y), map), [])
-								tile_at_zone.append(z)
 		
 		if not OS.has_feature("editor_hint"):
 			# Connect points in the graph of current layer.
@@ -311,6 +387,8 @@ func _ready() -> void:
 				set_navigation(navgraph, layer, tile_id, adjacents, transcodes)
 	
 	navsession = navgraph.duplicate_deep()
+	for tile in chara_tiles:
+		block_navigation(Vector2i(tile.x, tile.z), tile.y)
 
 #region Coordinate System Conversions
 
@@ -344,7 +422,8 @@ func tile2spatial(coordi:Vector2i, layer:int=0, centered:=false) -> Vector3:
 		coord.z += tile_size * 0.5
 	return coord
 
-## Generically get a space coordinate for the given tile coord.
+## Generically get a space coordinate for the given tile coord. Coordinate Y is
+## properly addressed as tile height.
 ## If [code]centered[/code] is [code]true[/code], an offset is added 
 ## to find the center of the tile in the XZ axis.
 func tile3spatial(coordi:Vector3i, centered:=false) -> Vector3:

@@ -219,7 +219,6 @@ const VECTDIR = [  # Can't use Tac.Dir_Vect, sorry
 	Vector2(0, -0.5)  # North
 	]
 
-var view_size : Vector2
 func _forward_3d_draw_over_viewport(view: Control) -> void:
 	#NOTE That all 3D coordinates used for drawing are in global space.
 	if curr_map == null or curr_mode().is_empty():
@@ -227,18 +226,15 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 	
 	if cam == null:
 		return
-	
-	view_size = view.size
-	
+
 	# Draw boundary of the TacMap
-	var corners = [  #FIXME If a coordinate is out of view, things get wonky.
+	var fence = [
 		Vector3(curr_map.global_area.position.x,curr_map.get_spatial_height(),curr_map.global_area.position.y),
 		Vector3(curr_map.global_area.position.x,curr_map.get_spatial_height(),curr_map.global_area.end.y),
 		Vector3(curr_map.global_area.end.x, curr_map.get_spatial_height(), curr_map.global_area.end.y),
 		Vector3(curr_map.global_area.end.x, curr_map.get_spatial_height(), curr_map.global_area.position.y),
 		]
-	var unprojected = unproject_area(corners)
-	draw_area_polyline(view, unprojected, Color.WEB_PURPLE, 8)
+	draw_area_outline(view, fence, Color.WEB_PURPLE, 8)
 	
 	# Floor Overlay
 	if pallet.is_floor_overlay_visible():
@@ -266,10 +262,9 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 		Vector3(tile_rect.position.x, hei, tile_rect.position.y),
 		Vector3(tile_rect.end.x, hei, tile_rect.position.y),
 		]
-	unprojected = unproject_area(tile_corners)
-	var fence_color = [Color.RED, Color.PURPLE][int(within_map)]
-	fence_color.a = 0.25
-	draw_area_polygon(view, unprojected, fence_color)
+	var color = [Color.RED, Color.PURPLE][int(within_map)]
+	color.a = 0.25
+	draw_area_polygon(view, tile_corners, color)
 	if within_map:
 		var lateral = {
 		Vector2i.RIGHT : [0,1],
@@ -295,16 +290,26 @@ func unproject_area(verts:PackedVector3Array) -> PackedVector2Array:
 		polyline.append(cam.unproject_position(p))
 	return polyline
 
-## From the output of [code]unproject_area()[/code], draw an outline.
-func draw_area_polyline(canvas:Control, points: PackedVector2Array, color:Color, thickness:int=-1):
+## Draw the outline overlay of an area in 3D perspective.
+func draw_area_outline(canvas:Control, corners: PackedVector3Array, color:Color, thickness:int=-1):
+	corners.append(corners[0])
+	var points = unproject_area(corners)
 	if points.size() >= 3:
-		points.append(points[0])
 		canvas.draw_polyline(points, color, thickness)
 
-## From the output of [code]unproject_area()[/code], draw a filled area.
-func draw_area_polygon(canvas:Control, points: PackedVector2Array, color:Color):
+## Draw a filled polyong overlay of an area in 3D perspective.
+func draw_area_polygon(canvas:Control, corners: PackedVector3Array, color:Color):
+	var points = unproject_area(corners)
 	if points.size() >= 3:
 		canvas.draw_colored_polygon(points, color)
+
+## Combines both [code]draw_area_outline()[/code] and [code]draw_area_polygon()[/code].
+func draw_area_outlined_polygon(canvas:Control, corners: PackedVector3Array, color:Color, thickness:int=-1):
+	corners.append(corners[0])
+	var points = unproject_area(corners)
+	if points.size() >= 3:
+		canvas.draw_colored_polygon(points, color)
+		canvas.draw_polyline(points, color, thickness)
 
 #region Zoning and Ladders
 var sel_zones : PackedStringArray

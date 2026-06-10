@@ -34,13 +34,9 @@ func animate(seq:StringName, duration:=NAN):
 	$body_model/AnimationPlayer.stop(true)
 	return
 
-func _traversal_start(curr_error:Error, destination:Vector2i, teleport:=false) -> Error:
+func _traversal_start(curr_error:Error, destination:Vector3i, teleport:=false) -> Error:
 	animate(\"act_walk_PHY\", INF)
 	audio_speak(\"on_the_way\")
-	return OK
-
-func _traversal_finish(condition:Error=OK) -> Error:
-	audio_speak(\"ready\")
 	return OK
 "
 

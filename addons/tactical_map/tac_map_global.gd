@@ -128,4 +128,4 @@ func _exit_tree() -> void:
 func interact_input():
 	return setts.get_value("Events", "interact_action", "interact")
 func command_input():
-	return setts.get_value("Events", "interact_action", "command")
+	return setts.get_value("Events", "command_action", "command")

@@ -50,41 +50,55 @@ func audio_speak(speech:StringName):
 func animate(sequence:StringName, duration:float=NAN):
 	pass
 
-#region Entity movement on the map
-var last_step : Vector2i  ## When walking a path, this is the last tile the character was in.
+#region Entity movement on the mapw
+#TODO Change TacNav.navsession to accound change in position of characters.
+
+var last_step : Vector3i  ## When walking a path, this is the last tile the character was in.
 var next_step : Vector3  ## The spatial position the character must reach to achieve the current step in their trajectory.
-var trajectory : Array[Vector2i]  ## The path the character will try to walk along.
+var trajectory : Array[Vector3i]  ## The path the character will try to walk along. Y coordinate is the layer.
+
 ## Writes to the [code]trajectory[/code] variable in preparation to initiate movement on the map.[br]
-## The [code]destination[/code] is a TacNav coordinate at the given layer.[br]
+## The [code]destination[/code] is a TacNav coordinate at the given destination [code]tacmap[/code].[br]
 ## Returns [code]ERR_ALREADY_EXISTS[/code] if destination and current position are the same.[br]
 ## Returns [code]ERR_QUERY_FAILED[/code] if a path to the destination wasn't found, so trajectory is
 ## partial.
-func traversal_start(destination:Vector2i, layer:int, teleport:=false) -> Error:
+## Returns [code]ERR_CANT_CONNECT[/code] If the path couldn't be resolved at all. Eg. requires ladders
+## That aren't available, [code]tacmap[/code] is [code]null[/code] or destination is outside the map.
+func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Error:
 	if destination == get_nav_coord():
 		return ERR_ALREADY_EXISTS
+	if tacmap == null:
+		return ERR_CANT_CONNECT
+	if tacmap.tiles.get(destination) == null:
+		return ERR_CANT_CONNECT
+		
 	var result : Error = OK
 	
-	last_step = get_nav_coord()
+	var destin := Vector3i(destination.x, tacmap.get_layer(), destination.y)
+	
+	last_step = get_nav_coord3()
 	if teleport:
-		trajectory = [destination]
+		trajectory = [destin]
 	else:
-		if get_tacmap().get_layer() != layer:
-			# Character is trying to climb a layer.
-			#TODO implement this after implementing ladders
-			pass
-		trajectory.assign( get_tacnav().get_traject(self, destination) )
+		trajectory.assign( get_tacnav().get_traject(self, destination, tacmap) )
 		if trajectory.is_empty():
 			result = ERR_ALREADY_EXISTS
 		else:
 			trajectory.reverse()
 			trajectory.pop_back()  # Remove the current entity position.
-			if not trajectory[0] == destination: # Trajectory is a partial path.
+			if not trajectory[0] == destin: # Trajectory is a partial path.
 				result = ERR_QUERY_FAILED
 			take_a_step()  # Update information where the character goes first.
-	result = _traversal_start(result, destination, teleport)
+	result = _traversal_start(result, destin, teleport)
 	return result
 
-func _traversal_start(curr_error:Error, destination:Vector2i, teleport:=false) -> Error:
+## Override this to do something when a character is about to move location.
+## It should relay the given [code]curr_error[/code] or return other.[br]
+## Possible errors:[br]
+## [code]ERR_ALREADY_EXISTS[/code]: The character already is at the destination.[br]
+## [code]ERR_QUERY_FAILED[/code]: [code]trajectory[/code] is partial. Probably
+## because a path wasn't found.[br]
+func _traversal_start(curr_error:Error, destination:Vector3i, teleport:=false) -> Error:
 	return curr_error
 
 ## Take a step along the trajectory, popping one of its coordinates along the way
@@ -94,23 +108,27 @@ func _traversal_start(curr_error:Error, destination:Vector2i, teleport:=false) -
 ## has been reached.
 func take_a_step() -> Error:
 	var result : Error = OK
-	if trajectory.is_empty():  #FIXME character is taking a step with empty trajectory.
+	if trajectory.is_empty():  #FIXME character is about to take a step on an empty trajectory.
 		return ERR_ALREADY_EXISTS
 	else:
-		var step = trajectory.pop_back()
-		next_step = get_tacnav().tile2spatial(step, 0, true) * get_tacnav().tile_size + Vector3(0,position.y,0)
+		var step : Vector3i = trajectory.pop_back()
+		next_step = get_tacnav().tile3spatial(step, true)
 		var zones = get_tacnav().check_zone(self, last_step, step)
-		result = _take_a_step(step, zones.exited, zones.entered)
+		get_tacnav().block_navigation(Vector2i(step.x, step.z), step.y)
+		get_tacnav().unblock_navigation(Vector2i(last_step.x, last_step.z), last_step.y)
 		last_step = step
+		result = _take_a_step(step, zones.exited, zones.entered)
 	return result
 
 ## Override this function to define what happens when the character moves from one tile to the other.[br]
 ## Return whether the movement to the «step» tile was successful. Errors won't halt the movement
-## Return [code]ERR_CANT_CONNECT[/code] if travel must be aborted.
-func _take_a_step(step:Vector2i, _zones_exited, _zones_entered) -> Error:
-	look_at(next_step, Vector3.UP, true)
+## Return [code]ERR_CANT_CONNECT[/code] if that's desired.
+func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
+	if step.y == last_step.y:
+		look_at(next_step, Vector3.UP, true)
 	return OK
 
+#NOTE This function is not doing much, but it's here in case a use comes up, I don't have to rename things.
 func traversal_finish(condition:Error=OK) -> Error:
 	return _traversal_finish(condition)
 
@@ -146,6 +164,11 @@ func get_tacmap() -> TacMap:
 
 func get_nav_coord() -> Vector2i:
 	return get_tacnav().locate_entity(self).nav_coord
+
+func get_nav_coord3() -> Vector3i:
+	var loc = get_tacnav().locate_entity(self)
+	var tile = loc.nav_coord
+	return Vector3i(tile.x, loc.layer, tile.y)
 
 func get_map_coord() -> Vector2i:
 	return get_tacnav().locate_entity(self).map_coord
