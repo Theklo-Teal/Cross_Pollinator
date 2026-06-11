@@ -27,9 +27,12 @@ func _input(event: InputEvent) -> void:
 				
 				Tac.hover_map = ray_sect.collider
 				Tac.hover_nav = Tac.hover_map.get_parent()
-				Tac.hover_layer = Tac.hover_map.get_layer()
+				Tac.hover_layer = Tac.hover_map.get_spatial_layer() 
+				Tac.hover_layer_nav = Tac.hover_map.get_layer()
+				Tac.hover_tile = Tac.hover_nav.spatial2tile(Saliko.Vec3RemAxis(ray_sect.position))
+				Tac.hover_tile_nav = Tac.hover_nav.spatial2nav_tile(ray_sect.position)
 				Tac.hover_tile_map = Tac.hover_nav.spatial2map_tile(ray_sect.position, Tac.hover_map)
-				Tac.hover_tile = Tac.hover_nav.spatial2nav_tile(ray_sect.position)
+				
 				
 				# Change in parameters to try searching again.
 				var tile : TacTile = Tac.hover_map.tiles.get(Tac.hover_tile_map)

@@ -3,10 +3,8 @@ extends "res://addons/tactical_map/tac_editor_fsm.gd"
 class_name TacticalMapEditor
 
 #TODO Handle drawing for the multiple 3D viewports. Infrastructure for it already exists as the `cam_view` dictionary.
-#TODO Test map crop, now that offset functions.
+#TODO Refactor zone and Ladder add/rem is prone to glitches, accounting to how it's listed in the panels and change of active when adding, changing maps, ect.
 #TODO Test zone enter/exit logic in TacMap
-
-#FIXME Map offsetting has some coordinate issue.
 
 #WARNING We must not call for "Tac" (tac_map_global.gd) in this script. It can only enable or disable it.
 
@@ -30,7 +28,11 @@ func _ready() -> void:
 
 func _enter_tree() -> void:
 	super()
-
+	
+	for i in range(4):
+		cam_view[EditorInterface.get_editor_viewport_3d(i).get_camera_3d()] = null
+		alt_view[EditorInterface.get_editor_viewport_3d(i).get_camera_3d()] = null
+	
 	modes = {
 		"floor": Floor_Mode.new(self),
 		"tall": Tall_Wall_Mode.new(self),
@@ -65,6 +67,9 @@ func _exit_tree() -> void:
 	remove_custom_type("TacMap")
 	remove_custom_type("TacInterface")
 	
+	for each in alt_view:
+		alt_view[each].queue_free()
+	
 	if pallet.visible:
 		remove_control_from_bottom_panel(pallet)
 	pallet.queue_free()
@@ -77,13 +82,11 @@ func _handles(object) -> bool:
 		curr_map = object
 		curr_nav = curr_map.get_parent()
 		pallet.map_changed(curr_map)
-		update_overlays()
 		return true
 	else:
 		if curr_map != null:
 			curr_map = null
 			pallet.map_changed(null)
-			update_overlays()
 		return false
 
 var last_bottom_panel : int
@@ -118,6 +121,7 @@ func _process(_delta: float) -> void:
 	if not last_cam == null:
 		if not last_cam.transform.is_equal_approx(past_cam_pos):
 			past_cam_pos = last_cam.transform
+			camera_moved = true
 			update_cam_view(last_cam)
 			
 #endregion
@@ -155,7 +159,7 @@ func _forward_3d_gui_input(camera:Camera3D, event:InputEvent):
 			map_hover_tile = curr_nav.spatial2map(collision, curr_map)
 			within_tile.x = fposmod(collision.x, curr_nav.tile_size) - 0.5
 			within_tile.y = fposmod(collision.z, curr_nav.tile_size) - 0.5
-			within_map = curr_map.nav_area.has_point(hover_tile)
+			within_map = curr_map.global_area.has_point(hover_tile)
 			
 			_hover_tile_corner = Vector2i(sign(within_tile.x), sign(within_tile.y))
 			_hover_tile_side = _hover_tile_corner
@@ -179,6 +183,7 @@ func _forward_3d_gui_input(camera:Camera3D, event:InputEvent):
 				hover_tile_corner = _hover_tile_corner
 				hover_tile_side = _hover_tile_side
 				hover_tile_side_opposite = -hover_tile_side.sign()
+	
 	var response = modes[curr_mode()].input(event)
 	
 	# This is placed here, so modes have a way to tell where dragging has been happening.
@@ -195,21 +200,22 @@ func _forward_3d_gui_input(camera:Camera3D, event:InputEvent):
 	else:
 		return response
 
+
 func _forward_3d_draw_over_viewport(view: Control) -> void:
 	
 	# An hack to distinguish the different 3D view cameras and their associated overlay canvas.
-	if cam_view.get(last_cam) == null:
+	if cam_view.get(last_cam) == null and last_cam != null:
 		cam_view[last_cam] = view
-	if view_cam.get(view) == null:
+	if view_cam.get(view) == null and last_cam != null:
 		view_cam[view] = last_cam
 		view.draw.connect(on_cam_view_draw.bind(view, last_cam))
 	
-	if alt_view.get(last_cam) == null:
+	if alt_view.get(last_cam) == null and last_cam != null:
 		alt_view[last_cam] = Control.new()
 		alt_view[last_cam].size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		alt_view[last_cam].size_flags_vertical = Control.SIZE_EXPAND_FILL
 		view.get_parent().add_child(alt_view[last_cam])
-	if view_cam.get(alt_view[last_cam]) == null:
+	if view_cam.get(alt_view.get(last_cam)) == null and last_cam != null:
 		view_cam[alt_view[last_cam]] = last_cam
 		alt_view[last_cam].draw.connect(on_alt_view_draw.bind(alt_view[last_cam], last_cam))
 
@@ -219,10 +225,10 @@ var cam_view : Dictionary[Camera3D, Control]  # Tell which default overlay is of
 var alt_view : Dictionary[Camera3D, Control]  # Tell which custom added overlay is of which camera.
 var view_cam : Dictionary[Control, Camera3D]  # Backreference to find camera of a view. Includes also alt-overlays.
 func update_cam_view(camera:Camera3D):
-	if camera in cam_view and curr_map != null and not curr_mode().is_empty():
+	if cam_view.get(camera) != null and curr_map != null and not curr_mode().is_empty():
 		cam_view[camera].queue_redraw()
 func update_alt_view(camera:Camera3D):
-	if camera in alt_view and curr_map != null and not curr_mode().is_empty():
+	if alt_view.get(camera) != null and curr_map != null and not curr_mode().is_empty():
 		alt_view[camera].queue_redraw()
 
 
@@ -339,9 +345,11 @@ var sel_ladders: PackedStringArray
 func set_active_zone(zone_name:StringName):
 	sel_zones.append(zone_name)
 	pallet.set_active_zone(zone_name)
+	
 func set_active_ladder(ladder_name:StringName):
 	sel_ladders.append(ladder_name)
 	pallet.set_active_ladder(ladder_name)
+	update_cam_view(last_cam)
 
 func _on_zone_clicked():
 	update_cam_view(last_cam)

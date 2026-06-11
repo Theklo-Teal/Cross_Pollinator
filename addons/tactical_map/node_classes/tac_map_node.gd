@@ -249,7 +249,7 @@ func get_tile_height() -> float:
 ## Get the height of the map according to increments of the parent TacNav grid in the Y direction.
 func get_layer() -> int:
 	return floori(inverse_lerp(0, get_tile_height(), position.y))
-## Get the spatial height of the map, but snapped to the grid of the parent TacNav tile_height. Also corrects self position.y if it is offset.
+## Get the spatial height of the map, but snapped to the grid of the parent TacNav tile_height.
 func get_height() -> float:
 	return snappedf(position.y, get_tile_height())
 ## Get the height of the map according to increments of the parent TacNav tile_height in the global 3D grid.
@@ -257,7 +257,7 @@ func get_spatial_layer() -> int:
 	assert(get_parent() is TacNav)
 	var tacnav : TacNav = get_parent()
 	return floori(inverse_lerp(0, get_tile_height(), position.y + tacnav.position.y))
-## Get the spatial height of the map in the global coordinates, but snapped to the parent TacNav tile_height. Also corrects self position.y if it is offset.
+## Get the spatial height of the map in the global coordinates, but snapped to the parent TacNav tile_height.
 func get_spatial_height() -> float:
 	assert(get_parent() is TacNav)
 	var tacnav : TacNav = get_parent()

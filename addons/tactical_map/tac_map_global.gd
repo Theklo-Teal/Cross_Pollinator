@@ -55,9 +55,11 @@ var setts : ConfigFile
 # Gameplay Things
 var hover_nav : TacNav  ## Navigation of TacMap under the mouse
 var hover_map : TacMap  ## TacMap under the mouse
-var hover_layer : int  ## Layer of «hover_map» within its TacNav
-var hover_tile : Vector2i  ## TacNav relative coordinate
-var hover_tile_map : Vector2i  ## Like «hover_tile», but respective to the «hover_map»
+var hover_layer : int  ## TacNav Layer of [code]hover_map[/code] in Global space coordinates.
+var hover_layer_nav : int  ## Layer of [code]hover_map[/code] within its TacNav
+var hover_tile : Vector2i  ## Global space relative coordinate
+var hover_tile_nav : Vector2i  ## Like [code]hover_tile[/code], but in [code]hover_nav[/code] space.
+var hover_tile_map : Vector2i  ## Like [code]hover_tile[/code], but in [code]hover_map[/code] space.
 var hover_entity : TacEntity  ## What is under the mouse
 var select_target : TacCharacter
 var select_chara : TacCharacter :

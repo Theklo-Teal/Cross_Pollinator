@@ -322,8 +322,8 @@ func _on_paint_tool_pressed(butt:Button):
 func set_help(text:String):
 	%Help.text = text
 
-func set_tile_info(nav_coord:Vector2i, map_coord:Vector2i, obstacle_code:Dictionary, tile:TacTile):
-	%Coordi_Text.text = str([map_coord, nav_coord][int(%nav_tile.button_pressed)])
+func set_tile_info(space_coord:Vector2i, nav_coord:Vector2i, map_coord:Vector2i, obstacle_code:Dictionary, tile:TacTile):
+	%Coordi_Text.text = str([space_coord, nav_coord, map_coord][%nav_tile.selected])
 	if obstacle_code.is_empty():
 		%Obstacles.text = str(-255)
 		%Obstacles.tooltip_text = \"Transitions: Invalid Navigation!\"
@@ -860,11 +860,18 @@ layout_mode = 2
 tooltip_text = "Display an overlay of tiles that can be walked on, even if there is not floor asset associated."
 text = "Show Floors"
 
-[node name="nav_tile" type="CheckBox" parent="VBoxContainer2/Terrains/other/VBoxContainer" unique_id=1603422584]
+[node name="nav_tile" type="OptionButton" parent="VBoxContainer2/Terrains/other/VBoxContainer" unique_id=1872999016]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Coordinate relative to TacNav"
-text = "Show Nav Coord"
+selected = 2
+item_count = 3
+popup/item_0/text = "Global Coords"
+popup/item_0/id = 0
+popup/item_1/text = "TacNav Coords"
+popup/item_1/id = 1
+popup/item_2/text = "TacMap Coords"
+popup/item_2/id = 2
 
 [node name="Coordi_Text" type="LineEdit" parent="VBoxContainer2/Terrains/other/VBoxContainer" unique_id=547929991]
 unique_name_in_owner = true

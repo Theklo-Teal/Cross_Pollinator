@@ -195,10 +195,12 @@ class Paint_Mode extends TacEditorState:
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func left_press(alternate:bool):
+		has_placed = false
 		if me.within_map:
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func right_press(alternate:bool):
+		has_placed = false
 		if me.within_map:
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
@@ -232,6 +234,7 @@ class Zone_Mode extends Paint_Mode:
 		var zone_name = me.pallet.on_add_zone(me.curr_map.zones.keys())
 		if not zone_name.is_empty():
 			var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
+			rect = rect.intersection(Rect2i(Vector2i.ZERO, me.curr_map.size))
 			me.curr_map.zones[zone_name] = rect
 			me.set_active_zone(zone_name)
 		return super(alt)
@@ -254,23 +257,24 @@ class Zone_Mode extends Paint_Mode:
 				var color = Color.DARK_SLATE_GRAY
 				color.a = 0.4
 				me.draw_area_outlined_polygon(canvas, area_polygon, color, Color.SEA_GREEN, 3)
-				
-	func draw_cam_moved(canvas:Control, cam:Camera3D):
+	
+	func draw(canvas:Control, cam:Camera3D):
+		super(canvas, cam)
 		var dirty_zones : PackedStringArray
 		for zone in me.sel_zones:
 			if not zone in me.curr_map.zones:
 				dirty_zones.append(zone)
 				continue
 			var rect = me.curr_map.zones[zone]
+			rect = rect.grow_individual(0,0,-1,-1)
 			var polygon := me.get_map_area(rect.position, rect.end, me.curr_map, 0.1)
+			var fill := Color.DIM_GRAY
+			var outline := Color.DARK_SLATE_GRAY
 			if zone == me.pallet.last_sel_zone:
-				var fill = Color.WEB_GREEN
-				fill.a = 0.4
-				me.draw_area_outlined_polygon(canvas, polygon, fill, Color.SEA_GREEN, 3)
-			else:
-				var fill = Color.DIM_GRAY
-				fill.a = 0.4
-				me.draw_area_outlined_polygon(canvas, polygon, fill, Color.DARK_SLATE_GRAY, 3)
+				fill = Color.WEB_GREEN
+				outline = Color.SEA_GREEN
+			fill.a = 0.4
+			me.draw_area_outlined_polygon(canvas, polygon, fill, outline, 3)
 		for each in dirty_zones:
 			me.sel_zones.erase(each)
 
@@ -289,14 +293,15 @@ class Ladder_Mode extends Paint_Mode:
 				me.set_active_ladder(ladder_name)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func draw_cam_moved(canvas:Control, cam:Camera3D):
+	func draw(canvas:Control, cam:Camera3D):
+		super(canvas, cam)
 		var dirty_ladders : PackedStringArray
 		for ladder in me.sel_ladders:
 			if not ladder in me.curr_map.ladders:
 				dirty_ladders.append(ladder)
 				continue
 			var tile := me.curr_map.ladders[ladder]
-			var polygon := me.get_map_area(tile, tile + Vector2i.ONE, me.curr_map, 0.1)
+			var polygon := me.get_map_area(tile, tile, me.curr_map, 0.1)
 			if ladder == me.pallet.last_sel_ladder:
 				var fill = Color.DARK_KHAKI
 				fill.a = 0.4
@@ -318,8 +323,7 @@ class Floor_Mode extends Paint_Mode:
 	
 	func while_dragging(alt:bool, left, right):
 		super(alt, left, right)
-		match me.pallet.get_paint_tool():
-			"Single":
+		if me.within_map and me.pallet.get_paint_tool() == "Single":
 				if has_placed == false or (last_placed != me.map_hover_tile):
 					has_placed = true
 					last_placed = me.map_hover_tile
@@ -363,13 +367,14 @@ class Floor_Mode extends Paint_Mode:
 							me.rem_tile_asset(me.map_hover_tile, me.hover_tile_side)
 		return super(alt)
 	
+
 	func left_release(alt:bool):
-		has_placed = false
 		match me.pallet.get_paint_tool():
 			"Area":
-				var area = me.get_map_rect(me.map_start_tile, me.map_hover_tile, false, me.curr_map)
-				for y in range(area.position.y, area.end.y):
-					for x in range(area.position.x, area.end.x):
+				var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
+				rect = rect.intersection(Rect2i(Vector2i.ZERO, me.curr_map.size))
+				for y in range(rect.position.y, rect.end.y):
+					for x in range(rect.position.x, rect.end.x):
 						var coord = Vector2i(x,y)
 						me.set_tile_asset(coord, me.hover_tile_side)
 						if alt:  # raise ceiling
@@ -378,17 +383,19 @@ class Floor_Mode extends Paint_Mode:
 		return super(alt)
 	
 	func right_release(alt:bool):
-		match me.pallet.get_paint_tool():
-			"Area":
-				var area = me.get_map_rect(me.map_start_tile, me.map_hover_tile, false, me.curr_map)
-				for y in range(area.position.y, area.end.y):
-					for x in range(area.position.x, area.end.x):
-						var coord = Vector2i(x,y)
-						if alt:
-							var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
-							tile.has_floor = not tile.has_floor
-						else:
-							me.rem_tile_asset(coord)
+		if not me.camera_moved:
+			match me.pallet.get_paint_tool():
+				"Area":
+					var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
+					rect = rect.intersection(Rect2i(Vector2i.ZERO, me.curr_map.size))
+					for y in range(rect.position.y, rect.end.y):
+						for x in range(rect.position.x, rect.end.x):
+							var coord = Vector2i(x,y)
+							if alt:
+								var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
+								tile.has_floor = not tile.has_floor
+							else:
+								me.rem_tile_asset(coord)
 		return super(alt)
 	
 	func pick_target(tile:TacTile):
@@ -404,7 +411,7 @@ class Floor_Mode extends Paint_Mode:
 			me.pallet.set_active_asset(info_uid)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func draw_cam_moved(canvas:Control, cam:Camera3D ):
+	func draw_dragging(canvas:Control, cam:Camera3D):
 		if not area_polygon.is_empty():
 			var color = Color.WHEAT
 			color.a = 0.4
@@ -425,33 +432,30 @@ class Wall_Mode extends Paint_Mode:
 	
 	func while_dragging(alt:bool, left, right):
 		super(alt, left, right)
-		match me.pallet.get_paint_tool():
-			"Single":
-				if has_placed == false or (last_placed != me.map_hover_tile):
-					has_placed = true
-					last_placed = me.map_hover_tile
-					if left:
-						me.set_tile_asset(me.map_hover_tile, me.hover_tile_side)
-						if alt:
-							var adja = me.map_hover_tile + me.hover_tile_side
-							me.set_tile_asset(adja, me.hover_tile_side_opposite)
-					if right:
-						me.rem_tile_asset(me.map_hover_tile, me.hover_tile_side)
-						if alt:
-							me.rem_tile_asset(me.map_hover_tile + me.hover_tile_side, me.hover_tile_side_opposite)
-				return EditorPlugin.AFTER_GUI_INPUT_STOP
+		if me.within_map and me.pallet.get_paint_tool() == "Single":
+			if has_placed == false or (last_placed != me.map_hover_tile):
+				has_placed = true
+				last_placed = me.map_hover_tile
+				if left:
+					me.set_tile_asset(me.map_hover_tile, me.hover_tile_side)
+					if alt:
+						var adja = me.map_hover_tile + me.hover_tile_side
+						me.set_tile_asset(adja, me.hover_tile_side_opposite)
+				if right:
+					me.rem_tile_asset(me.map_hover_tile, me.hover_tile_side)
+					if alt:
+						me.rem_tile_asset(me.map_hover_tile + me.hover_tile_side, me.hover_tile_side_opposite)
+			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func left_press(alt:bool):
-		match me.pallet.get_paint_tool():
-			"Single":
-				if me.within_map:
-					if has_placed == false or (last_placed != me.map_hover_tile):
-						has_placed = true
-						last_placed = me.map_hover_tile
-						me.set_tile_asset(me.map_hover_tile, me.hover_tile_side)
-						if alt:
-							var adja = me.map_hover_tile + me.hover_tile_side
-							me.set_tile_asset(adja, me.hover_tile_side_opposite)
+		if me.within_map and me.pallet.get_paint_tool() == "Single":
+			if has_placed == false or (last_placed != me.map_hover_tile):
+				has_placed = true
+				last_placed = me.map_hover_tile
+				me.set_tile_asset(me.map_hover_tile, me.hover_tile_side)
+				if alt:
+					var adja = me.map_hover_tile + me.hover_tile_side
+					me.set_tile_asset(adja, me.hover_tile_side_opposite)
 		return super(alt)
 	
 	func right_press(alt:bool):
@@ -467,39 +471,40 @@ class Wall_Mode extends Paint_Mode:
 		return super(alt)
 	
 	func left_release(alt:bool):
-		has_placed = false
 		match me.pallet.get_paint_tool():
 			"Area":
-				var area = me.get_map_rect(me.map_start_tile, me.map_hover_tile, false, me.curr_map)
-				for x in range(area.position.x, area.end.x):
+				var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
+				rect = rect.intersection(Rect2i(Vector2i.ZERO, me.curr_map.size))
+				for x in range(rect.position.x, rect.end.x):
 					if alt:  # Make exterior walls
-						me.set_tile_asset(Vector2i(x,area.position.y - 1), Vector2i.DOWN)
-						me.set_tile_asset(Vector2i(x,area.end.y), Vector2i.UP)
+						me.set_tile_asset(Vector2i(x,rect.position.y - 1), Vector2i.DOWN)
+						me.set_tile_asset(Vector2i(x,rect.end.y), Vector2i.UP)
 					else:  # Make interior walls
-						me.set_tile_asset(Vector2i(x,area.position.y), Vector2i.UP)
-						me.set_tile_asset(Vector2i(x,area.end.y - 1), Vector2i.DOWN)
+						me.set_tile_asset(Vector2i(x,rect.position.y), Vector2i.UP)
+						me.set_tile_asset(Vector2i(x,rect.end.y - 1), Vector2i.DOWN)
 				
-				for y in range(area.position.y, area.end.y):
+				for y in range(rect.position.y, rect.end.y):
 					if alt:  # Make exterior walls
-						me.set_tile_asset(Vector2i(area.position.x - 1, y), Vector2i.RIGHT)
-						me.set_tile_asset(Vector2i(area.end.x, y), Vector2i.LEFT)
+						me.set_tile_asset(Vector2i(rect.position.x - 1, y), Vector2i.RIGHT)
+						me.set_tile_asset(Vector2i(rect.end.x, y), Vector2i.LEFT)
 					else:  # Make interior walls
-						me.set_tile_asset(Vector2i(area.position.x, y), Vector2i.LEFT)
-						me.set_tile_asset(Vector2i(area.end.x - 1, y), Vector2i.RIGHT)
+						me.set_tile_asset(Vector2i(rect.position.x, y), Vector2i.LEFT)
+						me.set_tile_asset(Vector2i(rect.end.x - 1, y), Vector2i.RIGHT)
 		return super(alt)
 	
 	func right_release(alt:bool):
-		has_placed = false
-		match me.pallet.get_paint_tool():
-			"Area":
-				var area = me.get_map_rect(me.map_start_tile, me.map_hover_tile, false, me.curr_map)
-				for y in range(area.position.y, area.end.y):
-					for x in range(area.position.x, area.end.x):
-						var coord = Vector2i(x,y)
-						me.rem_tile_asset(coord)
+		if not me.camera_moved:
+			match me.pallet.get_paint_tool():
+				"Area":
+					var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
+					rect = rect.intersection(Rect2i(Vector2i.ZERO, me.curr_map.size))
+					for y in range(rect.position.y, rect.end.y):
+						for x in range(rect.position.x, rect.end.x):
+							var coord = Vector2i(x,y)
+							me.rem_tile_asset(coord)
 		return super(alt)
 	
-	func draw_cam_moved(canvas:Control, cam:Camera3D):
+	func draw_dragging(canvas:Control, cam:Camera3D):
 		if not area_polygon.is_empty():
 			me.draw_area_outline(canvas, area_polygon, Color.WHEAT, 6)
 
@@ -551,6 +556,7 @@ class Coord_Capture extends TacEditorState:
 			var hover_tile_nav = me.curr_nav.map2nav(me.map_hover_tile, me.curr_map)
 			var coordi = Vector3i(me.hover_tile.x, me.curr_map.get_layer(), me.hover_tile.y)
 			me.pallet.set_tile_info(
+				me.hover_tile,
 				hover_tile_nav,
 				me.map_hover_tile,
 				me.curr_nav.navproxy.get(coordi, {}),
