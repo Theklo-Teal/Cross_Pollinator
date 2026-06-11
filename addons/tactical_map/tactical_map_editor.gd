@@ -2,7 +2,7 @@
 extends "res://addons/tactical_map/tac_editor_fsm.gd"
 class_name TacticalMapEditor
 
-#TODO add TacInterface to the list of custom types.
+#TODO Handle drawing for the multiple 3D viewports. Infrastructure for it already exists as the `cam_view` dictionary.
 #TODO Test map crop, now that offset functions.
 #TODO Test zone enter/exit logic in TacMap
 
@@ -25,16 +25,12 @@ func _ready() -> void:
 	pallet.mode_changed.connect(_on_state_changed)
 	pallet.paint_tool_changed.connect(_on_paint_tool_changed)
 	pallet.offset_map.connect(_on_offset_map)
-	pallet.nav_overlay.connect(func(shown):update_overlays())
-	pallet.floor_overlay.connect(func(shown):update_overlays())
-	
-
+	pallet.nav_overlay.connect(func(shown):update_cam_view(last_cam))
+	pallet.floor_overlay.connect(func(shown):update_cam_view(last_cam))
 
 func _enter_tree() -> void:
 	super()
-	
-	cam = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
-	
+
 	modes = {
 		"floor": Floor_Mode.new(self),
 		"tall": Tall_Wall_Mode.new(self),
@@ -119,17 +115,15 @@ func _make_visible(tacmap_selected: bool) -> void:
 ## Check if camera moved to redraw overlays.
 var past_cam_pos : Transform3D
 func _process(_delta: float) -> void:
-	if not cam == null:
-		if not cam.transform.is_equal_approx(past_cam_pos):
-			past_cam_pos = cam.transform
-			if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
-				camera_moved = true
-			update_overlays()
+	if not last_cam == null:
+		if not last_cam.transform.is_equal_approx(past_cam_pos):
+			past_cam_pos = last_cam.transform
+			update_cam_view(last_cam)
 			
 #endregion
 
 #region Input Events
-var cam : Camera3D
+var last_cam : Camera3D  ## The camera of the last active viewport, where input happened.
 var floor := Plane.PLANE_XZ  ## Reference plane for collision with a raycast.
 var hover_tile : Vector2i  ## Tile of [code]curr_map[/code] the mouse is hovering in global space.
 var start_tile : Vector2i  ## Tile where the a mouse drag operation started in global spatial reference.
@@ -147,11 +141,11 @@ var within_map : bool = false  ## The [code]hover_tile[/code] is within the area
 var camera_moved : bool = false  ## Check if the camera moved since last mouse button press.
 
 func _forward_3d_gui_input(camera:Camera3D, event:InputEvent):
+	last_cam = camera  # A kludge to keep track of which camera is being used, drawing appropriately to its view.
 	if curr_map == null or curr_mode().is_empty():
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
 	
 	if event is InputEventMouseMotion:
-		cam = camera
 		floor.d = curr_map.get_spatial_height()
 		var ray_orig = camera.project_ray_origin(event.position)
 		var ray_norm = camera.project_ray_normal(event.position)
@@ -173,7 +167,7 @@ func _forward_3d_gui_input(camera:Camera3D, event:InputEvent):
 				is_dragging = true
 		
 		if within_map:
-			update_overlays()
+			update_alt_view(camera)
 	
 	if event is InputEventMouseButton:
 		if event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
@@ -201,28 +195,43 @@ func _forward_3d_gui_input(camera:Camera3D, event:InputEvent):
 	else:
 		return response
 
-
-const NAVOVERLAYCOLOR = [  # Can't use Tac.Trans, sorry
-	Color.TRANSPARENT,  # PASS
-	Color.CORNFLOWER_BLUE,  # CRAWL
-	Color.DEEP_PINK,  # HALF
-	Color.RED,  # TALL
-]
-
-const VECTDIR = [  # Can't use Tac.Dir_Vect, sorry
-	Vector2(0.5, 0),  # East
-	Vector2(0, 0.5),  # South
-	Vector2(-0.5, 0),  # West
-	Vector2(0, -0.5)  # North
-	]
-
 func _forward_3d_draw_over_viewport(view: Control) -> void:
+	
+	# An hack to distinguish the different 3D view cameras and their associated overlay canvas.
+	if cam_view.get(last_cam) == null:
+		cam_view[last_cam] = view
+	if view_cam.get(view) == null:
+		view_cam[view] = last_cam
+		view.draw.connect(on_cam_view_draw.bind(view, last_cam))
+	
+	if alt_view.get(last_cam) == null:
+		alt_view[last_cam] = Control.new()
+		alt_view[last_cam].size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		alt_view[last_cam].size_flags_vertical = Control.SIZE_EXPAND_FILL
+		view.get_parent().add_child(alt_view[last_cam])
+	if view_cam.get(alt_view[last_cam]) == null:
+		view_cam[alt_view[last_cam]] = last_cam
+		alt_view[last_cam].draw.connect(on_alt_view_draw.bind(alt_view[last_cam], last_cam))
+
+
+## A kludge to add a second drawing canvas to the 3D overlay.
+var cam_view : Dictionary[Camera3D, Control]  # Tell which default overlay is of which camera.
+var alt_view : Dictionary[Camera3D, Control]  # Tell which custom added overlay is of which camera.
+var view_cam : Dictionary[Control, Camera3D]  # Backreference to find camera of a view. Includes also alt-overlays.
+func update_cam_view(camera:Camera3D):
+	if camera in cam_view and curr_map != null and not curr_mode().is_empty():
+		cam_view[camera].queue_redraw()
+func update_alt_view(camera:Camera3D):
+	if camera in alt_view and curr_map != null and not curr_mode().is_empty():
+		alt_view[camera].queue_redraw()
+
+
+## Use this to draw things that only need to update on camera motion.
+func on_cam_view_draw(canvas:Control, cam:Camera3D) -> void:
 	#NOTE That all 3D coordinates used for drawing are in global space.
-	if curr_map == null or curr_mode().is_empty():
+	if not (cam in cam_view and curr_map != null and not curr_mode().is_empty()):
 		return
 	
-	if cam == null:
-		return
 	# Draw boundary of the TacMap
 	var fence = [
 		Vector3(curr_map.global_area.position.x,curr_map.get_spatial_height(),curr_map.global_area.position.y),
@@ -230,24 +239,32 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 		Vector3(curr_map.global_area.end.x, curr_map.get_spatial_height(), curr_map.global_area.end.y),
 		Vector3(curr_map.global_area.end.x, curr_map.get_spatial_height(), curr_map.global_area.position.y),
 		]
-	draw_area_outline(view, fence, Color.WEB_PURPLE, 8)
+	draw_area_outline(canvas, fence, Color.WEB_PURPLE, 8)
 	
 	# Floor Overlay
-	if pallet.is_floor_overlay_visible():
-		pass
+	#if pallet.is_floor_overlay_visible():
+		#pass
 	
 	# Navigation Graph Overlay
-	if pallet.is_nav_overlay_visible():
-		for coordi : Vector3i in curr_nav.navproxy:
-			var coord = curr_nav.nav3spatial(coordi, true)
-			if cam.is_position_in_frustum(coord):
-				var transcodes : int = curr_nav.navproxy[coordi].simple
-				if transcodes > 0 and transcodes < 0b1111:
-					var distance = cam.position.distance_to(coord)
-					var rad = Saliko.apparent_size(cam, curr_nav.tile_size, distance)
-					var unproj = cam.unproject_position(coord)
-					view.draw_circle(unproj, rad, Color.RED)
+	#if pallet.is_nav_overlay_visible():
+		#for coordi : Vector3i in curr_nav.navproxy:
+			#var coord = curr_nav.nav3spatial(coordi, true)
+			#if cam.is_position_in_frustum(coord):
+				#var transcodes : int = curr_nav.navproxy[coordi].simple
+				#if transcodes > 0 and transcodes < 0b1111:
+					#var distance = cam.position.distance_to(coord)
+					#var rad = Saliko.apparent_size(cam, curr_nav.tile_size, distance)
+					#var unproj = cam.unproject_position(coord)
+					#view.draw_circle(unproj, rad, Color.RED)
+	
+	modes[curr_mode()].draw(canvas, cam)
 
+## Use this to draw things updated with mouse motion.
+func on_alt_view_draw(canvas:Control, cam:Camera3D) -> void:
+	#NOTE That all 3D coordinates used for drawing are in global space.
+	if not (cam in alt_view and curr_map != null and not curr_mode().is_empty()):
+		return
+	
 	# Hover Tile Indicator
 	var tile_rect = Saliko.get_area(Vector2(hover_tile), Vector2(hover_tile) + Vector2.ONE * curr_nav.tile_size)
 	var hei = curr_map.get_spatial_height()
@@ -260,7 +277,7 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 		]
 	var color = [Color.RED, Color.PURPLE][int(within_map)]
 	color.a = 0.25
-	draw_area_polygon(view, tile_corners, color)
+	draw_area_polygon(canvas, tile_corners, color)
 	if within_map:
 		var lateral = {
 		Vector2i.RIGHT : [0,1],
@@ -270,19 +287,20 @@ func _forward_3d_draw_over_viewport(view: Control) -> void:
 		}
 		var side = lateral[_hover_tile_side]
 		if cam.is_position_in_frustum(tile_corners[side[0]]) or cam.is_position_in_frustum(tile_corners[side[1]]):
-			view.draw_line(
+			canvas.draw_line(
 				cam.unproject_position(tile_corners[side[0]]),
 				cam.unproject_position(tile_corners[side[1]]),
 				Color.PURPLE, 6)
-	
-	modes[curr_mode()].draw(view)
 
 #endregion
 
+#region Drawing Help Functions
 ## Produces a 2D polygon from a polygon in 3D space for purposes of
 ## [code]Control._draw()[/code].[br]
 ## Coordinates of [code]verts[/code] should be in Global 3D space.
-func unproject_area(verts:PackedVector3Array) -> PackedVector2Array:
+func unproject_area(canvas:Control, verts:PackedVector3Array) -> PackedVector2Array:
+	#FIXME Who's calling this before cameras are discovered?
+	var cam = view_cam[canvas]
 	var polyline : PackedVector2Array
 	verts = Geometry3D.clip_polygon(verts, cam.get_frustum()[0])
 	for p in verts:
@@ -293,14 +311,14 @@ func unproject_area(verts:PackedVector3Array) -> PackedVector2Array:
 ## using [code]unproject_area[/code].
 func draw_area_outline(canvas:Control, corners: PackedVector3Array, color:Color, thickness:int=-1):
 	corners.append(corners[0])
-	var points = unproject_area(corners)
+	var points = unproject_area(canvas, corners)
 	if points.size() >= 3:
 		canvas.draw_polyline(points, color, thickness)
 
 ## Draw a filled polyong overlay of an area in 3D perspective. Processes [code]corners[/code]
 ## using [code]unproject_area[/code].
 func draw_area_polygon(canvas:Control, corners: PackedVector3Array, color:Color):
-	var points = unproject_area(corners)
+	var points = unproject_area(canvas, corners)
 	if points.size() >= 3:
 		canvas.draw_colored_polygon(points, color)
 
@@ -308,10 +326,11 @@ func draw_area_polygon(canvas:Control, corners: PackedVector3Array, color:Color)
 ## Processes [code]corners[/code] using [code]unproject_area[/code].
 func draw_area_outlined_polygon(canvas:Control, corners: PackedVector3Array, fill_color:Color, perim_color:Color, thickness:int=-1):
 	corners.append(corners[0])
-	var points = unproject_area(corners)
+	var points = unproject_area(canvas, corners)
 	if points.size() >= 3:
 		canvas.draw_colored_polygon(points, fill_color)
 		canvas.draw_polyline(points, perim_color, thickness)
+#endregion
 
 #region Zoning and Ladders
 var sel_zones : PackedStringArray
@@ -325,36 +344,36 @@ func set_active_ladder(ladder_name:StringName):
 	pallet.set_active_ladder(ladder_name)
 
 func _on_zone_clicked():
-	update_overlays()
+	update_cam_view(last_cam)
 func _on_zones_selected(zones:PackedStringArray):
 	sel_zones = zones
-	update_overlays()
+	update_cam_view(last_cam)
 func _on_zone_deleted(zone:String):
 	curr_map.zones.erase(zone)
 	sel_zones.erase(zone)
-	update_overlays()
+	update_cam_view(last_cam)
 func _on_zone_renamed(old:String, new:String):
 	curr_map.zones[new] = curr_map.zones[old]
 	curr_map.zones.erase(old)
 	sel_zones.erase(old)
 	sel_zones.append(new)
-	update_overlays()
+	update_cam_view(last_cam)
 
 func _on_ladder_clicked():
-	update_overlays()
+	update_cam_view(last_cam)
 func _on_ladders_selected(ladders:PackedStringArray):
 	sel_ladders = ladders
-	update_overlays()
+	update_cam_view(last_cam)
 func _on_ladder_deleted(ladder:String):
 	curr_map.ladders.erase(ladder)
 	sel_ladders.erase(ladder)
-	update_overlays()
+	update_cam_view(last_cam)
 func _on_ladder_renamed(old:String, new:String):
 	curr_map.ladders[new] = curr_map.ladders[old]
 	curr_map.ladders.erase(old)
 	sel_ladders.erase(old)
 	sel_ladders.append(new)
-	update_overlays()
+	update_cam_view(last_cam)
 
 #endregion
 

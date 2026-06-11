@@ -138,10 +138,16 @@ func get_map_area(from:Vector2i, to:Vector2i, tacmap:TacMap=null, offset:float=0
 	func right_press(alternate:bool):
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
 	
-	func draw(canvas:Control):
-		if me.is_dragging or me.camera_moved:
-			_draw(canvas)
-	func _draw(canvas:Control):
+	func draw(canvas:Control, cam:Camera3D):
+		if me.camera_moved:
+			draw_cam_moved(canvas, cam)
+		if me.is_dragging:
+			draw_dragging(canvas, cam)
+	## To redraw, keeping something visible if the camera moves.
+	func draw_cam_moved(canvas:Control, cam:Camera3D):
+		pass
+	## To redraw whil dragging the mouse.
+	func draw_dragging(canvas:Control, cam:Camera3D):
 		pass
 
 class Paint_Mode extends TacEditorState:
@@ -183,7 +189,10 @@ class Paint_Mode extends TacEditorState:
 		
 	
 	func while_dragging(alt:bool, left, right):
-		me.update_overlays()
+		if me.pallet.get_paint_tool() == "Area":
+			area_polygon = me.get_map_area(me.map_start_tile, me.map_hover_tile, me.curr_map, 0.1)
+			me.update_cam_view(me.last_cam)
+			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func left_press(alternate:bool):
 		if me.within_map:
@@ -196,20 +205,16 @@ class Paint_Mode extends TacEditorState:
 	func left_release(alt:bool):
 		if not area_polygon.is_empty():
 			area_polygon.clear()
-			me.update_overlays()
+			me.update_cam_view(me.last_cam)
 		if me.is_dragging:
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	func right_release(alt:bool):
 		if not area_polygon.is_empty():
 			area_polygon.clear()
-			me.update_overlays()
+			me.update_cam_view(me.last_cam)
 		if me.is_dragging:
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
-	
-	func _draw(canvas:Control):
-		if me.pallet.get_paint_tool() == "Area":
-			area_polygon = me.get_map_area(me.map_start_tile, me.map_hover_tile, me.curr_map, 0.1)
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
+
 
 class Zone_Mode extends Paint_Mode:
 	func help() -> String:
@@ -217,7 +222,7 @@ class Zone_Mode extends Paint_Mode:
 	
 	func enter():
 		me.pallet.force_paint_tool(&"Area")
-		me.update_overlays()
+		me.update_cam_view(me.last_cam)
 	
 	func while_dragging(alt:bool, left, right):
 		if left:
@@ -243,13 +248,14 @@ class Zone_Mode extends Paint_Mode:
 			me.pallet.select_zones(hits)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func _draw(canvas:Control):
-		super(canvas)
+	func draw_dragging(canvas:Control, cam:Camera3D):
 		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 			if not area_polygon.is_empty():
 				var color = Color.DARK_SLATE_GRAY
 				color.a = 0.4
 				me.draw_area_outlined_polygon(canvas, area_polygon, color, Color.SEA_GREEN, 3)
+				
+	func draw_cam_moved(canvas:Control, cam:Camera3D):
 		var dirty_zones : PackedStringArray
 		for zone in me.sel_zones:
 			if not zone in me.curr_map.zones:
@@ -273,7 +279,7 @@ class Ladder_Mode extends Paint_Mode:
 		return "Connects tiles of the same ladder title. Can't have the same ladder title more than once on each TacMap. \nType a ladder title, then click on map to create a warp tile. Clicking ladders from the list highlights them on the map.\nSubmitting a title renames the last clicked ladder. Submitting an empty title deletes the last clicked ladder."
 	func enter():
 		me.pallet.force_paint_tool(&"Single")
-		me.update_overlays()
+		me.update_cam_view(me.last_cam)
 	
 	func left_release(alt:bool):
 		if me.within_map:
@@ -283,25 +289,22 @@ class Ladder_Mode extends Paint_Mode:
 				me.set_active_ladder(ladder_name)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func _draw(canvas:Control):
-		var hei = me.curr_map.get_height() + 0.1
+	func draw_cam_moved(canvas:Control, cam:Camera3D):
 		var dirty_ladders : PackedStringArray
 		for ladder in me.sel_ladders:
 			if not ladder in me.curr_map.ladders:
 				dirty_ladders.append(ladder)
 				continue
 			var tile := me.curr_map.ladders[ladder]
-			var polygon := Saliko.rect2polygon(Rect2(tile, Vector2i.ONE))
+			var polygon := me.get_map_area(tile, tile + Vector2i.ONE, me.curr_map, 0.1)
 			if ladder == me.pallet.last_sel_ladder:
 				var fill = Color.DARK_KHAKI
 				fill.a = 0.4
-				canvas.draw_colored_polygon(polygon, fill)
-				canvas.draw_polyline(polygon, Color.KHAKI, 3)
+				me.draw_area_outlined_polygon(canvas, polygon, fill, Color.KHAKI, 3)
 			else:
 				var fill = Color.DIM_GRAY
 				fill.a = 0.4
-				canvas.draw_colored_polygon(polygon, fill)
-				canvas.draw_polyline(polygon, Color.DIM_GRAY, 3)
+				me.draw_area_outlined_polygon(canvas, polygon, fill, fill, 3)
 		for each in dirty_ladders:
 			me.sel_ladders.erase(each)
 
@@ -401,8 +404,7 @@ class Floor_Mode extends Paint_Mode:
 			me.pallet.set_active_asset(info_uid)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
-	func _draw(canvas:Control):
-		super(canvas)
+	func draw_cam_moved(canvas:Control, cam:Camera3D ):
 		if not area_polygon.is_empty():
 			var color = Color.WHEAT
 			color.a = 0.4
@@ -497,10 +499,9 @@ class Wall_Mode extends Paint_Mode:
 						me.rem_tile_asset(coord)
 		return super(alt)
 	
-	func _draw(canvas:Control):
-		super(canvas)
+	func draw_cam_moved(canvas:Control, cam:Camera3D):
 		if not area_polygon.is_empty():
-			me.draw_area_outline(canvas, area_polygon, Color.WHEAT, 3)
+			me.draw_area_outline(canvas, area_polygon, Color.WHEAT, 6)
 
 class Tall_Wall_Mode extends Wall_Mode:
 	pass
