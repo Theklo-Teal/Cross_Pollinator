@@ -7,10 +7,19 @@ class_name TacEntity
 
 signal interacted  ## The player tried to click on this object.
 
+@export var attitude : ATT  ## How the character navigates the environment.
 @export var can_block_nav : bool = true  ## Will pathfinding avoid this entity?
 @export var interact_distance : float = 2.4  ## How far, in meters, can an active character be from this entity and still allow it to interact.
 
 var mouse_hover : bool  # Is the mouse over this area?
+
+enum ATT{  ## Which navigation graph the entity uses.
+	WARY,  ## Character is careful and avoids vaulting over small obstacles.
+	TINY,  ## The Character is small enough to enter cramped spaces.
+	HASTY,  ## The Character will be aggressive, trying to swiftly find the shortest distance physically possible.
+	UNTOUCH,  ## The Character doesn't care about obstacles or might even be intangible.
+	FLYING,  ## (Don't Use: Tentative feature) The character can travel through holes in the floor, changing level.
+	}
 
 func _ready():
 	input_ray_pickable = true
@@ -70,6 +79,7 @@ var trajectory : Array[Vector3i]  ## The path the character will try to walk alo
 ## Returns [code]ERR_CANT_CONNECT[/code] If the path couldn't be resolved at all. Eg. requires ladders
 ## That aren't available, [code]tacmap[/code] is [code]null[/code] or destination is outside the map.
 func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Error:
+	
 	if destination == get_nav_coord():
 		return ERR_ALREADY_EXISTS
 	if tacmap == null:
@@ -105,7 +115,6 @@ func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Er
 ## [code]ERR_QUERY_FAILED[/code]: [code]trajectory[/code] is partial. Probably
 ## because a path wasn't found.[br]
 func _traversal_start(curr_error:Error, destination:Vector3i, teleport:=false) -> Error:
-	print(error_string(curr_error))
 	return curr_error
 
 ## Take a step along the trajectory, popping one of its coordinates along the way

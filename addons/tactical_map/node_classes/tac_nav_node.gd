@@ -369,7 +369,6 @@ func build_navproxy(layer:int):
 				navproxy[coordi].RIGHT = Tac.Trans.NONE
 			if coordi.z == area[layer].size.y:
 				navproxy[coordi].SOUTH = Tac.Trans.NONE
-			print(String.num_uint64(navproxy[coordi].full(), 2))
 
 ## Convert data in [code]navproxy[/code] to connections in [code]AStar2D[/code] graphs.
 func build_navgraph():
@@ -399,7 +398,7 @@ func build_navgraph():
 					for trans in range(Tac.Trans.size()-1):
 						var nav : AStar2D = navgraph[layer][trans]
 						nav.connect_points(this_id, that_id, false)
-				else:
+				elif that_code.dir[dir] < 5:
 					navgraph[layer][that_code.dir[dir]].connect_points(this_id, that_id, false)
 
 

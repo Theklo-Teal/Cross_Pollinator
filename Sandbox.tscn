@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://h31ri5gda1bq" path="res://addons/tactical_map/node_classes/tac_map_node.gd" id="5_fucb2"]
 [ext_resource type="Script" uid="uid://darbq45b7j8m" path="res://addons/tactical_map/resource_classes/tac_tile.gd" id="6_u6t3p"]
 [ext_resource type="Script" uid="uid://crj8j7l77o1wr" path="res://addons/tactical_map/resource_classes/transcodes.gd" id="7_fucb2"]
+[ext_resource type="PackedScene" uid="uid://dpm60xp1qs63x" path="res://addons/tactical_map/entity_classes/SimpleCharacter.tscn" id="8_ns6gl"]
 [ext_resource type="AudioStream" uid="uid://cpklgtdti1pjs" path="res://assets/music/Equatorial Complex.mp3" id="8_ukipb"]
 [ext_resource type="AudioStream" uid="uid://l5p6gfigrrif" path="res://assets/ui_sounds/Wood Block3.wav" id="9_ns6gl"]
 
@@ -1181,33 +1182,6 @@ floor_dir = Vector2i(1, 0)
 dirty = false
 code = SubResource("Resource_ilalk")
 
-[sub_resource type="Resource" id="Resource_rhakg"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_3pw1k"]
-script = ExtResource("6_u6t3p")
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_rhakg")
-
-[sub_resource type="Resource" id="Resource_y3sct"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_url2c"]
-script = ExtResource("6_u6t3p")
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_y3sct")
-
-[sub_resource type="Resource" id="Resource_ki4bh"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_a0bfn"]
-script = ExtResource("6_u6t3p")
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_ki4bh")
-
 [sub_resource type="Resource" id="Resource_haovc"]
 script = ExtResource("7_fucb2")
 
@@ -1312,15 +1286,6 @@ floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
 dirty = false
 code = SubResource("Resource_s4kaj")
-
-[sub_resource type="Resource" id="Resource_vo2yu"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_eskyq"]
-script = ExtResource("6_u6t3p")
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_vo2yu")
 
 [sub_resource type="Resource" id="Resource_vvymy"]
 script = ExtResource("7_fucb2")
@@ -1884,9 +1849,6 @@ Vector2i(7, 4): SubResource("Resource_n1fmk"),
 Vector2i(7, 5): SubResource("Resource_2c8gn"),
 Vector2i(7, 6): SubResource("Resource_7im66"),
 Vector2i(7, 7): SubResource("Resource_wct6a"),
-Vector2i(7, 8): SubResource("Resource_3pw1k"),
-Vector2i(7, 9): SubResource("Resource_url2c"),
-Vector2i(7, 10): SubResource("Resource_a0bfn"),
 Vector2i(7, 11): SubResource("Resource_83hbe"),
 Vector2i(8, 0): SubResource("Resource_3h8bx"),
 Vector2i(8, 1): SubResource("Resource_ty6r2"),
@@ -1896,7 +1858,6 @@ Vector2i(8, 4): SubResource("Resource_a6qp1"),
 Vector2i(8, 5): SubResource("Resource_4vlbf"),
 Vector2i(8, 6): SubResource("Resource_xpmpp"),
 Vector2i(8, 7): SubResource("Resource_7wfhm"),
-Vector2i(8, 8): SubResource("Resource_eskyq"),
 Vector2i(8, 9): SubResource("Resource_5s0ho"),
 Vector2i(8, 10): SubResource("Resource_13wjq"),
 Vector2i(8, 11): SubResource("Resource_dpwr8"),
@@ -1938,3 +1899,6 @@ Vector2i(11, 10): SubResource("Resource_2827g"),
 Vector2i(11, 11): SubResource("Resource_fh2u8")
 })
 metadata/_custom_type_script = "uid://h31ri5gda1bq"
+
+[node name="SimpleCharacter" parent="TacNav" unique_id=345150261 instance=ExtResource("8_ns6gl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4998848, 0.06509304, 2.4841352)

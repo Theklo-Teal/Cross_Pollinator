@@ -1,0 +1,87 @@
+[gd_scene format=3 uid="uid://dpm60xp1qs63x"]
+
+[sub_resource type="GDScript" id="GDScript_f1u3u"]
+script/source = "extends TacEntity
+
+## A simplified character which doesn't have the state machine of 
+## TacCharacter and just moves around the the map to test navigation.
+
+const STRIDE := 2.3  ## How fast the character moves
+const NO_NAV := false  ## If true, the character just moves in straight lines.
+
+var just_stopped := true
+
+var err : Error
+func _process(delta: float) -> void:
+	if trajectory.is_empty() or position.is_equal_approx(trajectory[0]):
+		if not just_stopped:
+			just_stopped = true
+			print(\"Step Error: \", error_string(err) )
+			print(\"Finish Error: \", error_string(traversal_finish()) ) 
+		return
+	if NO_NAV:
+		position = position.move_toward(trajectory[0], STRIDE * delta)
+	else:
+		err = take_a_step()
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_released(Tac.command_input()):
+		just_stopped = false
+		if NO_NAV:
+			trajectory = [Tac.hover_nav.nav3spatial(Saliko.Vec2AddAxis(Tac.hover_tile_nav, 1, Tac.hover_layer), true)]
+		else:
+			print(\"Start towards \", Tac.hover_tile_nav, \": \", error_string(traversal_start(Tac.hover_tile_nav, Tac.hover_map))) 
+"
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_x3r04"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x3r04"]
+albedo_color = Color(1, 1, 0, 1)
+metallic = 0.5
+metallic_specular = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f1u3u"]
+albedo_color = Color(0.21197829, 0.68570435, 0.99999994, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qusxn"]
+albedo_color = Color(0.023529412, 0.52156866, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uoc03"]
+albedo_color = Color(0.72987926, 0.2387226, 0, 1)
+
+[node name="SimpleCharacter" type="Area3D" unique_id=345150261]
+script = SubResource("GDScript_f1u3u")
+metadata/_custom_type_script = "uid://d3bsnibqlxnig"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1015333429]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("SphereShape3D_x3r04")
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=1184042913]
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="CSGCombiner3D" unique_id=1517424882]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.25)
+polygon = PackedVector2Array(0.2, 1.2, 0.5, 1.2, 0.25, 0.8, 0.4, 0, 0, 0.5, -0.4, 0, -0.25, 0.8, -0.5, 1.2, -0.2, 1.2, 0, 1.8)
+depth = 0.5
+material = SubResource("StandardMaterial3D_x3r04")
+
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="CSGCombiner3D" unique_id=834624115]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1, 0.39463723)
+radius = 0.1
+height = 0.3
+cone = true
+material = SubResource("StandardMaterial3D_f1u3u")
+
+[node name="CSGCylinder3D2" type="CSGCylinder3D" parent="CSGCombiner3D" unique_id=1289087179]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9364033, 0.019799948)
+radius = 0.1
+height = 0.3
+cone = true
+material = SubResource("StandardMaterial3D_qusxn")
+
+[node name="CSGCylinder3D3" type="CSGCylinder3D" parent="CSGCombiner3D" unique_id=548974241]
+transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, 0.60429597, 1.2028418, 0.019799948)
+radius = 0.1
+height = 0.3
+cone = true
+material = SubResource("StandardMaterial3D_uoc03")

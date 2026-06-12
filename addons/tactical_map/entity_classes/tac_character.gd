@@ -15,13 +15,7 @@ class_name TacCharacter
 ## is [code]false[/code] as an exception). When it is actions calling to be 
 ## changed to another action, the character won't care if its "busy".
 
-enum ATT{
-	WARY,  ## Character is careful and avoids vaulting over small obstacles.
-	TINY,  ## The Character is small enough to enter cramped spaces.
-	HASTY,  ## The Character will be aggressive, trying to swiftly find the shortest distance physically possible.
-	UNTOUCH,  ## The Character doesn't care about obstacles or might even be intangible.
-	FLYING,  ## (Don't Use: Tentative feature) The character can travel through holes in the floor, changing level.
-	}
+
 
 enum Team{
 	NONE,  ## A catch for teams being improperly set.
@@ -36,7 +30,6 @@ const MAX_STACK = 64
 
 @export var team : Team  ## Default alliance of character.
 var curr_team : Team  ## If a character defects or is mind-controlled, this keeps track of which side they are on.
-@export var attitude : ATT  ## How the character navigates the environment.
 
 @export_group("Actions")
 @export var equipment : Array[StringName]
