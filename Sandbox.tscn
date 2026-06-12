@@ -1,12 +1,11 @@
-[gd_scene format=3 uid="uid://bripdl2ain4vv"]
+[gd_scene format=4 uid="uid://bripdl2ain4vv"]
 
 [ext_resource type="PackedScene" uid="uid://cxfeoyapo1k04" path="res://modules/turntable_cam.tscn" id="1_fucb2"]
-[ext_resource type="Script" uid="uid://b624fpjrvtg43" path="res://addons/tactical_map/node_classes/tac_nav_node.gd" id="4_u6t3p"]
-[ext_resource type="Script" uid="uid://h31ri5gda1bq" path="res://addons/tactical_map/node_classes/tac_map_node.gd" id="5_fucb2"]
-[ext_resource type="Script" uid="uid://darbq45b7j8m" path="res://addons/tactical_map/resource_classes/tac_tile.gd" id="6_u6t3p"]
-[ext_resource type="Script" uid="uid://crj8j7l77o1wr" path="res://addons/tactical_map/resource_classes/transcodes.gd" id="7_fucb2"]
-[ext_resource type="PackedScene" uid="uid://dpm60xp1qs63x" path="res://addons/tactical_map/entity_classes/SimpleCharacter.tscn" id="8_ns6gl"]
+[ext_resource type="Script" uid="uid://b624fpjrvtg43" path="res://addons/tactical_map/node_classes/tac_nav_node.gd" id="5_fucb2"]
+[ext_resource type="Script" uid="uid://h31ri5gda1bq" path="res://addons/tactical_map/node_classes/tac_map_node.gd" id="6_ukipb"]
+[ext_resource type="Script" uid="uid://darbq45b7j8m" path="res://addons/tactical_map/resource_classes/tac_tile.gd" id="7_ns6gl"]
 [ext_resource type="AudioStream" uid="uid://cpklgtdti1pjs" path="res://assets/music/Equatorial Complex.mp3" id="8_ukipb"]
+[ext_resource type="Texture2D" uid="uid://chopvx8maiq34" path="res://assets/planar_textures/Craftland.png" id="9_cgmw2"]
 [ext_resource type="AudioStream" uid="uid://l5p6gfigrrif" path="res://assets/ui_sounds/Wood Block3.wav" id="9_ns6gl"]
 
 [sub_resource type="GDScript" id="GDScript_vrv26"]
@@ -24,1696 +23,1076 @@ func _input(event: InputEvent) -> void:
 		$Label3D.text += \"Map:\" + str(Tac.hover_tile_map)
 "
 
-[sub_resource type="Resource" id="Resource_fucb2"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
+[sub_resource type="ViewportTexture" id="ViewportTexture_ukipb"]
+viewport_path = NodePath("SubViewport")
 
-[sub_resource type="Resource" id="Resource_ukipb"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_fucb2")
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_oc8cb"]
+resource_name = "Grass"
+texture = ExtResource("9_cgmw2")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+9:0/0 = 0
+10:0/0 = 0
+11:0/0 = 0
+12:0/0 = 0
+13:0/0 = 0
+14:0/0 = 0
+15:0/0 = 0
+16:0/0 = 0
+17:0/0 = 0
+18:0/0 = 0
+19:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+9:1/0 = 0
+10:1/0 = 0
+11:1/0 = 0
+12:1/0 = 0
+13:1/0 = 0
+14:1/0 = 0
+15:1/0 = 0
+16:1/0 = 0
+17:1/0 = 0
+18:1/0 = 0
+19:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+9:2/0 = 0
+10:2/0 = 0
+12:2/0 = 0
+13:2/0 = 0
+14:2/0 = 0
+16:2/0 = 0
+17:2/0 = 0
+18:2/0 = 0
+19:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+9:3/0 = 0
+10:3/0 = 0
+11:3/0 = 0
+12:3/0 = 0
+13:3/0 = 0
+14:3/0 = 0
+15:3/0 = 0
+16:3/0 = 0
+17:3/0 = 0
+18:3/0 = 0
+19:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+9:4/0 = 0
+10:4/0 = 0
+11:4/0 = 0
+12:4/0 = 0
+13:4/0 = 0
+14:4/0 = 0
+15:4/0 = 0
+16:4/0 = 0
+17:4/0 = 0
+18:4/0 = 0
+19:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+5:5/0 = 0
+6:5/0 = 0
+7:5/0 = 0
+10:5/0 = 0
+12:5/0 = 0
+13:5/0 = 0
+14:5/0 = 0
+15:5/0 = 0
+16:5/0 = 0
+17:5/0 = 0
+18:5/0 = 0
+19:5/0 = 0
+0:6/0 = 0
+1:6/0 = 0
+2:6/0 = 0
+3:6/0 = 0
+4:6/0 = 0
+5:6/0 = 0
+6:6/0 = 0
+7:6/0 = 0
+9:6/0 = 0
+10:6/0 = 0
+11:6/0 = 0
+12:6/0 = 0
+13:6/0 = 0
+14:6/0 = 0
+15:6/0 = 0
+16:6/0 = 0
+17:6/0 = 0
+18:6/0 = 0
+0:7/0 = 0
+1:7/0 = 0
+2:7/0 = 0
+3:7/0 = 0
+4:7/0 = 0
+5:7/0 = 0
+6:7/0 = 0
+7:7/0 = 0
+8:7/0 = 0
+10:7/0 = 0
+12:7/0 = 0
+13:7/0 = 0
+14:7/0 = 0
+15:7/0 = 0
+16:7/0 = 0
+17:7/0 = 0
+18:7/0 = 0
+19:7/0 = 0
 
-[sub_resource type="Resource" id="Resource_nwvs3"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_pfgrx"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_nwvs3")
-
-[sub_resource type="Resource" id="Resource_e8jtp"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_vexuo"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_e8jtp")
-
-[sub_resource type="Resource" id="Resource_ivt64"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_xm6ru"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_ivt64")
-
-[sub_resource type="Resource" id="Resource_0x6fp"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_cdcgl"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_0x6fp")
-
-[sub_resource type="Resource" id="Resource_u3eul"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_e4blb"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_u3eul")
-
-[sub_resource type="Resource" id="Resource_cvxjl"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_6axiy"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_cvxjl")
-
-[sub_resource type="Resource" id="Resource_f2pbi"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_rfxnf"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_f2pbi")
-
-[sub_resource type="Resource" id="Resource_r8ln1"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_fwmst"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_r8ln1")
-
-[sub_resource type="Resource" id="Resource_3srwt"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_2tudy"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_3srwt")
-
-[sub_resource type="Resource" id="Resource_wk63e"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_gdgwu"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_wk63e")
-
-[sub_resource type="Resource" id="Resource_se1og"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 5,
-Vector2i(0, -1): 0,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_om7ci"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_se1og")
-
-[sub_resource type="Resource" id="Resource_ns6gl"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
+[sub_resource type="TileSet" id="TileSet_ns6gl"]
+tile_size = Vector2i(32, 32)
+sources/1 = SubResource("TileSetAtlasSource_oc8cb")
 
 [sub_resource type="Resource" id="Resource_cgmw2"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_ns6gl")
-
-[sub_resource type="Resource" id="Resource_75nqk"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_t2h15"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_75nqk")
-
-[sub_resource type="Resource" id="Resource_4yaw1"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_c48op"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_4yaw1")
-
-[sub_resource type="Resource" id="Resource_eeocv"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_l4m48"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_east = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_eeocv")
-
-[sub_resource type="Resource" id="Resource_sg80u"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_4w0ke"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_east = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_sg80u")
-
-[sub_resource type="Resource" id="Resource_ejme0"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_u8yht"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_east = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_ejme0")
-
-[sub_resource type="Resource" id="Resource_asr7p"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_t867u"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_east = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_asr7p")
-
-[sub_resource type="Resource" id="Resource_jwos3"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_suu6c"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_jwos3")
-
-[sub_resource type="Resource" id="Resource_pwsol"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_544g7"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_pwsol")
-
-[sub_resource type="Resource" id="Resource_eevp1"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_p88c1"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_eevp1")
-
-[sub_resource type="Resource" id="Resource_8jqxh"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_n1joh"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_8jqxh")
-
-[sub_resource type="Resource" id="Resource_wn5iu"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_0ami7"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_wn5iu")
-
-[sub_resource type="Resource" id="Resource_oc8cb"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_1pa1w"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_oc8cb")
-
-[sub_resource type="Resource" id="Resource_d72vx"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_2qts0"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_d72vx")
-
-[sub_resource type="Resource" id="Resource_yrjoi"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_q763c"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_south = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_yrjoi")
-
-[sub_resource type="Resource" id="Resource_lbwck"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_ypgfx"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_west = &"uid://qe6vkc1vpl6x"
-wall_north = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_lbwck")
-
-[sub_resource type="Resource" id="Resource_tq4oq"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_x662n"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_west = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_tq4oq")
-
-[sub_resource type="Resource" id="Resource_otidq"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_yv2pf"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_west = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_otidq")
-
-[sub_resource type="Resource" id="Resource_x7flh"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_id4bs"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_south = &"uid://qe6vkc1vpl6x"
-wall_west = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_x7flh")
-
-[sub_resource type="Resource" id="Resource_l625u"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_urrh7"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, 1)
-wall_north = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_l625u")
-
-[sub_resource type="Resource" id="Resource_ntiog"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_rh35x"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, 1)
-dirty = false
-code = SubResource("Resource_ntiog")
-
-[sub_resource type="Resource" id="Resource_idlo0"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_77yum"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, 1)
-dirty = false
-code = SubResource("Resource_idlo0")
-
-[sub_resource type="Resource" id="Resource_yykvp"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_uxqmx"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, 1)
-dirty = false
-code = SubResource("Resource_yykvp")
-
-[sub_resource type="Resource" id="Resource_d8qss"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_dr160"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_d8qss")
-
-[sub_resource type="Resource" id="Resource_pc7rr"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_y1nea"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_pc7rr")
-
-[sub_resource type="Resource" id="Resource_rkh16"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_77sxq"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_rkh16")
-
-[sub_resource type="Resource" id="Resource_dvwht"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_m7yi4"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_south = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_dvwht")
-
-[sub_resource type="Resource" id="Resource_reqap"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_eps3j"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_north = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_reqap")
-
-[sub_resource type="Resource" id="Resource_5cydg"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_8labt"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_5cydg")
-
-[sub_resource type="Resource" id="Resource_ohhy6"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_bj0ul"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_ohhy6")
-
-[sub_resource type="Resource" id="Resource_5coax"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_04o8x"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_south = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_5coax")
-
-[sub_resource type="Resource" id="Resource_e5gkn"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_7jrgv"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-wall_north = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_e5gkn")
-
-[sub_resource type="Resource" id="Resource_ov23n"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_bqpn6"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_ov23n")
-
-[sub_resource type="Resource" id="Resource_td6wt"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_i31k0"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_td6wt")
-
-[sub_resource type="Resource" id="Resource_ku70h"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_15xyu"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_ku70h")
-
-[sub_resource type="Resource" id="Resource_3nt6y"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_woucp"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_3nt6y")
-
-[sub_resource type="Resource" id="Resource_5l22i"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_d5l5x"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_5l22i")
-
-[sub_resource type="Resource" id="Resource_x6wqd"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_2b3lv"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_x6wqd")
-
-[sub_resource type="Resource" id="Resource_5pj0p"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_10c5s"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_south = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_5pj0p")
-
-[sub_resource type="Resource" id="Resource_sqway"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_aom88"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_north = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_sqway")
-
-[sub_resource type="Resource" id="Resource_jerhl"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_bavew"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_jerhl")
-
-[sub_resource type="Resource" id="Resource_hfjje"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_dkejo"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_hfjje")
-
-[sub_resource type="Resource" id="Resource_5m3l8"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_hur3f"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_south = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_5m3l8")
-
-[sub_resource type="Resource" id="Resource_nlx4i"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_xty08"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-wall_north = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_nlx4i")
-
-[sub_resource type="Resource" id="Resource_umwuk"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_qwncd"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_umwuk")
-
-[sub_resource type="Resource" id="Resource_5wwxu"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_mf0k7"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_5wwxu")
-
-[sub_resource type="Resource" id="Resource_nrepr"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_rvbmm"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_nrepr")
-
-[sub_resource type="Resource" id="Resource_jc4wg"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_dgxho"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_jc4wg")
-
-[sub_resource type="Resource" id="Resource_84mch"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_mkvsu"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_84mch")
-
-[sub_resource type="Resource" id="Resource_l7q7v"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_4d8yi"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_l7q7v")
-
-[sub_resource type="Resource" id="Resource_0eo7y"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_6n6bb"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_south = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_0eo7y")
-
-[sub_resource type="Resource" id="Resource_nir2y"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_wyc75"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_east = &"uid://qe6vkc1vpl6x"
-wall_north = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_nir2y")
-
-[sub_resource type="Resource" id="Resource_6hf37"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_2dnx1"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_east = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_6hf37")
-
-[sub_resource type="Resource" id="Resource_anmbg"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_wl60p"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_east = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_anmbg")
-
-[sub_resource type="Resource" id="Resource_1c4rk"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_h17ip"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_east = &"uid://qe6vkc1vpl6x"
-wall_south = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_1c4rk")
-
-[sub_resource type="Resource" id="Resource_26asg"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_dnl4u"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-wall_north = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_26asg")
-
-[sub_resource type="Resource" id="Resource_ge1fd"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_lag5s"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_ge1fd")
-
-[sub_resource type="Resource" id="Resource_rtb5w"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_g271d"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_rtb5w")
-
-[sub_resource type="Resource" id="Resource_t5dw1"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_5hqnv"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_t5dw1")
-
-[sub_resource type="Resource" id="Resource_ijsl6"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_n4k2k"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_ijsl6")
-
-[sub_resource type="Resource" id="Resource_jlxi8"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_nux3x"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_jlxi8")
-
-[sub_resource type="Resource" id="Resource_4amin"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_fcm2e"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_4amin")
-
-[sub_resource type="Resource" id="Resource_c17yo"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_oxlnc"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_c17yo")
-
-[sub_resource type="Resource" id="Resource_6u8fb"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_ly365"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_west = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_6u8fb")
-
-[sub_resource type="Resource" id="Resource_1sww1"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_umiry"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_west = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_1sww1")
-
-[sub_resource type="Resource" id="Resource_bmasl"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_xqe68"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_west = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_bmasl")
-
-[sub_resource type="Resource" id="Resource_fy64n"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_1xbql"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-wall_west = &"uid://qe6vkc1vpl6x"
-dirty = false
-code = SubResource("Resource_fy64n")
-
-[sub_resource type="Resource" id="Resource_itbdk"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_hyqtx"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_itbdk")
-
-[sub_resource type="Resource" id="Resource_o7djh"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_gmm8x"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_o7djh")
-
-[sub_resource type="Resource" id="Resource_jvlqi"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_n6co8"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_jvlqi")
-
-[sub_resource type="Resource" id="Resource_j02g5"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_vtreg"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_j02g5")
-
-[sub_resource type="Resource" id="Resource_nrrhc"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_n47v8"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_nrrhc")
-
-[sub_resource type="Resource" id="Resource_vss32"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
 
 [sub_resource type="Resource" id="Resource_rasrj"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_vss32")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_0mtgw"]
-script = ExtResource("7_fucb2")
+[sub_resource type="Resource" id="Resource_t2h15"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_c3cn2"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_0mtgw")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_rjsot"]
-script = ExtResource("7_fucb2")
+[sub_resource type="Resource" id="Resource_c48op"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_s1kra"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_rjsot")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_8clo3"]
-script = ExtResource("7_fucb2")
+[sub_resource type="Resource" id="Resource_l4m48"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_akyfg"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_8clo3")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_xxfg8"]
-script = ExtResource("7_fucb2")
+[sub_resource type="Resource" id="Resource_4w0ke"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_n1fmk"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_xxfg8")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_y4fvq"]
-script = ExtResource("7_fucb2")
+[sub_resource type="Resource" id="Resource_u8yht"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_2c8gn"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_y4fvq")
-
-[sub_resource type="Resource" id="Resource_lim3o"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_7im66"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_lim3o")
-
-[sub_resource type="Resource" id="Resource_ilalk"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_wct6a"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_ilalk")
 
-[sub_resource type="Resource" id="Resource_haovc"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_83hbe"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_oc8cb"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_haovc")
 
 [sub_resource type="Resource" id="Resource_g8htv"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_3h8bx"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_g8htv")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_d72vx"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_ij60b"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_ty6r2"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_ij60b")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_yrjoi"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_p65yu"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_pvrdv"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_p65yu")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_lbwck"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_xctfx"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_8o0oj"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_xctfx")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_tq4oq"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_o4g5a"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_a6qp1"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_o4g5a")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_otidq"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_kqxkr"]
-script = ExtResource("7_fucb2")
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_1pa1w"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_3h8bx"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_2qts0"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_ty6r2"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_q763c"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_pvrdv"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_ypgfx"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_8o0oj"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_x662n"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_a6qp1"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_yv2pf"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_4vlbf"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_kqxkr")
-
-[sub_resource type="Resource" id="Resource_qor2v"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_xpmpp"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_qor2v")
-
-[sub_resource type="Resource" id="Resource_s4kaj"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_7wfhm"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_s4kaj")
 
-[sub_resource type="Resource" id="Resource_dixkd"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_13wjq"]
-script = ExtResource("6_u6t3p")
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_dixkd")
-
-[sub_resource type="Resource" id="Resource_knqen"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_dpwr8"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_pc7rr"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_knqen")
 
 [sub_resource type="Resource" id="Resource_s5r2j"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_1sjgv"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_s5r2j")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_rkh16"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_sdtva"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_mp5nc"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_sdtva")
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_dvwht"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_1djlj"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_y01v8"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_1djlj")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_reqap"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_63phs"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_q0iii"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_63phs")
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_5cydg"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
+wall_west = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_6yrfa"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_h6x3a"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_6yrfa")
+floor_dir = Vector2i(1, 0)
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_ohhy6"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_akqol"]
-script = ExtResource("7_fucb2")
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_y1nea"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_1sjgv"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_77sxq"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_mp5nc"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_m7yi4"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_y01v8"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_eps3j"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_q0iii"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_8labt"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_h6x3a"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_bj0ul"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_b6u3t"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_akqol")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_lhqc2"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_dr4hl"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_5l22i"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_lhqc2")
-
-[sub_resource type="Resource" id="Resource_81llc"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_cfop6"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_81llc")
-
-[sub_resource type="Resource" id="Resource_4bkto"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_tsr4g"]
-script = ExtResource("6_u6t3p")
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_4bkto")
-
-[sub_resource type="Resource" id="Resource_tlh2b"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_rof2s"]
-script = ExtResource("6_u6t3p")
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_tlh2b")
-
-[sub_resource type="Resource" id="Resource_4xd88"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_j3ntf"]
-script = ExtResource("6_u6t3p")
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_4xd88")
-
-[sub_resource type="Resource" id="Resource_ongc5"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_b5pom"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_ongc5")
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_22nf0"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_0i42j"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_22nf0")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_x6wqd"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_3dxq2"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_l7r6j"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_3dxq2")
+floor_dir = Vector2i(1, 0)
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_5pj0p"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_7spmp"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_1bocf"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_7spmp")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_sqway"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_y3657"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_ue0hh"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_y3657")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_jerhl"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_5q5t6"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_2vcw2"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_5q5t6")
+floor_dir = Vector2i(1, 0)
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_hfjje"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_w87kn"]
-script = ExtResource("7_fucb2")
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_d5l5x"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_0i42j"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_2b3lv"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_l7r6j"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_10c5s"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_1bocf"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_aom88"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_ue0hh"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_bavew"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_2vcw2"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_dkejo"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_jmpui"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_w87kn")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_1n4hd"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_6o6ti"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_84mch"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_1n4hd")
-
-[sub_resource type="Resource" id="Resource_30or8"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_2sp5e"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_30or8")
-
-[sub_resource type="Resource" id="Resource_1nra1"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_aco70"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_1nra1")
-
-[sub_resource type="Resource" id="Resource_mu5yc"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_rorhd"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_mu5yc")
-
-[sub_resource type="Resource" id="Resource_cnyaj"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_gy0x0"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_cnyaj")
-
-[sub_resource type="Resource" id="Resource_s71x7"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_k56d4"]
-script = ExtResource("6_u6t3p")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_s71x7")
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_28bxx"]
-script = ExtResource("7_fucb2")
-dir = Dictionary[Vector2i, int]({
-Vector2i(-1, 0): 0,
-Vector2i(0, -1): 5,
-Vector2i(0, 1): 0,
-Vector2i(1, 0): 0
-})
-
-[sub_resource type="Resource" id="Resource_ce36p"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_28bxx")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_l7q7v"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_qcwnx"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_qpg3g"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_qcwnx")
+floor_dir = Vector2i(1, 0)
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_0eo7y"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_gtooo"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_slkfl"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_gtooo")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_nir2y"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_37wsi"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_v1vv7"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_37wsi")
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_6hf37"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_6n68g"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_qju6l"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_6n68g")
+floor_dir = Vector2i(1, 0)
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_anmbg"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_32uy2"]
-script = ExtResource("7_fucb2")
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_mkvsu"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_ce36p"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_4d8yi"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_south = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_qpg3g"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_6n6bb"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_slkfl"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_wyc75"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_v1vv7"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_2dnx1"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
+wall_south = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_qju6l"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_wl60p"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [sub_resource type="Resource" id="Resource_73nm8"]
-script = ExtResource("6_u6t3p")
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_32uy2")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_k1c5h"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_wr214"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_jlxi8"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_k1c5h")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_y08mq"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_lua4b"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_nwvs3"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_y08mq")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_u6ls4"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_xmyr3"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_4amin"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_u6ls4")
+floor_dir = Vector2i(1, 0)
 
-[sub_resource type="Resource" id="Resource_cooha"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_f2x0e"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_e8jtp"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_cooha")
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
 
-[sub_resource type="Resource" id="Resource_ssckl"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_2827g"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_c17yo"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_ssckl")
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
 
-[sub_resource type="Resource" id="Resource_pro7t"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_fh2u8"]
-script = ExtResource("6_u6t3p")
+[sub_resource type="Resource" id="Resource_ivt64"]
+script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, -1)
-dirty = false
-code = SubResource("Resource_pro7t")
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_6u8fb"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_0x6fp"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_1sww1"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+wall_west = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_u3eul"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_bmasl"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_cvxjl"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_nux3x"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_pfgrx"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_fcm2e"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_vexuo"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_oxlnc"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_xm6ru"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_ly365"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_cdcgl"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_umiry"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_e4blb"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_xqe68"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_6axiy"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_vss32"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_75nqk"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_0mtgw"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_4yaw1"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_rjsot"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_eeocv"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_8clo3"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_sg80u"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_xxfg8"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_ejme0"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_y4fvq"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_asr7p"]
+script = ExtResource("7_ns6gl")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
 
 [node name="Sandbox" type="Node3D" unique_id=1385118867]
 script = SubResource("GDScript_vrv26")
@@ -1741,154 +1120,167 @@ bus = &"BG_Music"
 stream = ExtResource("9_ns6gl")
 bus = &"BG_Music"
 
-[node name="TacNav" type="Node3D" parent="." unique_id=129486733]
-script = ExtResource("4_u6t3p")
+[node name="SuperFloor" type="Sprite3D" parent="." unique_id=1251910323]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 3.9479055, -0.07059765, -6.245449)
+pixel_size = 0.025
+texture = SubResource("ViewportTexture_ukipb")
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1635056781]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="SubViewport" unique_id=2069255094]
+tile_map_data = PackedByteArray("AAD+/wEAAQABAAEAAAD//wEAAQAAAAAAAAAAAAEAAQABAAEAAAAAAAIAAQAAAAAAAAABAAIAAQAAAAAAAAACAAIAAQAAAAAAAAAFAAMAAQABAAEAAAABAP7/AQABAAEAAAAEAAIAAQAAAAAAAAAIAAMAAQABAAEAAAAJAAQAAQABAAEAAAAKAAQAAQABAAEAAAAKAAUAAQABAAEAAAALAAUAAQABAAEAAAALAAYAAQABAAEAAAAMAAYAAQABAAEAAAANAAcAAQABAAEAAAAAAP3/AQAAAAAAAAAAAP7/AQAAAAAAAAD///7/AQAAAAAAAAD/////AQAAAAAAAAD//wAAAQAAAAAAAAD//wIAAQAAAAAAAAD//wMAAQAAAAAAAAAAAAMAAQAAAAAAAAABAAEAAQAAAAAAAAACAAAAAQAAAAAAAAADAP//AQAAAAAAAAAEAP7/AQAAAAAAAAADAP7/AQAAAAAAAAACAP//AQAAAAAAAAABAAMAAQAAAAAAAAACAAMAAQAAAAAAAAADAAIAAQAAAAAAAAAFAAEAAQAAAAAAAAAGAAEAAQAAAAAAAAAGAAAAAQAAAAAAAAAHAAAAAQAAAAAAAAAFAAAAAQAAAAAAAAAEAAEAAQAAAAAAAAADAAEAAQAAAAAAAAD//wQAAQAAAAAAAAD//wUAAQAAAAAAAAD//wYAAQAAAAAAAAAAAAYAAQAAAAAAAAABAAYAAQAAAAAAAAACAAYAAQAAAAAAAAADAAYAAQAAAAAAAAAEAAUAAQAAAAAAAAAFAAUAAQAAAAAAAAAFAAQAAQAAAAAAAAAGAAMAAQAAAAAAAAAGAAIAAQAAAAAAAAA=")
+tile_set = SubResource("TileSet_ns6gl")
+
+[node name="TacNav" type="Node3D" parent="." unique_id=1089496864]
+script = ExtResource("5_fucb2")
 metadata/_custom_type_script = "uid://b624fpjrvtg43"
 
-[node name="TacMap" type="Area3D" parent="TacNav" unique_id=1434590731]
-script = ExtResource("5_fucb2")
-tiles = Dictionary[Vector2i, ExtResource("6_u6t3p")]({
-Vector2i(0, 0): SubResource("Resource_ukipb"),
-Vector2i(0, 1): SubResource("Resource_pfgrx"),
-Vector2i(0, 2): SubResource("Resource_vexuo"),
-Vector2i(0, 3): SubResource("Resource_xm6ru"),
-Vector2i(0, 4): SubResource("Resource_cdcgl"),
-Vector2i(0, 5): SubResource("Resource_e4blb"),
-Vector2i(0, 6): SubResource("Resource_6axiy"),
-Vector2i(0, 7): SubResource("Resource_rfxnf"),
-Vector2i(0, 8): SubResource("Resource_fwmst"),
-Vector2i(0, 9): SubResource("Resource_2tudy"),
-Vector2i(0, 10): SubResource("Resource_gdgwu"),
-Vector2i(0, 11): SubResource("Resource_om7ci"),
-Vector2i(1, 0): SubResource("Resource_cgmw2"),
-Vector2i(1, 1): SubResource("Resource_t2h15"),
-Vector2i(1, 2): SubResource("Resource_c48op"),
-Vector2i(1, 3): SubResource("Resource_l4m48"),
-Vector2i(1, 4): SubResource("Resource_4w0ke"),
-Vector2i(1, 5): SubResource("Resource_u8yht"),
-Vector2i(1, 6): SubResource("Resource_t867u"),
-Vector2i(1, 7): SubResource("Resource_suu6c"),
-Vector2i(1, 8): SubResource("Resource_544g7"),
-Vector2i(1, 9): SubResource("Resource_p88c1"),
-Vector2i(1, 10): SubResource("Resource_n1joh"),
-Vector2i(1, 11): SubResource("Resource_0ami7"),
+[node name="TacMap" type="Area3D" parent="TacNav" unique_id=1184229908]
+script = ExtResource("6_ukipb")
+tiles = Dictionary[Vector2i, ExtResource("7_ns6gl")]({
+Vector2i(0, 0): SubResource("Resource_cgmw2"),
+Vector2i(0, 1): SubResource("Resource_rasrj"),
+Vector2i(0, 2): SubResource("Resource_t2h15"),
+Vector2i(0, 3): SubResource("Resource_c3cn2"),
+Vector2i(0, 4): SubResource("Resource_c48op"),
+Vector2i(0, 5): SubResource("Resource_s1kra"),
+Vector2i(0, 6): SubResource("Resource_l4m48"),
+Vector2i(0, 7): SubResource("Resource_akyfg"),
+Vector2i(0, 8): SubResource("Resource_4w0ke"),
+Vector2i(0, 9): SubResource("Resource_n1fmk"),
+Vector2i(0, 10): SubResource("Resource_u8yht"),
+Vector2i(0, 11): SubResource("Resource_2c8gn"),
+Vector2i(1, 0): SubResource("Resource_oc8cb"),
+Vector2i(1, 1): SubResource("Resource_g8htv"),
+Vector2i(1, 2): SubResource("Resource_d72vx"),
+Vector2i(1, 3): SubResource("Resource_ij60b"),
+Vector2i(1, 4): SubResource("Resource_yrjoi"),
+Vector2i(1, 5): SubResource("Resource_p65yu"),
+Vector2i(1, 6): SubResource("Resource_lbwck"),
+Vector2i(1, 7): SubResource("Resource_xctfx"),
+Vector2i(1, 8): SubResource("Resource_tq4oq"),
+Vector2i(1, 9): SubResource("Resource_o4g5a"),
+Vector2i(1, 10): SubResource("Resource_otidq"),
+Vector2i(1, 11): SubResource("Resource_kqxkr"),
 Vector2i(2, 0): SubResource("Resource_1pa1w"),
-Vector2i(2, 1): SubResource("Resource_2qts0"),
-Vector2i(2, 2): SubResource("Resource_q763c"),
-Vector2i(2, 3): SubResource("Resource_ypgfx"),
-Vector2i(2, 4): SubResource("Resource_x662n"),
-Vector2i(2, 5): SubResource("Resource_yv2pf"),
-Vector2i(2, 6): SubResource("Resource_id4bs"),
-Vector2i(2, 7): SubResource("Resource_urrh7"),
-Vector2i(2, 8): SubResource("Resource_rh35x"),
-Vector2i(2, 9): SubResource("Resource_77yum"),
-Vector2i(2, 10): SubResource("Resource_uxqmx"),
-Vector2i(2, 11): SubResource("Resource_dr160"),
-Vector2i(3, 0): SubResource("Resource_y1nea"),
-Vector2i(3, 1): SubResource("Resource_77sxq"),
-Vector2i(3, 2): SubResource("Resource_m7yi4"),
-Vector2i(3, 3): SubResource("Resource_eps3j"),
-Vector2i(3, 4): SubResource("Resource_8labt"),
-Vector2i(3, 5): SubResource("Resource_bj0ul"),
-Vector2i(3, 6): SubResource("Resource_04o8x"),
-Vector2i(3, 7): SubResource("Resource_7jrgv"),
-Vector2i(3, 8): SubResource("Resource_bqpn6"),
-Vector2i(3, 9): SubResource("Resource_i31k0"),
-Vector2i(3, 10): SubResource("Resource_15xyu"),
-Vector2i(3, 11): SubResource("Resource_woucp"),
-Vector2i(4, 0): SubResource("Resource_d5l5x"),
-Vector2i(4, 1): SubResource("Resource_2b3lv"),
-Vector2i(4, 2): SubResource("Resource_10c5s"),
-Vector2i(4, 3): SubResource("Resource_aom88"),
-Vector2i(4, 4): SubResource("Resource_bavew"),
-Vector2i(4, 5): SubResource("Resource_dkejo"),
-Vector2i(4, 6): SubResource("Resource_hur3f"),
-Vector2i(4, 7): SubResource("Resource_xty08"),
-Vector2i(4, 8): SubResource("Resource_qwncd"),
-Vector2i(4, 9): SubResource("Resource_mf0k7"),
-Vector2i(4, 10): SubResource("Resource_rvbmm"),
-Vector2i(4, 11): SubResource("Resource_dgxho"),
-Vector2i(5, 0): SubResource("Resource_mkvsu"),
-Vector2i(5, 1): SubResource("Resource_4d8yi"),
-Vector2i(5, 2): SubResource("Resource_6n6bb"),
-Vector2i(5, 3): SubResource("Resource_wyc75"),
-Vector2i(5, 4): SubResource("Resource_2dnx1"),
-Vector2i(5, 5): SubResource("Resource_wl60p"),
-Vector2i(5, 6): SubResource("Resource_h17ip"),
-Vector2i(5, 7): SubResource("Resource_dnl4u"),
-Vector2i(5, 8): SubResource("Resource_lag5s"),
-Vector2i(5, 9): SubResource("Resource_g271d"),
-Vector2i(5, 10): SubResource("Resource_5hqnv"),
-Vector2i(5, 11): SubResource("Resource_n4k2k"),
-Vector2i(6, 0): SubResource("Resource_nux3x"),
-Vector2i(6, 1): SubResource("Resource_fcm2e"),
-Vector2i(6, 2): SubResource("Resource_oxlnc"),
-Vector2i(6, 3): SubResource("Resource_ly365"),
-Vector2i(6, 4): SubResource("Resource_umiry"),
-Vector2i(6, 5): SubResource("Resource_xqe68"),
-Vector2i(6, 6): SubResource("Resource_1xbql"),
-Vector2i(6, 7): SubResource("Resource_hyqtx"),
-Vector2i(6, 8): SubResource("Resource_gmm8x"),
-Vector2i(6, 9): SubResource("Resource_n6co8"),
-Vector2i(6, 10): SubResource("Resource_vtreg"),
-Vector2i(6, 11): SubResource("Resource_n47v8"),
-Vector2i(7, 0): SubResource("Resource_rasrj"),
-Vector2i(7, 1): SubResource("Resource_c3cn2"),
-Vector2i(7, 2): SubResource("Resource_s1kra"),
-Vector2i(7, 3): SubResource("Resource_akyfg"),
-Vector2i(7, 4): SubResource("Resource_n1fmk"),
-Vector2i(7, 5): SubResource("Resource_2c8gn"),
-Vector2i(7, 6): SubResource("Resource_7im66"),
-Vector2i(7, 7): SubResource("Resource_wct6a"),
-Vector2i(7, 11): SubResource("Resource_83hbe"),
-Vector2i(8, 0): SubResource("Resource_3h8bx"),
-Vector2i(8, 1): SubResource("Resource_ty6r2"),
-Vector2i(8, 2): SubResource("Resource_pvrdv"),
-Vector2i(8, 3): SubResource("Resource_8o0oj"),
-Vector2i(8, 4): SubResource("Resource_a6qp1"),
-Vector2i(8, 5): SubResource("Resource_4vlbf"),
-Vector2i(8, 6): SubResource("Resource_xpmpp"),
-Vector2i(8, 7): SubResource("Resource_7wfhm"),
-Vector2i(8, 10): SubResource("Resource_13wjq"),
-Vector2i(8, 11): SubResource("Resource_dpwr8"),
-Vector2i(9, 0): SubResource("Resource_1sjgv"),
-Vector2i(9, 1): SubResource("Resource_mp5nc"),
-Vector2i(9, 2): SubResource("Resource_y01v8"),
-Vector2i(9, 3): SubResource("Resource_q0iii"),
-Vector2i(9, 4): SubResource("Resource_h6x3a"),
-Vector2i(9, 5): SubResource("Resource_b6u3t"),
-Vector2i(9, 6): SubResource("Resource_dr4hl"),
-Vector2i(9, 7): SubResource("Resource_cfop6"),
-Vector2i(9, 8): SubResource("Resource_tsr4g"),
-Vector2i(9, 9): SubResource("Resource_rof2s"),
-Vector2i(9, 10): SubResource("Resource_j3ntf"),
-Vector2i(9, 11): SubResource("Resource_b5pom"),
-Vector2i(10, 0): SubResource("Resource_0i42j"),
-Vector2i(10, 1): SubResource("Resource_l7r6j"),
-Vector2i(10, 2): SubResource("Resource_1bocf"),
-Vector2i(10, 3): SubResource("Resource_ue0hh"),
-Vector2i(10, 4): SubResource("Resource_2vcw2"),
-Vector2i(10, 5): SubResource("Resource_jmpui"),
-Vector2i(10, 6): SubResource("Resource_6o6ti"),
-Vector2i(10, 7): SubResource("Resource_2sp5e"),
-Vector2i(10, 8): SubResource("Resource_aco70"),
-Vector2i(10, 9): SubResource("Resource_rorhd"),
-Vector2i(10, 10): SubResource("Resource_gy0x0"),
-Vector2i(10, 11): SubResource("Resource_k56d4"),
-Vector2i(11, 0): SubResource("Resource_ce36p"),
-Vector2i(11, 1): SubResource("Resource_qpg3g"),
-Vector2i(11, 2): SubResource("Resource_slkfl"),
-Vector2i(11, 3): SubResource("Resource_v1vv7"),
-Vector2i(11, 4): SubResource("Resource_qju6l"),
-Vector2i(11, 5): SubResource("Resource_73nm8"),
-Vector2i(11, 6): SubResource("Resource_wr214"),
-Vector2i(11, 7): SubResource("Resource_lua4b"),
-Vector2i(11, 8): SubResource("Resource_xmyr3"),
-Vector2i(11, 9): SubResource("Resource_f2x0e"),
-Vector2i(11, 10): SubResource("Resource_2827g"),
-Vector2i(11, 11): SubResource("Resource_fh2u8")
+Vector2i(2, 1): SubResource("Resource_3h8bx"),
+Vector2i(2, 2): SubResource("Resource_2qts0"),
+Vector2i(2, 3): SubResource("Resource_ty6r2"),
+Vector2i(2, 4): SubResource("Resource_q763c"),
+Vector2i(2, 5): SubResource("Resource_pvrdv"),
+Vector2i(2, 6): SubResource("Resource_ypgfx"),
+Vector2i(2, 7): SubResource("Resource_8o0oj"),
+Vector2i(2, 8): SubResource("Resource_x662n"),
+Vector2i(2, 9): SubResource("Resource_a6qp1"),
+Vector2i(2, 10): SubResource("Resource_yv2pf"),
+Vector2i(2, 11): SubResource("Resource_4vlbf"),
+Vector2i(3, 0): SubResource("Resource_pc7rr"),
+Vector2i(3, 1): SubResource("Resource_s5r2j"),
+Vector2i(3, 2): SubResource("Resource_rkh16"),
+Vector2i(3, 3): SubResource("Resource_sdtva"),
+Vector2i(3, 4): SubResource("Resource_dvwht"),
+Vector2i(3, 5): SubResource("Resource_1djlj"),
+Vector2i(3, 6): SubResource("Resource_reqap"),
+Vector2i(3, 7): SubResource("Resource_63phs"),
+Vector2i(3, 8): SubResource("Resource_5cydg"),
+Vector2i(3, 9): SubResource("Resource_6yrfa"),
+Vector2i(3, 10): SubResource("Resource_ohhy6"),
+Vector2i(3, 11): SubResource("Resource_akqol"),
+Vector2i(4, 0): SubResource("Resource_y1nea"),
+Vector2i(4, 1): SubResource("Resource_1sjgv"),
+Vector2i(4, 2): SubResource("Resource_77sxq"),
+Vector2i(4, 3): SubResource("Resource_mp5nc"),
+Vector2i(4, 4): SubResource("Resource_m7yi4"),
+Vector2i(4, 5): SubResource("Resource_y01v8"),
+Vector2i(4, 6): SubResource("Resource_eps3j"),
+Vector2i(4, 7): SubResource("Resource_q0iii"),
+Vector2i(4, 8): SubResource("Resource_8labt"),
+Vector2i(4, 9): SubResource("Resource_h6x3a"),
+Vector2i(4, 10): SubResource("Resource_bj0ul"),
+Vector2i(4, 11): SubResource("Resource_b6u3t"),
+Vector2i(5, 0): SubResource("Resource_5l22i"),
+Vector2i(5, 1): SubResource("Resource_22nf0"),
+Vector2i(5, 2): SubResource("Resource_x6wqd"),
+Vector2i(5, 3): SubResource("Resource_3dxq2"),
+Vector2i(5, 4): SubResource("Resource_5pj0p"),
+Vector2i(5, 5): SubResource("Resource_7spmp"),
+Vector2i(5, 6): SubResource("Resource_sqway"),
+Vector2i(5, 7): SubResource("Resource_y3657"),
+Vector2i(5, 8): SubResource("Resource_jerhl"),
+Vector2i(5, 9): SubResource("Resource_5q5t6"),
+Vector2i(5, 10): SubResource("Resource_hfjje"),
+Vector2i(5, 11): SubResource("Resource_w87kn"),
+Vector2i(6, 0): SubResource("Resource_d5l5x"),
+Vector2i(6, 1): SubResource("Resource_0i42j"),
+Vector2i(6, 2): SubResource("Resource_2b3lv"),
+Vector2i(6, 3): SubResource("Resource_l7r6j"),
+Vector2i(6, 4): SubResource("Resource_10c5s"),
+Vector2i(6, 5): SubResource("Resource_1bocf"),
+Vector2i(6, 6): SubResource("Resource_aom88"),
+Vector2i(6, 7): SubResource("Resource_ue0hh"),
+Vector2i(6, 8): SubResource("Resource_bavew"),
+Vector2i(6, 9): SubResource("Resource_2vcw2"),
+Vector2i(6, 10): SubResource("Resource_dkejo"),
+Vector2i(6, 11): SubResource("Resource_jmpui"),
+Vector2i(7, 0): SubResource("Resource_84mch"),
+Vector2i(7, 1): SubResource("Resource_28bxx"),
+Vector2i(7, 2): SubResource("Resource_l7q7v"),
+Vector2i(7, 3): SubResource("Resource_qcwnx"),
+Vector2i(7, 4): SubResource("Resource_0eo7y"),
+Vector2i(7, 5): SubResource("Resource_gtooo"),
+Vector2i(7, 6): SubResource("Resource_nir2y"),
+Vector2i(7, 7): SubResource("Resource_37wsi"),
+Vector2i(7, 8): SubResource("Resource_6hf37"),
+Vector2i(7, 9): SubResource("Resource_6n68g"),
+Vector2i(7, 10): SubResource("Resource_anmbg"),
+Vector2i(7, 11): SubResource("Resource_32uy2"),
+Vector2i(8, 0): SubResource("Resource_mkvsu"),
+Vector2i(8, 1): SubResource("Resource_ce36p"),
+Vector2i(8, 2): SubResource("Resource_4d8yi"),
+Vector2i(8, 3): SubResource("Resource_qpg3g"),
+Vector2i(8, 4): SubResource("Resource_6n6bb"),
+Vector2i(8, 5): SubResource("Resource_slkfl"),
+Vector2i(8, 6): SubResource("Resource_wyc75"),
+Vector2i(8, 7): SubResource("Resource_v1vv7"),
+Vector2i(8, 8): SubResource("Resource_2dnx1"),
+Vector2i(8, 9): SubResource("Resource_qju6l"),
+Vector2i(8, 10): SubResource("Resource_wl60p"),
+Vector2i(8, 11): SubResource("Resource_73nm8"),
+Vector2i(9, 0): SubResource("Resource_jlxi8"),
+Vector2i(9, 1): SubResource("Resource_nwvs3"),
+Vector2i(9, 2): SubResource("Resource_4amin"),
+Vector2i(9, 3): SubResource("Resource_e8jtp"),
+Vector2i(9, 4): SubResource("Resource_c17yo"),
+Vector2i(9, 5): SubResource("Resource_ivt64"),
+Vector2i(9, 6): SubResource("Resource_6u8fb"),
+Vector2i(9, 7): SubResource("Resource_0x6fp"),
+Vector2i(9, 8): SubResource("Resource_1sww1"),
+Vector2i(9, 9): SubResource("Resource_u3eul"),
+Vector2i(9, 10): SubResource("Resource_bmasl"),
+Vector2i(9, 11): SubResource("Resource_cvxjl"),
+Vector2i(10, 0): SubResource("Resource_nux3x"),
+Vector2i(10, 1): SubResource("Resource_pfgrx"),
+Vector2i(10, 2): SubResource("Resource_fcm2e"),
+Vector2i(10, 3): SubResource("Resource_vexuo"),
+Vector2i(10, 4): SubResource("Resource_oxlnc"),
+Vector2i(10, 5): SubResource("Resource_xm6ru"),
+Vector2i(10, 6): SubResource("Resource_ly365"),
+Vector2i(10, 7): SubResource("Resource_cdcgl"),
+Vector2i(10, 8): SubResource("Resource_umiry"),
+Vector2i(10, 9): SubResource("Resource_e4blb"),
+Vector2i(10, 10): SubResource("Resource_xqe68"),
+Vector2i(10, 11): SubResource("Resource_6axiy"),
+Vector2i(11, 0): SubResource("Resource_vss32"),
+Vector2i(11, 1): SubResource("Resource_75nqk"),
+Vector2i(11, 2): SubResource("Resource_0mtgw"),
+Vector2i(11, 3): SubResource("Resource_4yaw1"),
+Vector2i(11, 4): SubResource("Resource_rjsot"),
+Vector2i(11, 5): SubResource("Resource_eeocv"),
+Vector2i(11, 6): SubResource("Resource_8clo3"),
+Vector2i(11, 7): SubResource("Resource_sg80u"),
+Vector2i(11, 8): SubResource("Resource_xxfg8"),
+Vector2i(11, 9): SubResource("Resource_ejme0"),
+Vector2i(11, 10): SubResource("Resource_y4fvq"),
+Vector2i(11, 11): SubResource("Resource_asr7p")
 })
 metadata/_custom_type_script = "uid://h31ri5gda1bq"
-
-[node name="SimpleCharacter" parent="TacNav" unique_id=345150261 instance=ExtResource("8_ns6gl")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4998848, 0.06509304, 2.4841352)

@@ -266,7 +266,7 @@ func on_cam_view_draw(canvas:Control, cam:Camera3D) -> void:
 		var dir = Tac.Dir_Vect.values()
 		for coordi : Vector3i in curr_nav.navproxy:
 			var coord : Vector3 = curr_nav.nav3spatial(coordi, true)
-			var code : TransCodes = curr_nav.navproxy[coordi]
+			var code := curr_nav.navproxy[coordi]
 			var corner = [Vector3(0.4, 0, -0.4), Vector3(0.4, 0, 0.4), Vector3(-0.4, 0, 0.4), Vector3(-0.4, 0, -0.4)]
 			for i in range(4):
 				# Drawing the edges of tiles.
@@ -275,7 +275,7 @@ func on_cam_view_draw(canvas:Control, cam:Camera3D) -> void:
 				if cam.is_position_in_frustum(v1) and cam.is_position_in_frustum(v2):
 					var from = cam.unproject_position(v1)
 					var to = cam.unproject_position(v2)
-					nav_overlay[code.get_code(i)].append_array([from, to])
+					nav_overlay[code[i]].append_array([from, to])
 		for i in range(Tac.Trans.size()):
 			if not nav_overlay[i].is_empty():
 				canvas.draw_multiline(nav_overlay[i], Tac.TColor[i], 8)
@@ -408,10 +408,8 @@ func _on_offset_map(direction:Vector2i):
 	var new_tiles : Dictionary[Vector2i, TacTile]
 	for coord in curr_map.tiles:
 		var new_coord = coord + direction
-		if not curr_map.queue_place.has(coord):
-			curr_map.queue_place.append(coord)
-		if not curr_map.queue_place.has(new_coord):
-			curr_map.queue_place.append(new_coord)
+		curr_map.queue_place(coord)
+		curr_map.queue_place(new_coord)
 		new_tiles[new_coord] = curr_map.tiles[coord]
 	curr_map.tiles = new_tiles
 
@@ -432,12 +430,12 @@ func rem_tile_asset(coord:Vector2i, side:=Vector2i.ZERO):
 	var fam = pallet.get_mode()
 	match fam:
 		"floor":
-			curr_map.queue_place.append(coord)
+			curr_map.queue_place(coord)
 			tile.floor = ""
 			tile.has_floor = false
 			tile.is_ceiling = false
 		"tall", "half", "crawl":
-			curr_map.queue_place.append(coord)
+			curr_map.queue_place(coord)
 			const sides = {
 			Vector2i.RIGHT : "wall_east",
 			Vector2i.DOWN : "wall_south",

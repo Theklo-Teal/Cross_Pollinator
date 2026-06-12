@@ -25,11 +25,11 @@ enum Trans{  ## Tile transisition types
 }
 const TColor = {  ## Colors of Trans for the navigation overlay.
 	Tac.Trans.PASS : Color(0.87058824, 0.72156864, 0.5294118, 0.3),
-	Tac.Trans.CRAWL : Color.GOLDENROD,
-	Tac.Trans.HALF : Color.CORAL,
-	Tac.Trans.TALL : Color.RED,
-	Tac.Trans.AERIAL : Color.ROYAL_BLUE,
-	Tac.Trans.NONE : Color.BLACK
+	Tac.Trans.CRAWL : Color(0.85490197, 0.64705884, 0.1254902, 0.3),
+	Tac.Trans.HALF : Color(1, 0.49803922, 0.3137255, 0.3),
+	Tac.Trans.TALL : Color(1, 0, 0, 0.3),
+	Tac.Trans.AERIAL : Color(0.25490198, 0.4117647, 0.88235295, 0.3),
+	Tac.Trans.NONE : Color(0, 0, 0, 0.3)
 	}
 
 enum Hazard{

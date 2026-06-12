@@ -4,9 +4,7 @@ class_name TacNav
 
 ## A node that handles the navigation of multiple TacMaps and places characters where spawners are marked.
 
-signal navproxy_changed(tile_coord : Array[Vector3i])
-signal zone_entered(zone:StringName, chara:TacCharacter)  ## The character entered a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
-signal zone_exited(zone:StringName, chara:TacCharacter)  ## The character exited a zone. Multiple zones are possible for each tile, so you may get multiple signals from this.
+signal navsession_changed(tile_coord : Array[Vector3i], tile:TacTile)
 
 #NOTE This node only produces navigation graphs when first ready on an executed project. 
 # Otherwise it uses «navproxy» which is easily modified. Modifications to children 
@@ -61,6 +59,13 @@ func _map_removed(map:TacMap, layer_change:bool=false, layer_before:int=0):
 func _map_layer_changed(map:TacMap, before:int):
 	_map_removed(map, true, before)
 	_map_added(map)
+
+## Given a navigation tile coordinate and layer, which map is there? Return null if nothing is found.
+func get_map_at(coord:Vector2i, layer:int) -> TacMap:
+	for map : TacMap in maps[layer]:
+		if map.nav_area.has_point(coord):
+			return map
+	return null
 
 ## Given a navigation tile coordinate, which maps are there? They will be sorted by layer.
 func get_maps_at(coord:Vector2i) -> Array[TacMap]:
@@ -149,8 +154,7 @@ func locate_entity(entity:TacEntity) -> Dictionary:
 		"nav_coord": coord,
 		}
 
-## Allows to tell which zones a character entered or exited while moving between two tiles
-## And triggers signals and functions about that.
+## Allows to tell which zones a character entered or exited while moving between two tiles.
 func check_zone(actor:TacEntity, ini:Vector3i, end:Vector3i) -> Dictionary:
 	var ans : Dictionary = {"entered":[], "exited":[]}
 	var checked : Dictionary[StringName, bool]  # bool indicates the zone is unique to ini.
@@ -160,7 +164,7 @@ func check_zone(actor:TacEntity, ini:Vector3i, end:Vector3i) -> Dictionary:
 		if checked.get(zone, false):  # Is a zone in end already checked?
 			checked.erase(zone)  # Remove from checked, leaving only uniques to ini
 		else:
-			ans.entered.append(zone)  # Not found in ini, so is unique to end
+			ans.entered.append(zone, actor)  # Not found in ini, so is unique to end
 	ans.exited = checked.keys()  # Only the uniques to ini are left.
 	return ans
 
@@ -184,7 +188,7 @@ func place_tile_sprite(texture:Texture2D, coord:Vector2i, map:TacMap=null) -> Sp
 ## Change connections of a cell in the one of the provided navigation graph dictionaries, according to the given transcodes.
 func set_navigation(...stuff):
 	pass
-	
+
 func old_set_navigation(graph:Dictionary, layer:int, cell_id:int, adjacent:Array[int], transcodes:Array[Tac.Trans]):
 	var dir : int = -1
 	for adja in adjacent:
@@ -235,7 +239,7 @@ func unblock_navigation(tile:Vector2i, layer:int):
 var area_outdated : PackedInt32Array  ## The layer where a map changed size or position.
 var nav_outdated : Array[Vector3i]  ## In TacNav relative space. Add coordinates of TacNav cells that had terrain altered.
 var navsession : Dictionary[int, Dictionary]  ## [Map Layer][Tac.Trans] -> AStart2D; A copy of «navgraph» that can be modified during a game session without losing the original for reference of what's default.
-var navproxy : Dictionary[Vector3i, TransCodes]  ## [cell coord] -> obstacle_codes;  Used to produce the navigation overlay. Faster than recreating AStar2D all the time. The coordinate is that of a tile with layer included. The value Dictionary is the return of «TacTile.get_trans_codes()».
+var navproxy : Dictionary[Vector3i, Array]  ## [cell coord] -> obstacle_codes;  Used to produce the navigation overlay. Faster than recreating AStar2D all the time. The coordinate is that of a tile with layer included. The value Dictionary is the return of «TacTile.get_trans_codes()».
 
 func queue_area(layer:int):
 	if not layer in area:
@@ -275,9 +279,11 @@ func _process(_delta: float) -> void:
 		nav_outdated.clear.call_deferred()
 		for coord3i in nav_outdated:
 			var layer = coord3i.y
-			var cell = Vector2i(coord3i.x, coord3i.z)
+			var nav_cell = Vector2i(coord3i.x, coord3i.z)
 			
 			# Change the NavProxy
+			var map = get_map_at(nav_cell, layer)
+			update_codes(nav_cell, layer, map)
 			
 			if not OS.has_feature("editor_hint"):
 				# Change the NavSession
@@ -342,58 +348,45 @@ func _ready() -> void:
 		for tile in chara_tiles:
 			block_navigation(Vector2i(tile.x, tile.z), tile.y)
 
+## Applies the rules for obstacle codes on [code]navproxy[/code].
+func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):
+	var map_cell = nav2map(nav_cell, map)
+	var nav_coord = Vector3i(nav_cell.x, layer, nav_cell.y)
+	navproxy[nav_coord] = map.tiles[map_cell].find_codes()
+
 ## Iterate over [code]area[/code] and [code]TacMap.tiles[/code] to find obstacle/transition codes.
 func build_navproxy(layer:int):
 	for map : TacMap in maps[layer]:
-		for nav_cell in Saliko.cells_of(Vector2i(map.nav_area.position.x, map.nav_area.end.x), Vector2i(map.nav_area.position.y, map.nav_area.end.y)):
-			var coordi = Vector3i(nav_cell.x, layer, nav_cell.y)
-			var map_cell : Vector2i = nav2map(nav_cell, map)
-			var tile : TacTile = map.tiles.get(map_cell)
-			
-			if tile == null:
-				navproxy[coordi] = TacTile.get_empty_codes()
-				continue
-				
-			navproxy[coordi] = tile.code
-			if coordi.x == 0:
-				navproxy[coordi].WEST = Tac.Trans.NONE
-			if coordi.z == 0:
-				navproxy[coordi].NORTH = Tac.Trans.NONE
-			if coordi.x == area[layer].size.x:
-				navproxy[coordi].RIGHT = Tac.Trans.NONE
-			if coordi.z == area[layer].size.y:
-				navproxy[coordi].SOUTH = Tac.Trans.NONE
+		for map_cell in Saliko.cells_of(Vector2i(0, map.size.x), Vector2i(0, map.size.y)):
+			var nav_cell = map2nav(map_cell, map)
+			update_codes(nav_cell, layer, map)
 
 ## Convert data in [code]navproxy[/code] to connections in [code]AStar2D[/code] graphs.
 func build_navgraph():
-	for layer in navgraph:
-		for this_coord in Saliko.cells_of(Vector2i(0, area[layer].size.x), Vector2i(0,area[layer].size.y)):
-			var this_id = Saliko.vec2i_id(this_coord)
-			var this_code : TransCodes = navproxy.get(Vector3i(this_coord.x, layer, this_coord.y))
-			
-			for trans in range(Tac.Trans.size()-1):
-				var nav : AStar2D = navgraph[layer][trans]
-				nav.add_point(this_id, this_coord)
-			
-			for dir in [Vector2i.LEFT, Vector2i.UP]:
-				var that_coord = dir + this_coord
-				if that_coord.x < 0 or that_coord.y < 0:
-					continue
-				var that_id = Saliko.vec2i_id(that_coord)
-				var that_code : TransCodes = navproxy.get(Vector3i(that_coord.x, layer, that_coord.y))
-				if this_code == null or this_code.dir[dir] == Tac.Trans.PASS:
-					for trans in range(Tac.Trans.size()-1):
-						var nav : AStar2D = navgraph[layer][trans]
-						nav.connect_points(this_id, that_id, false)
-				else:
-					navgraph[layer][this_code.dir[dir]].connect_points(this_id, that_id, false)
+	for layer : int in area:
+		for nav_cell in Saliko.cells_of(Vector2i(0, area[layer].size.x), Vector2i(0, area[layer].size.y)):
+			var coord = Vector3i(nav_cell.x, layer, nav_cell.y)
+			var cell_code = navproxy.get(coord, [])
+			if cell_code.is_empty():  # Tile is undefined.
+				continue
+			var cell_id = Saliko.vec2i_id(nav_cell)
+			for i : Tac.Trans in range(navgraph[layer].size()):
+				var graph : AStar2D = navgraph[layer][i]
+				graph.add_point(cell_id, nav_cell)
 				
-				if that_code == null:
-					for trans in range(Tac.Trans.size()-1):
-						var nav : AStar2D = navgraph[layer][trans]
-						nav.connect_points(this_id, that_id, false)
-				elif that_code.dir[dir] < 5:
-					navgraph[layer][that_code.dir[dir]].connect_points(this_id, that_id, false)
+				for oppo in [0, 1]:  # We are scanning from towards positive x and y, so we check tiles in the north, west direction, and adjacent in the east, south, which are opposite.
+					var side = [2,3][i]
+					var trans : Tac.Trans = navproxy[coord][side]
+					var adja_cell = [Vector2i.LEFT, Vector2i.UP][oppo] + nav_cell
+					var adja_coord = Vector3i(adja_cell.x, layer, adja_cell.y)
+					if not adja_coord in navproxy or trans == Tac.Trans.NONE:
+						continue
+					var adja_id = Saliko.vec2i_id(adja_cell)
+					var adja_trans : Tac.Trans = navproxy[adja_coord][oppo]
+					if trans == Tac.Trans.PASS or trans == i:  #NOTE Considerations about undefined tiles and tiles without floor is responsability of navproxy.
+						graph.connect_points(cell_id, adja_id, false)
+					if adja_trans == Tac.Trans.PASS or adja_trans == i:
+						graph.connect_points(adja_id, cell_id, false)
 
 
 #region Coordinate System Conversions

@@ -316,14 +316,15 @@ func _on_paint_tool_pressed(butt:Button):
 func set_help(text:String):
 	%Help.text = text
 
-func set_tile_info(space_coord:Vector2i, nav_coord:Vector2i, map_coord:Vector2i, obstacle_code:TransCodes, tile:TacTile):
+func set_tile_info(space_coord:Vector2i, nav_coord:Vector2i, map_coord:Vector2i, obstacle_code:PackedInt32Array, tile:TacTile):
 	%Coordi_Text.text = str([space_coord, nav_coord, map_coord][%nav_tile.selected])
 	if obstacle_code == null:
 		%Obstacles.text = str(-255)
 		%Obstacles.tooltip_text = \"Transitions: Invalid Navigation!\"
-	else:
-		%Obstacles.text = String.num_uint64(obstacle_code.full(), 2).lpad(8, \"0\")
-		%Obstacles.tooltip_text = \"Transitions:\\nEast:\\t\"+str(obstacle_code.EAST)+\"\\nSouth:\\t\"+str(obstacle_code.SOUTH)+\"\\nWest:\\t\"+str(obstacle_code.WEST)+\"\\nNorth:\\t\"+str(obstacle_code.NORTH)
+	%Obstacles.text = \"disabled\"
+	#else:
+	#	%Obstacles.text = String.num_uint64(obstacle_code.full(), 2).lpad(8, \"0\")
+	#	%Obstacles.tooltip_text = \"Transitions:\\nEast:\\t\"+str(obstacle_code.EAST)+\"\\nSouth:\\t\"+str(obstacle_code.SOUTH)+\"\\nWest:\\t\"+str(obstacle_code.WEST)+\"\\nNorth:\\t\"+str(obstacle_code.NORTH)
 #endregion
 
 func populate_thumbs():

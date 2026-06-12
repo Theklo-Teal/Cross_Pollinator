@@ -16,8 +16,8 @@ func _process(delta: float) -> void:
 	if trajectory.is_empty() or position.is_equal_approx(trajectory[0]):
 		if not just_stopped:
 			just_stopped = true
-			print(\"Step Error: \", error_string(err) )
-			print(\"Finish Error: \", error_string(traversal_finish()) ) 
+			print(\"Step: \", error_string(err) )
+			print(\"Finish: \", error_string(traversal_finish()) ) 
 		return
 	if NO_NAV:
 		position = position.move_toward(trajectory[0], STRIDE * delta)

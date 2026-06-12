@@ -10,6 +10,7 @@ const DIR_ANGLE = {
 	}
 
 @export_storage var is_ceiling : bool  ## The floor is actually a ceiling.
+@export_storage var force_floor : bool = false  ## Whether the current [code]has_floor[/code] was enforced manually, or is set by the definition of [code]floor[/code].
 @export_storage var has_floor : bool = false  ## Regardless of a floor asset, can characters walk over this tile?
 @export_storage var floor : StringName :   ## UID FloorInfo that defines the assets. Setting it empty will set [code]has_floor[/code], [code]force_floor[/code] and [code]is_ceiling[/code] to [code]false[/code].
 	set(val):
@@ -43,34 +44,11 @@ func _asset_checker(old:StringName, new:StringName) -> StringName:
 		ans = &""
 	else:
 		ans = new
-	if ans != old:
-		dirty = true
 	return ans
 
-func _init() -> void:
-	dirty = true
-
-@export_storage var force_floor : bool = false  ## Whether the current [code]has_floor[/code] was enforced manually, or is set by the definition of [code]floor[/code].
-@export_storage var dirty : bool = true  ## Whether the [code]code[/code] needs updating.
-@export_storage var code := TransCodes.new() :  ## Current transition codes of this tile.
-	get():
-		if dirty:
-			dirty = false
-			update_code()
-		return code
-
-##  Makes [code]code[/code] up to date with assets. Automatically called whenever reading [code]code[/code].
-func update_code():
-	for i in range(4):
-		var uid = get_wall(i)
-		if uid in Tac.pallet_info:
-			code.set_code(i, Tac.pallet_info[uid].transition)
-		else:
-			code.set_code(i, Tac.Trans.PASS)
-
-## What would the «get_trans_codes()» output be if there was a TacTile where there is no content.
-static func get_empty_codes() -> TransCodes:
-	return TransCodes.new()
+## What would the «find_codes()» output be if there was a TacTile where there is no content.
+static func get_empty_codes() -> PackedInt32Array:
+	return []
 
 ## Whether we should delete this tile from the map.
 func is_empty() -> bool:
@@ -81,23 +59,18 @@ func is_empty() -> bool:
 		return false
 	return true
 
-## Returns a [code]TransCodes[/code] for traversing out of this tile according
-## rules accounting adjacent tiles. They may be null for undefined tiles and
-## they should be supplied in order of direction NWSE.
-func get_traversal(adjacents:Array[TacTile]) -> TransCodes:
-	var transcode = TransCodes.new()
-	transcode.dir = code.dir.duplicate()
-	
+func find_codes() -> PackedInt32Array:
+	var codes : PackedInt32Array
 	for i in range(4):
-		var adja = adjacents[i]
-		if adja == null:
-			transcode.set_code(i, Tac.Trans.NONE)
-		if transcode.get_code(i) == Tac.Trans.PASS:
-			if adja == null:
-				transcode.set_code(i, Tac.Trans.NONE)
-			elif not adja.has_floor:
-				transcode.set_code(i, Tac.Trans.AERIAL)
-	return transcode
+		var uid = get_wall(i)
+		var info : WallInfo = Tac.pallet_info.get(uid)
+		if uid.is_empty():
+			codes.append(Tac.Trans.PASS)
+		elif info == null:
+			codes.append(Tac.Trans.NONE)
+		else:
+			codes.append(info.transition)
+	return codes
 
 ## Get wall by index
 func get_wall(direction:Tac.Dir):

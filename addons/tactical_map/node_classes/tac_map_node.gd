@@ -159,7 +159,7 @@ func _ready() -> void:
 		if tiles[coord].is_empty():
 			tiles.erase(coord)
 		else:
-			queue_place.append(coord)
+			queue_place(coord)
 	
 	_layer = get_layer()
 	
@@ -179,15 +179,22 @@ func _ready() -> void:
 	print("TacMap loaded: «", name,"»; Tiles defined: ", tiles.size())
 
 func _process(_delta: float) -> void:
-	if not queue_place.is_empty():
-		queue_place.clear.call_deferred()
-		place_assets(queue_place)
+	if not tile_queue.is_empty():
+		tile_queue.clear.call_deferred()
+		place_assets(tile_queue)
+		var nav : TacNav = get_parent()
 	
 	if area_outdated:
 		area_outdated = false
 		update_area()
 
-var queue_place : Array[Vector2i]  # Observer Pattern: We append all the coordinates that need contents updated here, then only on the next frame are they updated, once the decision of what to update is final.
+var tile_queue : Array[Vector2i]  # Dirty Pattern: We append all the coordinates that need contents updated here, then only on the next frame are they updated, once the decision of what to update is final.
+func queue_place(cell:Vector2i):
+	if not cell in tile_queue and Rect2i(Vector2i.ZERO, size).has_point(cell):
+		var nav : TacNav = get_parent()
+		nav.queue_nav.call_deferred(nav.map3nav(cell, self))
+		tile_queue.append(cell)
+
 ## Update the visual assets from the TacTile UIDs
 func place_assets(coords:Array[Vector2i]):
 	var tacnav : TacNav = get_parent()
@@ -222,7 +229,7 @@ func place_assets(coords:Array[Vector2i]):
 			placed[coord].append(wall)
 
 func set_tile_asset(coord:Vector2i, side:Vector2i, info_uid:String):
-	queue_place.append(coord)
+	queue_place(coord)
 	var asset_info : Resource = Tac.pallet_info[info_uid]
 	var tile = tiles.get_or_add(coord, TacTile.new())
 	if asset_info is FloorInfo:
