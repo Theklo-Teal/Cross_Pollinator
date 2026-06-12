@@ -1287,15 +1287,6 @@ floor_dir = Vector2i(1, 0)
 dirty = false
 code = SubResource("Resource_s4kaj")
 
-[sub_resource type="Resource" id="Resource_vvymy"]
-script = ExtResource("7_fucb2")
-
-[sub_resource type="Resource" id="Resource_5s0ho"]
-script = ExtResource("6_u6t3p")
-floor_dir = Vector2i(1, 0)
-dirty = false
-code = SubResource("Resource_vvymy")
-
 [sub_resource type="Resource" id="Resource_dixkd"]
 script = ExtResource("7_fucb2")
 
@@ -1858,7 +1849,6 @@ Vector2i(8, 4): SubResource("Resource_a6qp1"),
 Vector2i(8, 5): SubResource("Resource_4vlbf"),
 Vector2i(8, 6): SubResource("Resource_xpmpp"),
 Vector2i(8, 7): SubResource("Resource_7wfhm"),
-Vector2i(8, 9): SubResource("Resource_5s0ho"),
 Vector2i(8, 10): SubResource("Resource_13wjq"),
 Vector2i(8, 11): SubResource("Resource_dpwr8"),
 Vector2i(9, 0): SubResource("Resource_1sjgv"),

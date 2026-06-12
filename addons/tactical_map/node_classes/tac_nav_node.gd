@@ -152,23 +152,17 @@ func locate_entity(entity:TacEntity) -> Dictionary:
 ## Allows to tell which zones a character entered or exited while moving between two tiles
 ## And triggers signals and functions about that.
 func check_zone(actor:TacEntity, ini:Vector3i, end:Vector3i) -> Dictionary:
-	var ini_zones : Array[StringName]
-	var end_zones : Array[StringName]
-	ini_zones.assign(zoned.get(ini, []))
-	end_zones.assign(zoned.get(end, []))
-	var exit_zones : Array[StringName]
-	var enter_zones : Array[StringName]
-	
-	for zone in ini_zones:
-		if not zone in end_zones:
-			exit_zones.append(zone)
-			zone_exited.emit(zone, actor)
-	for zone in end_zones:
-		if not zone in ini_zones:
-			enter_zones.append(zone)
-			zone_entered.emit(zone, actor)
-	
-	return {"entered": enter_zones, "exited":exit_zones}
+	var ans : Dictionary = {"entered":[], "exited":[]}
+	var checked : Dictionary[StringName, bool]  # bool indicates the zone is unique to ini.
+	for zone in zoned.get(ini, []):
+		checked[zone] = true  # Assume any zone in ini to have been exited (not in common with end)
+	for zone in zoned.get(end, []):
+		if checked.get(zone, false):  # Is a zone in end already checked?
+			checked.erase(zone)  # Remove from checked, leaving only uniques to ini
+		else:
+			ans.entered.append(zone)  # Not found in ini, so is unique to end
+	ans.exited = checked.keys()  # Only the uniques to ini are left.
+	return ans
 
 ## Produce a sprite that fits a tile. Optionally provide a map if the [code]coord[/code] is relative to it.
 func place_tile_sprite(texture:Texture2D, coord:Vector2i, map:TacMap=null) -> Sprite3D:
