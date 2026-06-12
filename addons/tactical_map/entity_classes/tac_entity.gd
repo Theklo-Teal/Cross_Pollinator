@@ -7,6 +7,7 @@ class_name TacEntity
 
 signal interacted  ## The player tried to click on this object.
 
+@export var can_block_nav : bool = true  ## Will pathfinding avoid this entity?
 @export var interact_distance : float = 2.4  ## How far, in meters, can an active character be from this entity and still allow it to interact.
 
 var mouse_hover : bool  # Is the mouse over this area?
@@ -86,7 +87,7 @@ func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Er
 		take_a_step()  # Update information where the character goes first.
 	else:
 		trajectory.assign( get_tacnav().get_traject(self, destination, tacmap) )
-		if trajectory.is_empty():
+		if trajectory.size() < 2:
 			result = ERR_ALREADY_EXISTS
 		else:
 			trajectory.reverse()
@@ -131,7 +132,7 @@ func take_a_step() -> Error:
 ## Return whether the movement to the «step» tile was successful. Errors won't halt the movement
 ## Return [code]ERR_CANT_CONNECT[/code] if that's desired.
 func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
-	if step.y == last_step.y:
+	if step.y != last_step.y:
 		look_at(next_step, Vector3.UP, true)
 	return OK
 

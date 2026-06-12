@@ -24,7 +24,7 @@ func _ready() -> void:
 	pallet.paint_tool_changed.connect(_on_paint_tool_changed)
 	pallet.offset_map.connect(_on_offset_map)
 	pallet.nav_overlay.connect(func(shown):update_cam_view(last_cam))
-	pallet.floor_overlay.connect(func(shown):update_cam_view(last_cam))
+	pallet.floor_overlay.connect(func(shown):update_cam_view(last_cam); curr_map.floors.visible = not shown)
 
 func _enter_tree() -> void:
 	super()
@@ -122,7 +122,8 @@ func _process(_delta: float) -> void:
 		if not last_cam.transform.is_equal_approx(past_cam_pos):
 			past_cam_pos = last_cam.transform
 			camera_moved = true
-			update_cam_view(last_cam)
+			update_cam_view(last_cam)  # Adjust perspective on space overlays.
+			update_alt_view(last_cam)  # Will hide the hover tile indicator
 			
 #endregion
 
@@ -248,21 +249,37 @@ func on_cam_view_draw(canvas:Control, cam:Camera3D) -> void:
 	draw_area_outline(canvas, fence, Color.WEB_PURPLE, 8)
 	
 	# Floor Overlay
-	#if pallet.is_floor_overlay_visible():
-		#pass
+	if pallet.is_floor_overlay_visible():
+		for map_tile : Vector2i in curr_map.tiles:
+			var has_floor = int(curr_map.tiles[map_tile].has_floor)
+			var nav_tile = curr_nav.map3nav(map_tile, curr_map)
+			if cam.is_position_in_frustum(curr_nav.map3spatial(map_tile, curr_map, true)):
+				var polygon = get_map_area(map_tile, map_tile, curr_map)
+				for i in (polygon.size()):
+					polygon[i] = polygon[i] + [Vector3(0.05,0,0.05),Vector3(0.05,0,-0.05),Vector3(-0.05,0,-0.05),Vector3(-0.05,0,0.05),][i]
+				draw_area_polygon(canvas, polygon, [Color(0.729, 0.219, 0.169, 0.3), Color(0.338, 0.513, 0.887, 0.3)][has_floor])
 	
 	# Navigation Graph Overlay
-	#if pallet.is_nav_overlay_visible():
-		#for coordi : Vector3i in curr_nav.navproxy:
-			#var coord = curr_nav.nav3spatial(coordi, true)
-			#if cam.is_position_in_frustum(coord):
-				#var transcodes : int = curr_nav.navproxy[coordi].simple
-				#if transcodes > 0 and transcodes < 0b1111:
-					#var distance = cam.position.distance_to(coord)
-					#var rad = Saliko.apparent_size(cam, curr_nav.tile_size, distance)
-					#var unproj = cam.unproject_position(coord)
-					#view.draw_circle(unproj, rad, Color.RED)
-	
+	if pallet.is_nav_overlay_visible():
+		var nav_overlay : Array[PackedVector2Array]
+		nav_overlay.resize(Tac.Trans.size())
+		var dir = Tac.Dir_Vect.values()
+		for coordi : Vector3i in curr_nav.navproxy:
+			var coord : Vector3 = curr_nav.nav3spatial(coordi, true)
+			var code : TransCodes = curr_nav.navproxy[coordi]
+			var corner = [Vector3(0.4, 0, -0.4), Vector3(0.4, 0, 0.4), Vector3(-0.4, 0, 0.4), Vector3(-0.4, 0, -0.4)]
+			for i in range(4):
+				# Drawing the edges of tiles.
+				var v1 = corner[i] * curr_nav.tile_size + coord
+				var v2 = corner[(i+1) % 4] * curr_nav.tile_size + coord
+				if cam.is_position_in_frustum(v1) and cam.is_position_in_frustum(v2):
+					var from = cam.unproject_position(v1)
+					var to = cam.unproject_position(v2)
+					nav_overlay[code.get_code(i)].append_array([from, to])
+		for i in range(Tac.Trans.size()):
+			if not nav_overlay[i].is_empty():
+				canvas.draw_multiline(nav_overlay[i], Tac.TColor[i], 8)
+			
 	modes[curr_mode()].draw(canvas, cam)
 
 ## Use this to draw things updated with mouse motion.
@@ -272,31 +289,32 @@ func on_alt_view_draw(canvas:Control, cam:Camera3D) -> void:
 		return
 	
 	# Hover Tile Indicator
-	var tile_rect = Saliko.get_area(Vector2(hover_tile), Vector2(hover_tile) + Vector2.ONE * curr_nav.tile_size)
-	var hei = curr_map.get_spatial_height()
-	var tile_corners = [
-		Vector3(tile_rect.end.x,hei,tile_rect.position.y),
-		Vector3(tile_rect.end.x,hei,tile_rect.end.y),
-		Vector3(tile_rect.position.x,hei,tile_rect.end.y),
-		Vector3(tile_rect.position.x, hei, tile_rect.position.y),
-		Vector3(tile_rect.end.x, hei, tile_rect.position.y),
-		]
-	var color = [Color.RED, Color.PURPLE][int(within_map)]
-	color.a = 0.25
-	draw_area_polygon(canvas, tile_corners, color)
-	if within_map:
-		var lateral = {
-		Vector2i.RIGHT : [0,1],
-		Vector2i.DOWN : [1,2],
-		Vector2i.LEFT : [2,3],
-		Vector2i.UP : [3,4],
-		}
-		var side = lateral[_hover_tile_side]
-		if cam.is_position_in_frustum(tile_corners[side[0]]) or cam.is_position_in_frustum(tile_corners[side[1]]):
-			canvas.draw_line(
-				cam.unproject_position(tile_corners[side[0]]),
-				cam.unproject_position(tile_corners[side[1]]),
-				Color.PURPLE, 6)
+	if not camera_moved:
+		var tile_rect = Saliko.get_area(Vector2(hover_tile), Vector2(hover_tile) + Vector2.ONE * curr_nav.tile_size)
+		var hei = curr_map.get_spatial_height()
+		var tile_corners = [
+			Vector3(tile_rect.end.x,hei,tile_rect.position.y),
+			Vector3(tile_rect.end.x,hei,tile_rect.end.y),
+			Vector3(tile_rect.position.x,hei,tile_rect.end.y),
+			Vector3(tile_rect.position.x, hei, tile_rect.position.y),
+			Vector3(tile_rect.end.x, hei, tile_rect.position.y),
+			]
+		var color = [Color.RED, Color.PURPLE][int(within_map)]
+		color.a = 0.25
+		draw_area_polygon(canvas, tile_corners, color)
+		if within_map:
+			var lateral = {
+			Vector2i.RIGHT : [0,1],
+			Vector2i.DOWN : [1,2],
+			Vector2i.LEFT : [2,3],
+			Vector2i.UP : [3,4],
+			}
+			var side = lateral[_hover_tile_side]
+			if cam.is_position_in_frustum(tile_corners[side[0]]) or cam.is_position_in_frustum(tile_corners[side[1]]):
+				canvas.draw_line(
+					cam.unproject_position(tile_corners[side[0]]),
+					cam.unproject_position(tile_corners[side[1]]),
+					Color.PURPLE, 6)
 
 #endregion
 
@@ -321,7 +339,7 @@ func draw_area_outline(canvas:Control, corners: PackedVector3Array, color:Color,
 	if points.size() >= 3:
 		canvas.draw_polyline(points, color, thickness)
 
-## Draw a filled polyong overlay of an area in 3D perspective. Processes [code]corners[/code]
+## Draw a filled polygon overlay of an area in 3D perspective. Processes [code]corners[/code]
 ## using [code]unproject_area[/code].
 func draw_area_polygon(canvas:Control, corners: PackedVector3Array, color:Color):
 	var points = unproject_area(canvas, corners)

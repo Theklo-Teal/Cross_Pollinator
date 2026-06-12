@@ -15,20 +15,23 @@ const Dir_Vect = {
 	"NORTH" : Vector2i.UP,
 }
 
-const Dir_Mask = {
-	"EAST" : 0b11,
-	"SOUTH" : 0b1100,
-	"WEST" : 0b110000,
-	"NORTH" : 0b11000000,
-}
-
-
 enum Trans{  ## Tile transisition types
 	PASS,  ## Anyone can traverse. Wary characters only traverse this kind of transition.
 	CRAWL,  ## Crawl Space: Only small characters can pass
 	HALF,  ## Only hasty or swift characters can pass
 	TALL,  ## Nobody can pass, unless they are intangible.
+	AERIAL,  ## Flying things can cross.
+	NONE,  ## There's nothing that can cross, transition won't connect in any navgraph.
 }
+const TColor = {  ## Colors of Trans for the navigation overlay.
+	Tac.Trans.PASS : Color(0.87058824, 0.72156864, 0.5294118, 0.3),
+	Tac.Trans.CRAWL : Color.GOLDENROD,
+	Tac.Trans.HALF : Color.CORAL,
+	Tac.Trans.TALL : Color.RED,
+	Tac.Trans.AERIAL : Color.ROYAL_BLUE,
+	Tac.Trans.NONE : Color.BLACK
+	}
+
 enum Hazard{
 	NONE,
 	DARK,

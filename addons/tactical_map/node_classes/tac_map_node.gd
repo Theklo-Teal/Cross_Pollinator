@@ -66,6 +66,8 @@ var placed : Dictionary[Vector2i, Array]  # Array of Node3D at given coordinate.
 func crop_map():
 	var area = Rect2i(Vector2i.ZERO, size)
 	for coord in tiles:
+		var tacnav : TacNav = get_parent()
+		tacnav.nav_outdated.append(tacnav.map3nav(coord, self))
 		if not area.has_point(coord):
 			tiles.erase(coord)
 			rem_spawner(coord)
@@ -89,7 +91,8 @@ func clear_map():
 		rem_spawner(each)
 	var tacnav : TacNav = get_parent()
 	for coord in tacnav.navproxy:
-		tacnav.navproxy[coord] = {}
+		tacnav.navproxy.erase(coord)  # Delete every data without checks like whether it's within map
+		tacnav.queue_nav(coord)  # Inform the overlay to update
 #endregion
 
 
@@ -152,14 +155,11 @@ func _ready() -> void:
 	walls.name = "TacMapWalls"
 	
 	# Place objects with stored references.
-	for y in range(size.y):
-		for x in range(size.x):
-			var coord = Vector2i(x,y)
-			if coord in tiles:
-				if not tiles[coord].has_content():
-					tiles.erase(coord)
-				else:
-					queue_place.append(coord)
+	for coord in tiles:
+		if tiles[coord].is_empty():
+			tiles.erase(coord)
+		else:
+			queue_place.append(coord)
 	
 	_layer = get_layer()
 	
@@ -180,8 +180,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if not queue_place.is_empty():
+		queue_place.clear.call_deferred()
 		place_assets(queue_place)
-	queue_place.clear()
 	
 	if area_outdated:
 		area_outdated = false

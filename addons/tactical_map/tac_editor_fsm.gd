@@ -7,6 +7,10 @@ extends EditorPlugin
 #TODO Tags for searching assets and the filter input
 #TODO Test Ladders
 #TODO Test Zone triggers
+#TODO Offset Map also offstes Zones and Ladders, but not characters.
+
+#FIXME Spawner placement seems unreliable? Not always returning EditorPlugin.AFTER_GUI_INPUT_STOP or something.
+#FIXME Alternate mode of adding walls (to produce opposite/external walls) shouldn't try to place on tiles outside the map.
 
 #NOTE How to use undo_redo
 	##undo_redo.create_action("TacMap: set floor tiles")
@@ -114,15 +118,16 @@ func get_map_area(from:Vector2i, to:Vector2i, tacmap:TacMap=null, offset:float=0
 						return left_press(alternate)
 					MOUSE_BUTTON_RIGHT:
 						return right_press(alternate)
+					MOUSE_BUTTON_MIDDLE:  #NOTE Middle mouse button won't get through the "me.camera_move" check.
+						if me.within_map:
+							return pick_tool(alternate)
 			elif event.is_released() and not me.camera_moved:
 				match event.button_index:
 					MOUSE_BUTTON_LEFT:
 						return left_release(alternate)
 					MOUSE_BUTTON_RIGHT:
 						return right_release(alternate)
-					MOUSE_BUTTON_MIDDLE:
-						if me.within_map:
-							return pick_tool(alternate)
+		
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
 	
 	func pick_tool(alternate:bool):
@@ -239,17 +244,13 @@ class Zone_Mode extends Paint_Mode:
 			me.set_active_zone(zone_name)
 		return super(alt)
 	
-	func pick_tool(alt:bool):  #TODO Test this
-		var hits : PackedStringArray
-		for each in me.curr_map.zones:
+	func pick_tool(alt:bool):
+		for each in me.sel_zones:
 			var zone_rect : Rect2i = me.curr_map.zones[each]
-			if zone_rect.has_point(me.hover_tile):
-				hits.append(each)
-		if hits.is_empty():
-			return EditorPlugin.AFTER_GUI_INPUT_PASS
-		else:
-			me.pallet.select_zones(hits)
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
+			if zone_rect.has_point(me.map_hover_tile):
+				me.pallet.set_active_zone(each)
+				me.update_cam_view(me.last_cam)
+				return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func draw_dragging(canvas:Control, cam:Camera3D):
 		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -293,6 +294,13 @@ class Ladder_Mode extends Paint_Mode:
 				me.set_active_ladder(ladder_name)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
+	func pick_tool(alternate:bool):
+		for each in me.sel_ladders:
+			if me.map_hover_tile == me.curr_map.ladders[each]:
+				me.pallet.set_active_ladder(each)
+				me.update_cam_view(me.last_cam)
+				return EditorPlugin.AFTER_GUI_INPUT_STOP
+	
 	func draw(canvas:Control, cam:Camera3D):
 		super(canvas, cam)
 		var dirty_ladders : PackedStringArray
@@ -312,7 +320,7 @@ class Ladder_Mode extends Paint_Mode:
 				me.draw_area_outlined_polygon(canvas, polygon, fill, fill, 3)
 		for each in dirty_ladders:
 			me.sel_ladders.erase(each)
-
+	
 class Floor_Mode extends Paint_Mode:
 	func help() -> String:
 		const which = {
@@ -559,6 +567,6 @@ class Coord_Capture extends TacEditorState:
 				me.hover_tile,
 				hover_tile_nav,
 				me.map_hover_tile,
-				me.curr_nav.navproxy.get(coordi, {}),
+				me.curr_nav.navproxy.get(coordi),
 				me.curr_map.tiles.get(me.map_hover_tile))
 			return EditorPlugin.AFTER_GUI_INPUT_STOP

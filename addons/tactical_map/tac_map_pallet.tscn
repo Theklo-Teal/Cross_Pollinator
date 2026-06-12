@@ -122,19 +122,12 @@ var last_sel_zone_idx : int = -1
 var last_sel_zone : String
 
 func set_active_zone(zone_name):
+	%ZoneTitle.text = zone_name
 	for i in range(%ZoneContainer.item_count):
 		if %ZoneContainer.get_item_text(i) == zone_name:
 			last_sel_zone_idx = i
 			last_sel_zone = zone_name
 			break
-
-func select_zones(zones:PackedStringArray):
-	for idx in range(%ZoneContainer.item_count):
-		var zone = %ZoneContainer.get_item_text(idx)
-		if zone in zones:
-			%ZoneContainer.select(idx, false)
-		else:
-			%ZoneContainer.deselect(idx)
 
 func _on_zone_clicked(zone_idx):
 	if %ZoneContainer.is_selected(zone_idx):
@@ -189,6 +182,7 @@ var last_sel_ladder_idx : int = -1
 var last_sel_ladder : String
 
 func set_active_ladder(ladder_name):
+	%LadderTitle.text = ladder_name
 	for i in range(%LadderContainer.item_count):
 		if %LadderContainer.get_item_text(i) == ladder_name:
 			last_sel_ladder_idx = i
@@ -322,14 +316,14 @@ func _on_paint_tool_pressed(butt:Button):
 func set_help(text:String):
 	%Help.text = text
 
-func set_tile_info(space_coord:Vector2i, nav_coord:Vector2i, map_coord:Vector2i, obstacle_code:Dictionary, tile:TacTile):
+func set_tile_info(space_coord:Vector2i, nav_coord:Vector2i, map_coord:Vector2i, obstacle_code:TransCodes, tile:TacTile):
 	%Coordi_Text.text = str([space_coord, nav_coord, map_coord][%nav_tile.selected])
-	if obstacle_code.is_empty():
+	if obstacle_code == null:
 		%Obstacles.text = str(-255)
 		%Obstacles.tooltip_text = \"Transitions: Invalid Navigation!\"
 	else:
-		%Obstacles.text = String.num_uint64(obstacle_code.code, 2).lpad(8, \"0\")
-		%Obstacles.tooltip_text = \"Transitions:\\nEast:\\t\"+str(obstacle_code.sides[0])+\"\\nSouth:\\t\"+str(obstacle_code.sides[1])+\"\\nWest:\\t\"+str(obstacle_code.sides[2])+\"\\nNorth:\\t\"+str(obstacle_code.sides[3])
+		%Obstacles.text = String.num_uint64(obstacle_code.full(), 2).lpad(8, \"0\")
+		%Obstacles.tooltip_text = \"Transitions:\\nEast:\\t\"+str(obstacle_code.EAST)+\"\\nSouth:\\t\"+str(obstacle_code.SOUTH)+\"\\nWest:\\t\"+str(obstacle_code.WEST)+\"\\nNorth:\\t\"+str(obstacle_code.NORTH)
 #endregion
 
 func populate_thumbs():
@@ -765,7 +759,7 @@ layout_mode = 2
 [node name="Spawner_Opts" type="OptionButton" parent="VBoxContainer2/Terrains/other/VBoxContainer3" unique_id=1883321447]
 unique_name_in_owner = true
 layout_mode = 2
-selected = 1
+selected = 0
 item_count = 2
 popup/item_0/text = "NPC Cluster"
 popup/item_0/id = 0
@@ -852,7 +846,7 @@ layout_mode = 2
 [node name="show_navigation" type="CheckBox" parent="VBoxContainer2/Terrains/other/VBoxContainer" unique_id=1509594707]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Show Nav Graphs"
+text = "Show Navigation"
 
 [node name="show_floors" type="CheckBox" parent="VBoxContainer2/Terrains/other/VBoxContainer" unique_id=1815627283]
 unique_name_in_owner = true

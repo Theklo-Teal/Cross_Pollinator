@@ -2,19 +2,6 @@
 extends Resource
 class_name TacTile
 
-@export_storage var is_ceiling : bool  ## The floor is actually a ceiling.
-@export_storage var has_floor : bool = false  ## Regardless of a floor asset, can characters walk over this tile?
-@export_storage var floor : StringName  ## UID FloorInfo that defines the assets.
-@export_storage var floor_name : StringName  ## Which of the sprites referred in the FloorInfo.
-@export_storage var floor_dir := Vector2i.LEFT :  ## The orientation of the floor.
-	set(val):
-		if val in DIR_ANGLE:
-			floor_dir = val
-@export_storage var wall_east: StringName  ## UID of the WallInfo that defines the assets.
-@export_storage var wall_south : StringName  ## UID of the WallInfo that defines the assets.
-@export_storage var wall_west : StringName  ## UID of the WallInfo that defines the assets.
-@export_storage var wall_north : StringName  ## UID of the WallInfo that defines the assets.
-
 const DIR_ANGLE = {
 	Vector2i.RIGHT: 0,
 	Vector2i.DOWN: 270,
@@ -22,55 +9,107 @@ const DIR_ANGLE = {
 	Vector2i.UP: 90,
 	}
 
+@export_storage var is_ceiling : bool  ## The floor is actually a ceiling.
+@export_storage var has_floor : bool = false  ## Regardless of a floor asset, can characters walk over this tile?
+@export_storage var floor : StringName :   ## UID FloorInfo that defines the assets. Setting it empty will set [code]has_floor[/code], [code]force_floor[/code] and [code]is_ceiling[/code] to [code]false[/code].
+	set(val):
+		var new = _asset_checker(floor, val)
+		if new != floor and new.is_empty():
+			has_floor = false
+			force_floor = false
+			is_ceiling = false
+		floor = new
+@export_storage var floor_name : StringName  ## Which of the sprites referred in the FloorInfo.
+@export_storage var floor_dir := Vector2i.LEFT :  ## The orientation of the floor.
+	set(val):
+		if val in DIR_ANGLE:
+			floor_dir = val
+@export_storage var wall_east: StringName :  ## UID of the WallInfo that defines the assets.
+	set(val):
+		wall_east = _asset_checker(wall_east, val)
+@export_storage var wall_south : StringName :  ## UID of the WallInfo that defines the assets.
+	set(val):
+		wall_south = _asset_checker(wall_south, val)
+@export_storage var wall_west : StringName :  ## UID of the WallInfo that defines the assets.
+	set(val):
+		wall_west = _asset_checker(wall_west, val)
+@export_storage var wall_north : StringName :  ## UID of the WallInfo that defines the assets.
+	set(val):
+		wall_north = _asset_checker(wall_north, val)
+
+func _asset_checker(old:StringName, new:StringName) -> StringName:
+	var ans : StringName
+	if ResourceUID.ensure_path(new).is_empty():
+		ans = &""
+	else:
+		ans = new
+	if ans != old:
+		dirty = true
+	return ans
+
+func _init() -> void:
+	dirty = true
+
+@export_storage var force_floor : bool = false  ## Whether the current [code]has_floor[/code] was enforced manually, or is set by the definition of [code]floor[/code].
+@export_storage var dirty : bool = true  ## Whether the [code]code[/code] needs updating.
+@export_storage var code := TransCodes.new() :  ## Current transition codes of this tile.
+	get():
+		if dirty:
+			dirty = false
+			update_code()
+		return code
+
+##  Makes [code]code[/code] up to date with assets. Automatically called whenever reading [code]code[/code].
+func update_code():
+	for i in range(4):
+		var uid = get_wall(i)
+		if uid in Tac.pallet_info:
+			code.set_code(i, Tac.pallet_info[uid].transition)
+		else:
+			code.set_code(i, Tac.Trans.PASS)
+
+## What would the «get_trans_codes()» output be if there was a TacTile where there is no content.
+static func get_empty_codes() -> TransCodes:
+	return TransCodes.new()
+
 ## Whether we should delete this tile from the map.
-func has_content() -> bool:
+func is_empty() -> bool:
 	for dir in range(4):
 		if not get_wall(dir).is_empty():
-			return true
-	if floor.is_empty() and not has_floor:
+			return false
+	if not floor.is_empty() or has_floor:
 		return false
 	return true
 
-## If the tile doesn't define floor or ceiling.
-func is_empty() -> bool:
-	return not has_floor
+## Returns a [code]TransCodes[/code] for traversing out of this tile according
+## rules accounting adjacent tiles. They may be null for undefined tiles and
+## they should be supplied in order of direction NWSE.
+func get_traversal(adjacents:Array[TacTile]) -> TransCodes:
+	var transcode = TransCodes.new()
+	transcode.dir = code.dir.duplicate()
+	
+	for i in range(4):
+		var adja = adjacents[i]
+		if adja == null:
+			transcode.set_code(i, Tac.Trans.NONE)
+		if transcode.get_code(i) == Tac.Trans.PASS:
+			if adja == null:
+				transcode.set_code(i, Tac.Trans.NONE)
+			elif not adja.has_floor:
+				transcode.set_code(i, Tac.Trans.AERIAL)
+	return transcode
 
-## Get the wall by index.
+## Get wall by index
 func get_wall(direction:Tac.Dir):
 	return [wall_east, wall_south, wall_west, wall_north][direction]
-
-## Return the transition of this tile in the provided direction.
-func get_transition(direction:Tac.Dir, adjacent:TacTile) -> Tac.Trans:
-	var wall = get_wall(direction)
-	var leads_to_hole = adjacent == null or not adjacent.has_floor
-	if leads_to_hole:
-		return Tac.Trans.TALL  #TODO Could a hole in the map return a code that isn't "Tac.Trans.TALL"?
-	elif wall.is_empty():  # There's no wall.
-		return Tac.Trans.PASS
-	else:
-		return Tac.pallet_info[wall].transition
-
-## Return the transition between this tile and those adjacent.
-## It returns a full obstacle code («code» key), a simplified one («simple» key) which only tells whether
-## a side has an obstacle, and the «sides» key is an array with the transition code of each side.
-func get_trans_codes(adjacent:Array[TacTile]) -> Dictionary:
-	var ans : Dictionary = get_empty_codes()
-	var side : int = -1
-	for dir in Tac.Dir:
-		var dir_i = Tac.Dir.keys().find(dir)
-		side += 1
-		ans.sides[side] = get_transition(dir_i, adjacent[dir_i])
-		ans.code |= ans.sides[side] << (side * 2)
-		ans.simple |= int(ans.sides[side] > 0) << side
-	return ans
-
-## What would the «get_trans_codes()» output be if there was a TacTile where there is no content.
-static func get_empty_codes() -> Dictionary:
+## Get the wall by compass direction.
+func get_wall_dir(direction:StringName):
 	return {
-		"code":0,
-		"simple":0,
-		"sides":[0,0,0,0]
-	}
+		&"EAST": wall_east,
+		&"SOUTH": wall_south,
+		&"WEST": wall_west,
+		&"NORTH": wall_north,
+	}[direction]
 
 func get_floor_asset(tile_size:int = 32) -> Sprite3D:
 	if floor.is_empty():
