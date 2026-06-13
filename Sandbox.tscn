@@ -228,7 +228,7 @@ script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-wall_east = &"uid://qe6vkc1vpl6x"
+wall_east = &"uid://dde4siryu2vx8"
 
 [sub_resource type="Resource" id="Resource_x662n"]
 script = ExtResource("7_ns6gl")
@@ -307,7 +307,7 @@ script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-wall_west = &"uid://qe6vkc1vpl6x"
+wall_west = &"uid://dde4siryu2vx8"
 
 [sub_resource type="Resource" id="Resource_5cydg"]
 script = ExtResource("7_ns6gl")
@@ -670,7 +670,7 @@ script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-wall_east = &"uid://qe6vkc1vpl6x"
+wall_east = &"uid://dde4siryu2vx8"
 
 [sub_resource type="Resource" id="Resource_slkfl"]
 script = ExtResource("7_ns6gl")
@@ -691,7 +691,7 @@ script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-wall_east = &"uid://qe6vkc1vpl6x"
+wall_east = &"uid://dde4siryu2vx8"
 
 [sub_resource type="Resource" id="Resource_2dnx1"]
 script = ExtResource("7_ns6gl")
@@ -750,7 +750,7 @@ script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-wall_west = &"uid://qe6vkc1vpl6x"
+wall_west = &"uid://dde4siryu2vx8"
 
 [sub_resource type="Resource" id="Resource_ivt64"]
 script = ExtResource("7_ns6gl")
@@ -771,7 +771,7 @@ script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
-wall_west = &"uid://qe6vkc1vpl6x"
+wall_west = &"uid://dde4siryu2vx8"
 
 [sub_resource type="Resource" id="Resource_1sww1"]
 script = ExtResource("7_ns6gl")
@@ -796,7 +796,7 @@ floor_dir = Vector2i(1, 0)
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
+floor_dir = Vector2i(0, 1)
 
 [sub_resource type="Resource" id="Resource_nux3x"]
 script = ExtResource("7_ns6gl")
@@ -868,79 +868,91 @@ floor_dir = Vector2i(1, 0)
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
+floor_dir = Vector2i(0, 1)
 
 [sub_resource type="Resource" id="Resource_vss32"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_75nqk"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_0mtgw"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_4yaw1"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_rjsot"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_eeocv"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_8clo3"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_sg80u"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_xxfg8"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_ejme0"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_y4fvq"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://dh858fhl8eea1"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_asr7p"]
 script = ExtResource("7_ns6gl")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(1, 0)
+wall_east = &"uid://qe6vkc1vpl6x"
 
 [sub_resource type="Resource" id="Resource_x7flh"]
 script = ExtResource("7_ns6gl")
@@ -1898,7 +1910,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5528002, 0, 2.4435916)
 [node name="TacMap" type="Area3D" parent="TacNav" unique_id=1184229908]
 script = ExtResource("6_ukipb")
 spawners = Dictionary[Vector2i, ExtResource("4_oc8cb")]({
-Vector2i(1, 3): SubResource("Resource_t867u")
+Vector2i(5, 5): SubResource("Resource_t867u")
 })
 ladders = Dictionary[String, Vector2i]({
 "Up": Vector2i(11, 10)

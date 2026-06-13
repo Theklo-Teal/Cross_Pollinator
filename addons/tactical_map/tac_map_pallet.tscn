@@ -34,7 +34,6 @@ func _ready() -> void:
 	%Picker.hide()
 	%Picker_Spacer.show()
 	
-	other_mode.allow_unpress = true
 	%ZoneAdd.button_group = other_mode
 	%add_spawner.button_group = other_mode
 	%LadderAdd.button_group = other_mode
@@ -431,7 +430,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_le7gg"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_cxtx8"]
 allow_unpress = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8tvhu"]
@@ -793,7 +792,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cxtx8")
 toggle_mode = true
-button_group = SubResource("ButtonGroup_le7gg")
+button_group = SubResource("ButtonGroup_cxtx8")
 text = "Spawner"
 
 [node name="Zoning" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=386748457]
@@ -820,7 +819,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cxtx8")
 toggle_mode = true
-button_group = SubResource("ButtonGroup_le7gg")
+button_group = SubResource("ButtonGroup_cxtx8")
 text = "Zoning"
 
 [node name="Ladders" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=800851058]
@@ -849,7 +848,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cxtx8")
 toggle_mode = true
-button_group = SubResource("ButtonGroup_le7gg")
+button_group = SubResource("ButtonGroup_cxtx8")
 text = "Ladders"
 
 [node name="Spacer" type="Control" parent="VBoxContainer2/Terrains/other" unique_id=662946271]
@@ -951,7 +950,7 @@ size_flags_vertical = 3
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cxtx8")
 toggle_mode = true
 button_pressed = true
-button_group = SubResource("ButtonGroup_le7gg")
+button_group = SubResource("ButtonGroup_cxtx8")
 text = "Capture Tile"
 
 [node name="Coordi_Opts" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=1870087275]

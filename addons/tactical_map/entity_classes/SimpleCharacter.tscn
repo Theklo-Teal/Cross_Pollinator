@@ -18,13 +18,13 @@ func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
 
 
 func _process(delta: float) -> void:
-	if trajectory.is_empty():
-		if not just_stopped:
-			just_stopped = true
-			print(\"Finish: \", error_string(traversal_finish()) ) 
-		return
-	elif position.is_equal_approx(next_step):
-		print(\"Step: \", error_string(take_a_step()) )
+	if position.is_equal_approx(next_step):
+		if trajectory.is_empty():
+			if not just_stopped:
+				just_stopped = true
+				print(\"Finish: \", error_string(traversal_finish()) ) 
+		else:
+			print(\"Step: \", error_string(take_a_step()) )
 	else:
 		position = position.move_toward(next_step, STRIDE * delta)
 
