@@ -320,10 +320,12 @@ func set_tile_info(space_coord:Vector2i, nav_coord:Vector2i, map_coord:Vector2i,
 	if obstacle_code == null:
 		%Obstacles.text = str(-255)
 		%Obstacles.tooltip_text = \"Transitions: Invalid Navigation!\"
-	%Obstacles.text = \"disabled\"
-	#else:
-	#	%Obstacles.text = String.num_uint64(obstacle_code.full(), 2).lpad(8, \"0\")
-	#	%Obstacles.tooltip_text = \"Transitions:\\nEast:\\t\"+str(obstacle_code.EAST)+\"\\nSouth:\\t\"+str(obstacle_code.SOUTH)+\"\\nWest:\\t\"+str(obstacle_code.WEST)+\"\\nNorth:\\t\"+str(obstacle_code.NORTH)
+	else:
+		var full_code : String
+		for i in range(3, -1, -1):
+			full_code += String.num_uint64(obstacle_code[i], 2).lpad(2, \"0\")
+		%Obstacles.text = full_code
+		%Obstacles.tooltip_text = \"Transitions:\\nEast:\\t\"+str(obstacle_code[0])+\"\\nSouth:\\t\"+str(obstacle_code[.1])+\"\\nWest:\\t\"+str(obstacle_code[2])+\"\\nNorth:\\t\"+str(obstacle_code[3])
 #endregion
 
 func populate_thumbs():
@@ -431,7 +433,6 @@ corner_radius_bottom_left = 3
 corner_detail = 5
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_cxtx8"]
-allow_unpress = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8tvhu"]
 atlas = ExtResource("1_lmyxv")

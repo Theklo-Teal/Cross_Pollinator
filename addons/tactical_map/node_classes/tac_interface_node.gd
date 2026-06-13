@@ -39,7 +39,8 @@ func _input(event: InputEvent) -> void:
 				is_hole = tile == null or tile.is_empty()
 				if is_hole:
 					except.append(ray_sect.rid)
-		
+			
+			
 			# Find TacEntity under the mouse and past already known map holes.
 			var ray_query = PhysicsRayQueryParameters3D.create(ray_orig, ray_dest, Con.phys_layer["tac_entity"])
 			ray_query.collide_with_areas = true

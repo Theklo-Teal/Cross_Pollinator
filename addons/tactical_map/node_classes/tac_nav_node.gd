@@ -12,9 +12,9 @@ signal nav_changed(nav_tile : Array[Vector3i], tile:TacTile)
 # Otherwise it uses «navproxy» which is easily modified. Modifications to children 
 # TacMap during execution will modify «navsession» variable, which initally is a copy of the graphs.
 
-
 @export var tile_size : float = 1.0  ## (meters) The lateral length of square tiles that all children maps abide to.
 @export var tile_height : float = 2.0  ## How high walls can get.
+@export var tile_margin : float = 0.0  ## (Not Implemented) An extra margin so ceilings have thickness and won't overlap floors above, or characters may sink in to the floor, for water-logged places, for example.
 
 var charas : Array[TacCharacter]  ## Reference to placed characters.
 var unique_spawners : Dictionary[StringName, Dictionary]
@@ -23,8 +23,8 @@ var ladders : Dictionary[TacMap, Array]  ## [tacmap][i] -> Ladder; Which ladders
 
 class Ladder:
 	var name : StringName
-	var can_enter : bool  ## Whether a character can step into this ladder to get to another.
-	var can_exit : bool  # Whether a character can get to this ladder after entering another.
+	var can_enter : bool = true  ## Whether a character can step into this ladder to get to another.
+	var can_exit : bool = true  # Whether a character can get to this ladder after entering another.
 
 func _get_configuration_warnings() -> PackedStringArray:
 	for each in get_children():
@@ -90,11 +90,13 @@ func get_maps_at(coord:Vector2i) -> Array[TacMap]:
 ## have ladders connecting them, or exiting ladders can't be used.[br]
 func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> PackedVector3Array:
 	var loc = locate_entity(entity)
-	if loc.tacmap == null:  # Couldn't find the map the entity is on.
+	
+	if loc.tacmap == null or destin_map == null:  # Couldn't find the map the entity is on or where it's going.
 		return []
 	if loc.nav_coord == destin_tile and loc.tacmap == destin_map:  # Position didn't change.
 		return []
 	
+	unblock_navigation(loc.nav_coord, loc.layer)  # AStar2D Can't work if the character is sitting on a blocked tile.
 	var start = Saliko.vec2i_id(loc.nav_coord)
 	var stop = Saliko.vec2i_id(destin_tile)
 	var full_path : PackedVector3Array
@@ -104,23 +106,31 @@ func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> P
 		# if initial and final layers are the same, but it might be interesting
 		# to connect different maps on the same layer. There won't be conflict
 		# because maps have their own coordinate on their ladders.
-		for tile : Vector2i in navgraph[loc.layer][entity.attitude].get_point_path(start, stop, true):
+		var graph : AStar2D = navgraph[loc.layer][entity.attitude]
+		for tile : Vector2i in graph.get_point_path(start, stop, true):
 			full_path.append(Vector3(tile.x, loc.layer, tile.y))
 	else:
-		var ladders_from : Array[Ladder] = ladders.get(loc.map)
-		var ladders_to : Array[Ladder] = ladders.get(destin_map)
+		var common_ladders : Array[PackedInt64Array]  # [i][0/1]-> from_cell_id / to_cell_id
+		#NOTE The ints of cell ids are really big, so we need 64 bit numbers.
 		
-		var closest_ladder : StringName
+		for l_from in ladders.get(loc.tacmap, []):
+			for l_to in ladders.get(destin_map, []):
+				if l_from.name == l_to.name:
+					if l_from.can_enter and l_to.can_exit:
+						# Ladder is in common between entity's map and destin_map, and can be used.
+						var from_id = Saliko.vec2i_id(loc.tacmap.ladders[l_from.name])
+						var to_id = Saliko.vec2i_id(destin_map.ladders[l_to.name])
+						common_ladders.append([from_id, to_id])
+		
+		var closest_ladder : int  # Index of common ladders
 		var closest_path : Array[Vector2i]
-		for l_from : Ladder in ladders_from:
-			for l_to : Ladder in ladders_to:
-				if l_from.name == l_to.name and l_from.can_enter and l_to.can_exit:
-					# Ladder is in common between entity's map and destin_map, and can be used.
-					var enter_ladder = Saliko.vec2i_id(loc.tacmap.ladders[l_from.name])
-					var path_from = navgraph[loc.layer][entity.attitude].get_point_path(start, enter_ladder) 
-					if closest_path.size() > path_from.size():
-						closest_path = path_from
-						closest_ladder = l_from.name
+		var i : int = -1
+		for ladder in common_ladders:
+			i += 1
+			var path_from = navgraph[loc.layer][entity.attitude].get_point_path(start, ladder[0], false) 
+			if closest_path.size() > path_from.size() or i == 0:
+				closest_path.assign(path_from)
+				closest_ladder = i
 		
 		if closest_path.is_empty():
 			# No usable ladders in common between the entity's map and the destination map.
@@ -129,15 +139,16 @@ func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> P
 		## AStar2D returns Vector2 coordinates, but we need Vector3.
 		for tile in closest_path:
 			full_path.append(Vector3i(tile.x, loc.layer, tile.y))
-		var exit_ladder = Saliko.vec2i_id(destin_map.ladders[closest_ladder]) 
-		for tile in navgraph[loc.layer][entity.attitude].get_point_path(exit_ladder, stop):
+		var path_to = navgraph[destin_map.get_layer()][entity.attitude].get_point_path(common_ladders[closest_ladder][1], stop, true)
+		for tile in path_to:
 			full_path.append(Vector3i(tile.x, destin_map.get_layer(), tile.y))
-		
+	
+	block_navigation(loc.nav_coord, loc.layer)  # AStar2D Can't work if the character is sitting on a blocked tile.
 	return full_path
 
 ## Find the map and coordinate of a TacEntity.
 ## It will give the map closest to the entity with a lower Y position.[br]
-## Returns `tacmap`, `layer`, `map_coord` and `nav_coord`.
+## Returns [code]tacmap[/code], [code]layer[/code], [code]map_coord[/code] and [code]nav_coord[/code].
 func locate_entity(entity:TacEntity) -> Dictionary:
 	var coord : Vector2i = spatial2nav_tile(entity.position) # TacNav tile of the entity position
 	var relevant_maps = get_maps_at(coord)
@@ -189,31 +200,6 @@ func place_tile_sprite(texture:Texture2D, coord:Vector2i, map:TacMap=null) -> Sp
 	return sprite
 #endregion
 
-
-## Change connections of a cell in the one of the provided navigation graph dictionaries, according to the given transcodes.
-func set_navigation(...stuff):
-	pass
-
-func old_set_navigation(graph:Dictionary, layer:int, cell_id:int, adjacent:Array[int], transcodes:Array[Tac.Trans]):
-	var dir : int = -1
-	for adja in adjacent:
-		if not area[layer].has_point(Saliko.id_vec2i(adja)):  # Trying to disconnect or connect to non established cell.
-			continue
-		dir += 1
-		if transcodes[dir] == Tac.Trans.PASS:
-			for trans_type in graph[layer]:
-				var nav : AStar2D = graph[layer][trans_type]
-				nav.connect_points(cell_id, adja, false)
-			continue
-		else:
-			for trans_type in graph[layer]:
-				var nav : AStar2D = graph[layer][trans_type]
-				nav.disconnect_points(cell_id, adja, false)
-			if transcodes[dir] == null:
-				continue
-			var nav : AStar2D = graph[layer][transcodes[dir]]
-			nav.connect_points(cell_id, adja, false)
-
 ## Makes a tile in [code]navsession[/code] disabled such it can't be entered.
 ## Usually because there are characters occupying it.
 func block_navigation(tile:Vector2i, layer:int):
@@ -252,12 +238,16 @@ func queue_area(layer:int):
 	if not layer in area_outdated:
 		area_outdated.append(layer)
 
-# Finds a Rect2i that fully encloses the children maps on each given layer.
+## Finds a Rect2i that fully encloses the children maps on each given layer.
 func compute_area(layers:PackedInt32Array):
 	for layer in layers:
-		area[layer] = Rect2i()
+		var first := true
 		for map : TacMap in maps[layer]:
-			area[layer] = area[layer].merge(map.nav_area)
+			if first:
+				first = false
+				area[layer] = map.nav_area
+			else:
+				area[layer] = area[layer].merge(map.nav_area)
 		if not area[layer].has_area():
 			area.erase(layer)
 
@@ -269,7 +259,6 @@ func queue_nav(coordi:Vector3i):
 	var in_area = area[coordi.y].has_point(Saliko.Vec3RemAxis(coordi))
 	if not coordi in nav_outdated and in_area:
 		nav_outdated.append(coordi)
-
 
 func _process(_delta: float) -> void:
 	# This where frequent changes in terrain or area are handled, during level editing.
@@ -355,11 +344,51 @@ func _ready() -> void:
 		for tile in chara_tiles:
 			block_navigation(Vector2i(tile.x, tile.z), tile.y)
 
+
 ## Applies the rules for obstacle codes on [code]navproxy[/code].
 func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):
+	if not area[layer].has_point(nav_cell):
+		return
+	
 	var map_cell = nav2map(nav_cell, map)
 	var nav_coord = Vector3i(nav_cell.x, layer, nav_cell.y)
-	navproxy[nav_coord] = map.tiles[map_cell].find_codes()
+	var adjacent : Dictionary[Vector2i, TacTile]
+	for dir in Tac.Dir_Vect.values():
+		adjacent[nav_cell + dir] = map.tiles.get(map_cell + dir)
+	var map_tile : TacTile = map.tiles.get(map_cell)
+	var codes : PackedInt32Array = [0,0,0,0]
+	if map_tile != null:
+		codes = map_tile.find_codes()
+		var i : int = -1
+		
+		# Block paths towards undefined cells.
+		for cell in adjacent:
+			i += 1
+			var adja = adjacent[cell]
+			if adja == null:
+				codes[i] == Tac.Trans.NONE
+		
+		# Set path into and out of holes as "AERIAL".
+		if map_tile.has_floor:  # If the adjacent is a hole
+			for j in range(4):
+				var adja : TacTile = adjacent.values()[j]
+				if (adja == null or not adja.has_floor) and codes[j] == Tac.Trans.PASS:
+					codes[j] = Tac.Trans.AERIAL
+		else:  # If this cell is a hole
+			for j in range(4):
+				var adja : TacTile = adjacent.values()[j]
+				if adja != null and adja.has_floor:
+					codes[j] == Tac.Trans.AERIAL
+	
+	if nav_cell.x == area[layer].position.x:
+		codes[Tac.WEST] = Tac.Trans.NONE
+	if nav_cell.y == area[layer].position.y:
+		codes[Tac.NORTH] = Tac.Trans.NONE
+	if nav_cell.x == area[layer].end.x - 1:
+		codes[Tac.EAST] = Tac.Trans.NONE
+	if nav_cell.y == area[layer].end.y - 1:
+		codes[Tac.SOUTH] = Tac.Trans.NONE
+	navproxy[nav_coord] = codes
 
 ## Iterate over [code]area[/code] and [code]TacMap.tiles[/code] to find obstacle/transition codes.
 func build_navproxy(layer:int):
@@ -369,9 +398,11 @@ func build_navproxy(layer:int):
 			update_codes(nav_cell, layer, map)
 
 ## Convert data in [code]navproxy[/code] to connections in [code]AStar2D[/code] graphs.
+## This function trusts that [code]navproxy[/code] has precompute all conditions for transitions
+## properly, so here we don't do any checks with adjacent tiles or whatever.
 func build_navgraph():
 	for layer : int in area:
-		for nav_cell in Saliko.cells_of(Vector2i(0, area[layer].size.x), Vector2i(0, area[layer].size.y)):
+		for nav_cell in Saliko.cells_of(Vector2i(area[layer].position.x, area[layer].end.x), Vector2i(area[layer].position.y, area[layer].end.y)):
 			var coord = Vector3i(nav_cell.x, layer, nav_cell.y)
 			var cell_code = navproxy.get(coord, [])
 			if cell_code.is_empty():  # Tile is undefined.

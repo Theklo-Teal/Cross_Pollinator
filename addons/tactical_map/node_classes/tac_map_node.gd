@@ -15,8 +15,9 @@ class_name TacMap
 @export var size := Vector2i(12, 12) : 
 	set(val):
 		size = val.maxi(1)
-		notification(NOTIFICATION_TRANSFORM_CHANGED)
-		#TODO: update placements if size changes.
+		if is_node_ready():
+			notification(NOTIFICATION_TRANSFORM_CHANGED)
+			#TODO: update placements if size changes.
 
 # Info used to build the map.
 #NOTE: The spawners being in a dictionary ensures they are in unique coordinates. Also makes it fast to search if a coordinate is occupied.
@@ -156,10 +157,7 @@ func _ready() -> void:
 	
 	# Place objects with stored references.
 	for coord in tiles:
-		if tiles[coord].is_empty():
-			tiles.erase(coord)
-		else:
-			queue_place(coord)
+		queue_place(coord)
 	
 	_layer = get_layer()
 	
@@ -181,7 +179,10 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if not tile_queue.is_empty():
 		tile_queue.clear.call_deferred()
-		place_assets(tile_queue)
+		for cell in tile_queue:
+			if tiles.get(cell) == null or tiles.get(cell).is_empty():
+				tiles.erase(cell)
+			place_assets(cell)
 		var nav : TacNav = get_parent()
 	
 	if area_outdated:
@@ -195,47 +196,45 @@ func queue_place(cell:Vector2i):
 		nav.queue_nav.call_deferred(nav.map3nav(cell, self))
 		tile_queue.append(cell)
 
-## Update the visual assets from the TacTile UIDs
-func place_assets(coords:Array[Vector2i]):
+## Update the visual assets from a TacTile UID.
+func place_assets(cell:Vector2i):
 	var tacnav : TacNav = get_parent()
 	var self_area = Rect2i(Vector2i.ZERO, size)
 	
-	for coord in coords:
-		if not self_area.has_point(coord):
-			printerr("Not in map area: ", coord)
-			continue
-		var tile : TacTile = tiles.get(coord)
-		for each in placed.get(coord, []):
-			each.queue_free()
-		placed.erase(coord)
-		if tile == null:
-			continue
+	for each in placed.get(cell, []):
+		each.queue_free()
+	placed.erase(cell)
+	
+	if not self_area.has_point(cell) or not tiles.has(cell):
+		return
 		
-		var floor = tile.get_floor_asset(get_tile_size())
-		if not floor == null:
-			floor.position = tacnav.tile2spatial(coord, 0, true)
-			if tile.is_ceiling:
-				floor.position.y += get_tile_height()
-			floors.add_child(floor, false, Node.INTERNAL_MODE_BACK)
-			if not placed.has(coord):
-				placed[coord] = []
-			placed[coord].append(floor)
+	var tile : TacTile = tiles.get(cell)
+	var floor = tile.get_floor_asset(get_tile_size())
+	if not floor == null:
+		floor.position = tacnav.tile2spatial(cell, 0, true)
+		if tile.is_ceiling:
+			floor.position.y += get_tile_height()
+		floors.add_child(floor, false, Node.INTERNAL_MODE_BACK)
+		if not placed.has(cell):
+			placed[cell] = []
+		placed[cell].append(floor)
 		
 		for wall in tile.get_walls_asset():
-			wall.position = tacnav.tile2spatial(coord, 0, true,)
+			wall.position = tacnav.tile2spatial(cell, 0, true,)
 			walls.add_child(wall, false, Node.INTERNAL_MODE_FRONT)
-			if not placed.has(coord):
-				placed[coord] = []
-			placed[coord].append(wall)
+			if not placed.has(cell):
+				placed[cell] = []
+			placed[cell].append(wall)
 
-func set_tile_asset(coord:Vector2i, side:Vector2i, info_uid:String):
-	queue_place(coord)
+## Create or update tile, Ie. Put a new [code]TacTile[/code] in [code]tiles[/code].
+func set_tile_asset(cell:Vector2i, side:Vector2i, info_uid:String):
+	queue_place(cell)
 	var asset_info : Resource = Tac.pallet_info[info_uid]
-	var tile = tiles.get_or_add(coord, TacTile.new())
+	var tile = tiles.get_or_add(cell, TacTile.new())
 	if asset_info is FloorInfo:
-		tiles[coord].floor = info_uid
-		tiles[coord].floor_dir = side
-		tiles[coord].has_floor = asset_info.is_solid
+		tiles[cell].floor = info_uid
+		tiles[cell].floor_dir = side
+		tiles[cell].has_floor = asset_info.is_solid
 	elif asset_info is WallInfo:
 		const wall_side = {
 			Vector2i.RIGHT : "wall_east",
@@ -243,7 +242,7 @@ func set_tile_asset(coord:Vector2i, side:Vector2i, info_uid:String):
 			Vector2i.UP : "wall_north",
 			Vector2i.DOWN : "wall_south",
 		}
-		tiles[coord].set(wall_side[side], info_uid)
+		tiles[cell].set(wall_side[side], info_uid)
 
 
 func get_tile_size() -> float:

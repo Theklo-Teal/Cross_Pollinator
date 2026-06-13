@@ -24,6 +24,10 @@ enum ATT{  ## Which navigation graph the entity uses.
 func _ready():
 	input_ray_pickable = true
 	collision_layer = Con.phys_layer["tac_entity"]
+	
+	var loc = get_tacnav().locate_entity(self)
+	var coordi = Saliko.Vec2AddAxis(loc.nav_coord, 1, loc.layer)
+	next_step = get_tacnav().nav3spatial(coordi, true)
 
 
 func _get_configuration_warnings() -> PackedStringArray:
@@ -79,19 +83,17 @@ var trajectory : Array[Vector3i]  ## The path the character will try to walk alo
 ## Returns [code]ERR_CANT_CONNECT[/code] If the path couldn't be resolved at all. Eg. requires ladders
 ## That aren't available, [code]tacmap[/code] is [code]null[/code] or destination is outside the map.
 func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Error:
-	
 	if destination == get_nav_coord():
 		return ERR_ALREADY_EXISTS
 	if tacmap == null:
 		return ERR_CANT_CONNECT
-	if tacmap.tiles.get(destination) == null:
+	if tacmap.tiles.get(get_tacnav().nav2map(destination, tacmap)) == null:
 		return ERR_CANT_CONNECT
 	
 	var result : Error = ERR_BUG
-	
 	var destin := Vector3i(destination.x, tacmap.get_layer(), destination.y)
-
 	last_step = get_nav_coord3()
+	
 	if teleport:
 		trajectory = [destin]
 		take_a_step()  # Update information where the character goes first.
@@ -147,6 +149,9 @@ func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
 	return OK
 
 #NOTE This function is not doing much, but it's here in case a use comes up, I don't have to rename things.
+## Condition may be the error produced by the last call to [code]traversal_start()[/code] or
+## [code]take_a_step()[/code], enabling different solutions depending on the
+## circunstances of the end of travel, but TacEntity alone doesn't call this function.
 func traversal_finish(condition:Error=OK) -> Error:
 	return _traversal_finish(condition)
 

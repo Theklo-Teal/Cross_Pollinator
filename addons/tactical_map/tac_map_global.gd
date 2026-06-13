@@ -8,6 +8,13 @@ enum Dir{
 	NORTH
 }
 
+enum {
+	EAST,
+	SOUTH,
+	WEST,
+	NORTH
+}
+
 const Dir_Vect = {
 	"EAST" : Vector2i.RIGHT,
 	"SOUTH" : Vector2i.DOWN,
@@ -28,8 +35,8 @@ const TColor = {  ## Colors of Trans for the navigation overlay.
 	Tac.Trans.CRAWL : Color(0.85490197, 0.64705884, 0.1254902, 0.3),
 	Tac.Trans.HALF : Color(1, 0.49803922, 0.3137255, 0.3),
 	Tac.Trans.TALL : Color(1, 0, 0, 0.3),
-	Tac.Trans.AERIAL : Color(0.25490198, 0.4117647, 0.88235295, 0.3),
-	Tac.Trans.NONE : Color(0, 0, 0, 0.3)
+	Tac.Trans.AERIAL : Color(0.25490198, 0.4117647, 0.88235295, 0.5),
+	Tac.Trans.NONE : Color(0, 0, 0, 1)
 	}
 
 enum Hazard{

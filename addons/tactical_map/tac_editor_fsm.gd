@@ -11,6 +11,7 @@ extends EditorPlugin
 
 #FIXME Spawner placement seems unreliable? Not always returning EditorPlugin.AFTER_GUI_INPUT_STOP or something.
 #FIXME Alternate mode of adding walls (to produce opposite/external walls) shouldn't try to place on tiles outside the map.
+#FIXME Navoverlay not updating as objects are placed.
 
 #NOTE How to use undo_redo
 	##undo_redo.create_action("TacMap: set floor tiles")
@@ -196,7 +197,7 @@ class Paint_Mode extends TacEditorState:
 	func while_dragging(alt:bool, left, right):
 		if me.pallet.get_paint_tool() == "Area":
 			area_polygon = me.get_map_area(me.map_start_tile, me.map_hover_tile, me.curr_map, 0.1)
-			me.update_cam_view(me.last_cam)
+			me.update_cam_view.call_deferred(me.last_cam)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func left_press(alternate:bool):
@@ -212,13 +213,13 @@ class Paint_Mode extends TacEditorState:
 	func left_release(alt:bool):
 		if not area_polygon.is_empty():
 			area_polygon.clear()
-			me.update_cam_view(me.last_cam)
+			me.update_cam_view.call_deferred(me.last_cam)
 		if me.is_dragging:
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	func right_release(alt:bool):
 		if not area_polygon.is_empty():
 			area_polygon.clear()
-			me.update_cam_view(me.last_cam)
+			me.update_cam_view.call_deferred(me.last_cam)
 		if me.is_dragging:
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 

@@ -35,7 +35,8 @@ func _input(event: InputEvent) -> void:
 		if NO_NAV:
 			next_step = Saliko.Vec2AddAxis(Tac.hover_tile_nav,0,get_nav_layer())
 		else:
-			print(\"Start towards \", Tac.hover_tile_nav, \": \", error_string(traversal_start(Tac.hover_tile_nav, Tac.hover_map))) 
+			var travel_error = traversal_start(Tac.hover_tile_nav, Tac.hover_map)
+			print(\"Start towards \", Tac.hover_tile_nav, \": \", error_string(travel_error)) 
 "
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_x3r04"]
@@ -46,13 +47,7 @@ metallic = 0.5
 metallic_specular = 1.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f1u3u"]
-albedo_color = Color(0.21197829, 0.68570435, 0.99999994, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qusxn"]
-albedo_color = Color(0.023529412, 0.52156866, 0, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uoc03"]
-albedo_color = Color(0.72987926, 0.2387226, 0, 1)
+albedo_color = Color(0.14509805, 0.36078432, 1, 1)
 
 [node name="SimpleCharacter" type="Area3D" unique_id=345150261]
 script = SubResource("GDScript_f1u3u")
@@ -64,29 +59,22 @@ shape = SubResource("SphereShape3D_x3r04")
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=1184042913]
 
-[node name="CSGPolygon3D" type="CSGPolygon3D" parent="CSGCombiner3D" unique_id=1517424882]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.25)
-polygon = PackedVector2Array(0.2, 1.2, 0.5, 1.2, 0.25, 0.8, 0.4, 0, 0, 0.5, -0.4, 0, -0.25, 0.8, -0.5, 1.2, -0.2, 1.2, 0, 1.8)
-depth = 0.5
+[node name="Star" type="CSGPolygon3D" parent="CSGCombiner3D" unique_id=1517424882]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+polygon = PackedVector2Array(0.05, 1.6, 0.15392357, 1.6134505, 0.06793899, 1.5256178, 0.10550757, 1.3808912, 0, 1.46, -0.08689657, 1.3743882, -0.061109394, 1.5238153, -0.16008046, 1.6038846, -0.05, 1.6, 0, 1.75)
+depth = 0.2
 material = SubResource("StandardMaterial3D_x3r04")
 
-[node name="CSGCylinder3D" type="CSGCylinder3D" parent="CSGCombiner3D" unique_id=834624115]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1, 0.39463723)
-radius = 0.1
-height = 0.3
+[node name="Body" type="CSGCylinder3D" parent="CSGCombiner3D" unique_id=1942470445]
+transform = Transform3D(1, 0, 0, 0, -1, -8.742278e-08, 0, 8.742278e-08, -1, 0, 0.6511961, 0.019799987)
+radius = 0.26757813
+height = 1.2585694
+sides = 6
 cone = true
+material = SubResource("StandardMaterial3D_x3r04")
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="CSGCombiner3D" unique_id=1222171952]
+transform = Transform3D(0.66272473, -0.7488631, -3.2733848e-08, 0, -4.371139e-08, 1, -0.7488631, -0.66272473, -2.8968618e-08, 0, 1.3278688, 0.31997526)
+polygon = PackedVector2Array(0, 0, 0.056072682, 0.23558542, 0.22661367, 0.057356164)
+depth = 0.35
 material = SubResource("StandardMaterial3D_f1u3u")
-
-[node name="CSGCylinder3D2" type="CSGCylinder3D" parent="CSGCombiner3D" unique_id=1289087179]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9364033, 0.019799948)
-radius = 0.1
-height = 0.3
-cone = true
-material = SubResource("StandardMaterial3D_qusxn")
-
-[node name="CSGCylinder3D3" type="CSGCylinder3D" parent="CSGCombiner3D" unique_id=548974241]
-transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, 0.60429597, 1.2028418, 0.019799948)
-radius = 0.1
-height = 0.3
-cone = true
-material = SubResource("StandardMaterial3D_uoc03")
