@@ -4,7 +4,9 @@ class_name TacNav
 
 ## A node that handles the navigation of multiple TacMaps and places characters where spawners are marked.
 
-signal navsession_changed(tile_coord : Array[Vector3i], tile:TacTile)
+signal zone_entered(entity: TacEntity, zone: StringName)
+signal zone_exited(entity: TacEntity, zone: StringName)
+signal nav_changed(nav_tile : Array[Vector3i], tile:TacTile)
 
 #NOTE This node only produces navigation graphs when first ready on an executed project. 
 # Otherwise it uses «navproxy» which is easily modified. Modifications to children 
@@ -164,8 +166,11 @@ func check_zone(actor:TacEntity, ini:Vector3i, end:Vector3i) -> Dictionary:
 		if checked.get(zone, false):  # Is a zone in end already checked?
 			checked.erase(zone)  # Remove from checked, leaving only uniques to ini
 		else:
-			ans.entered.append(zone, actor)  # Not found in ini, so is unique to end
+			zone_entered.emit(actor, zone)
+			ans.entered.append(zone)  # Not found in ini, so is unique to end
 	ans.exited = checked.keys()  # Only the uniques to ini are left.
+	for each in ans.exited:
+		zone_exited.emit(actor, each)
 	return ans
 
 ## Produce a sprite that fits a tile. Optionally provide a map if the [code]coord[/code] is relative to it.
@@ -281,8 +286,10 @@ func _process(_delta: float) -> void:
 			var layer = coord3i.y
 			var nav_cell = Vector2i(coord3i.x, coord3i.z)
 			
-			# Change the NavProxy
 			var map = get_map_at(nav_cell, layer)
+			nav_changed.emit(coord3i, map.tiles.get(nav2map(nav_cell, map)))
+			
+			# Change the NavProxy
 			update_codes(nav_cell, layer, map)
 			
 			if not OS.has_feature("editor_hint"):
@@ -297,7 +304,7 @@ func _ready() -> void:
 		area_outdated.clear()
 	
 	# Establish the existence of things.
-	var chara_tiles : Array[Vector3i]  # Where characters are being placed, so we can block those tiles.
+	var chara_tiles : Array[Vector3i]  # Where entities are being placed, so we can block those tiles.
 	for layer in maps:
 		var layer_cells : Dictionary[int, Dictionary] # [tile_id][transcodes / adjacent_ids] -> Array[int] / Array[int]
 		
@@ -375,7 +382,7 @@ func build_navgraph():
 				graph.add_point(cell_id, nav_cell)
 				
 				for oppo in [0, 1]:  # We are scanning from towards positive x and y, so we check tiles in the north, west direction, and adjacent in the east, south, which are opposite.
-					var side = [2,3][i]
+					var side = [2,3][oppo]
 					var trans : Tac.Trans = navproxy[coord][side]
 					var adja_cell = [Vector2i.LEFT, Vector2i.UP][oppo] + nav_cell
 					var adja_coord = Vector3i(adja_cell.x, layer, adja_cell.y)

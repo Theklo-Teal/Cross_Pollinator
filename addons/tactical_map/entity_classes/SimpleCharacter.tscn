@@ -11,24 +11,29 @@ const NO_NAV := false  ## If true, the character just moves in straight lines.
 
 var just_stopped := true
 
-var err : Error
+func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
+	if not zones_entered.is_empty():
+		print(\"Entered: \", zones_entered)
+	return OK
+
+
 func _process(delta: float) -> void:
-	if trajectory.is_empty() or position.is_equal_approx(trajectory[0]):
+	if trajectory.is_empty():
 		if not just_stopped:
 			just_stopped = true
-			print(\"Step: \", error_string(err) )
 			print(\"Finish: \", error_string(traversal_finish()) ) 
 		return
-	if NO_NAV:
-		position = position.move_toward(trajectory[0], STRIDE * delta)
+	elif position.is_equal_approx(next_step):
+		print(\"Step: \", error_string(take_a_step()) )
 	else:
-		err = take_a_step()
+		position = position.move_toward(next_step, STRIDE * delta)
+
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_released(Tac.command_input()):
 		just_stopped = false
 		if NO_NAV:
-			trajectory = [Tac.hover_nav.nav3spatial(Saliko.Vec2AddAxis(Tac.hover_tile_nav, 1, Tac.hover_layer), true)]
+			next_step = Saliko.Vec2AddAxis(Tac.hover_tile_nav,0,get_nav_layer())
 		else:
 			print(\"Start towards \", Tac.hover_tile_nav, \": \", error_string(traversal_start(Tac.hover_tile_nav, Tac.hover_map))) 
 "

@@ -419,7 +419,19 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_cxtx8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cxtx8"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.25882354, 0.54509807, 0.25882354, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_le7gg"]
 allow_unpress = true
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_8tvhu"]
@@ -760,7 +772,7 @@ layout_mode = 2
 [node name="Spawner_Opts" type="OptionButton" parent="VBoxContainer2/Terrains/other/VBoxContainer3" unique_id=1883321447]
 unique_name_in_owner = true
 layout_mode = 2
-selected = 0
+selected = 1
 item_count = 2
 popup/item_0/text = "NPC Cluster"
 popup/item_0/id = 0
@@ -779,8 +791,9 @@ horizontal_alignment = 3
 [node name="add_spawner" type="Button" parent="VBoxContainer2/Terrains/other/VBoxContainer3" unique_id=1389620873]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cxtx8")
 toggle_mode = true
-button_group = SubResource("ButtonGroup_cxtx8")
+button_group = SubResource("ButtonGroup_le7gg")
 text = "Spawner"
 
 [node name="Zoning" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=386748457]
@@ -805,8 +818,9 @@ allow_reselect = true
 [node name="ZoneAdd" type="Button" parent="VBoxContainer2/Terrains/other/Zoning" unique_id=228948769]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cxtx8")
 toggle_mode = true
-button_group = SubResource("ButtonGroup_cxtx8")
+button_group = SubResource("ButtonGroup_le7gg")
 text = "Zoning"
 
 [node name="Ladders" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=800851058]
@@ -833,8 +847,9 @@ allow_reselect = true
 [node name="LadderAdd" type="Button" parent="VBoxContainer2/Terrains/other/Ladders" unique_id=930310111]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cxtx8")
 toggle_mode = true
-button_group = SubResource("ButtonGroup_cxtx8")
+button_group = SubResource("ButtonGroup_le7gg")
 text = "Ladders"
 
 [node name="Spacer" type="Control" parent="VBoxContainer2/Terrains/other" unique_id=662946271]
@@ -933,9 +948,10 @@ icon = SubResource("AtlasTexture_eqgd2")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cxtx8")
 toggle_mode = true
 button_pressed = true
-button_group = SubResource("ButtonGroup_cxtx8")
+button_group = SubResource("ButtonGroup_le7gg")
 text = "Capture Tile"
 
 [node name="Coordi_Opts" type="VBoxContainer" parent="VBoxContainer2/Terrains/other" unique_id=1870087275]

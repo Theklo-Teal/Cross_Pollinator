@@ -90,7 +90,7 @@ func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Er
 	var result : Error = ERR_BUG
 	
 	var destin := Vector3i(destination.x, tacmap.get_layer(), destination.y)
-	
+
 	last_step = get_nav_coord3()
 	if teleport:
 		trajectory = [destin]
@@ -104,7 +104,8 @@ func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Er
 			trajectory.pop_back()  # Remove the current entity position.
 			if not trajectory[0] == destin: # Trajectory is a partial path.
 				result = ERR_QUERY_FAILED
-			take_a_step()  # Update information where the character goes first.
+			else:
+				result = take_a_step()  # Update information where the character goes first.
 	result = _traversal_start(result, destin, teleport)
 	return result
 

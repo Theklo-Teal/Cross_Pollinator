@@ -24,7 +24,7 @@ enum Trans{  ## Tile transisition types
 	NONE,  ## There's nothing that can cross, transition won't connect in any navgraph.
 }
 const TColor = {  ## Colors of Trans for the navigation overlay.
-	Tac.Trans.PASS : Color(0.87058824, 0.72156864, 0.5294118, 0.3),
+	Tac.Trans.PASS : Color.TRANSPARENT, #Color(0.87058824, 0.72156864, 0.5294118, 0.3),
 	Tac.Trans.CRAWL : Color(0.85490197, 0.64705884, 0.1254902, 0.3),
 	Tac.Trans.HALF : Color(1, 0.49803922, 0.3137255, 0.3),
 	Tac.Trans.TALL : Color(1, 0, 0, 0.3),
