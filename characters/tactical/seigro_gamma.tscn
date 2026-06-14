@@ -17,13 +17,19 @@ var voice = {
 	\"later\" : preload(\"res://assets/voices/farewell_3_karen.wav\"),
 	}
 
+var anime = {
+	&\"idle\": &\"act_idle\",
+	&\"walk\": &\"act_walk_PHY\",
+	&\"sprint\": &\"act_run_PHY\",
+	}
+
 func audio_speak(speech:StringName):
-	$voice.stream = voice[speech]
+	$voice.stream = voice.get(speech, speech)
 	$voice.play()
 	return await $voice.finished
 
 func animate(seq:StringName, duration:=NAN):
-	$body_model/AnimationPlayer.play(seq)
+	$body_model/AnimationPlayer.play(anime.get(seq, seq))
 	if is_inf(duration):
 		return
 	if not is_nan(duration):
@@ -33,11 +39,6 @@ func animate(seq:StringName, duration:=NAN):
 	await $body_model/AnimationPlayer.animation_finished
 	$body_model/AnimationPlayer.stop(true)
 	return
-
-func _traversal_start(curr_error:Error, destination:Vector3i, teleport:=false) -> Error:
-	animate(\"act_walk_PHY\", INF)
-	audio_speak(\"on_the_way\")
-	return OK
 "
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_4xrqf"]

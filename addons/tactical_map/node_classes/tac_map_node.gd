@@ -192,8 +192,6 @@ func _process(_delta: float) -> void:
 var tile_queue : Array[Vector2i]  # Dirty Pattern: We append all the coordinates that need contents updated here, then only on the next frame are they updated, once the decision of what to update is final.
 func queue_place(cell:Vector2i):
 	if not cell in tile_queue and Rect2i(Vector2i.ZERO, size).has_point(cell):
-		var nav : TacNav = get_parent()
-		nav.queue_nav.call_deferred(nav.map3nav(cell, self))
 		tile_queue.append(cell)
 
 ## Update the visual assets from a TacTile UID.
@@ -219,12 +217,12 @@ func place_assets(cell:Vector2i):
 			placed[cell] = []
 		placed[cell].append(floor)
 		
-		for wall in tile.get_walls_asset():
-			wall.position = tacnav.tile2spatial(cell, 0, true,)
-			walls.add_child(wall, false, Node.INTERNAL_MODE_FRONT)
-			if not placed.has(cell):
-				placed[cell] = []
-			placed[cell].append(wall)
+	for wall in tile.get_walls_asset():
+		wall.position = tacnav.tile2spatial(cell, 0, true,)
+		walls.add_child(wall, false, Node.INTERNAL_MODE_FRONT)
+		if not placed.has(cell):
+			placed[cell] = []
+		placed[cell].append(wall)
 
 ## Create or update tile, Ie. Put a new [code]TacTile[/code] in [code]tiles[/code].
 func set_tile_asset(cell:Vector2i, side:Vector2i, info_uid:String):

@@ -16,7 +16,6 @@ var on_abort : Callable  ## If this action can be interrupted to change to other
 
 func _init(character:TacCharacter) -> void:
 	me = character
-	me.add_to_group("observer_character_select")
 
 func my(node:NodePath):
 	return me.get_node(node)
@@ -41,11 +40,6 @@ func process(delta:float):
 
 func input(event:InputEvent):
 	pass
-
-func _on_character_selected(chara:TacCharacter):
-	#FIXME The character isn't executing this as expected.
-	if chara == self:
-		on_being_selected()
 
 func on_being_selected():
 	pass

@@ -3,7 +3,11 @@ class_name TacEntity
 
 ## The base of all object placed by a TacNav that can be clicked on for interaction.
 
-#FIXME have a way for tacnav.block/unblock to not throw error if character is using ladders.
+#TODO Have a way for entity to know when it's crossing a ladder
+#TODO Have ladder crossed within the same layer to teleport characters
+
+#FIXME Allow traversal between maps of the same layer before reaching and crossing a ladder.
+#FIXME Have a way for tacnav.block/unblock to not throw error if character is using ladders.
 
 signal interacted  ## The player tried to click on this object.
 
@@ -45,17 +49,15 @@ func _mouse_exit() -> void:
 	mouse_hover = false
 func _input(event: InputEvent) -> void:  #TODO make work with _unhandled_input()?
 	## A player's attemt to interact with this object.
-	if event.is_action_released(Tac.interact_input()) and mouse_hover:
+	if event.is_action_released(Tac.command_input()) and mouse_hover:
 		interaction()
 		interacted.emit()
 		#var chara_coord = Ses.curr_unit().get_global_coord()
 		#var self_coord = get_global_coord()
 		#if chara_coord.distance_to(self_coord) <= interact_distance:
 			#interacted.emit(self, Ses.curr_unit())
-
 func interaction() -> Error:
 	return _interaction()
-
 func _interaction() -> Error:
 	return OK
 
@@ -65,6 +67,11 @@ func text_speak(speech:StringName):
 func audio_speak(speech:StringName):
 	pass
 
+## Play an animation, if available. It's up to the entity's script extending this
+## to implement how animation is done.[br]
+## If duration is INF, the animation should loop forever.
+## If duration is NAN, the animation should run one cycle and stop.
+## A duration value will loop or halt the animation so it lasts the given seconds.
 func animate(sequence:StringName, duration:float=NAN):
 	pass
 
@@ -144,6 +151,7 @@ func take_a_step() -> Error:
 ## Return whether the movement to the «step» tile was successful. Errors won't halt the movement
 ## Return [code]ERR_CANT_CONNECT[/code] if that's desired.
 func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
+	#FIXME Make character look at higher side of a ladder.
 	if last_step.y == step.y:
 		look_at(next_step, Vector3.UP, true)
 	return OK

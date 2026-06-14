@@ -4,7 +4,8 @@ class_name TacticalMapEditor
 
 #TODO Handle drawing for the multiple 3D viewports. Infrastructure for it already exists as the `cam_view` dictionary.
 #TODO Refactor zone and Ladder add/rem is prone to glitches, accounting to how it's listed in the panels and change of active when adding, changing maps, ect.
-#TODO Test zone enter/exit logic in TacMap
+
+#FIXME Problem with `handles()`? Maybe just an illusion when the selected tool is not what is expected. Sometimes maps lose input reponse.
 
 #WARNING We must not call for "Tac" (tac_map_global.gd) in this script. It can only enable or disable it.
 
@@ -82,11 +83,16 @@ func _handles(object) -> bool:
 		curr_map = object
 		curr_nav = curr_map.get_parent()
 		pallet.map_changed(curr_map)
+		update_cam_view(last_cam) 
+		update_alt_view(last_cam)
 		return true
 	else:
 		if curr_map != null:
 			curr_map = null
 			pallet.map_changed(null)
+			# Clear overlays
+			update_cam_view(last_cam) 
+			update_alt_view(last_cam)
 		return false
 
 var last_bottom_panel : int
@@ -124,7 +130,8 @@ func _process(_delta: float) -> void:
 			camera_moved = true
 			update_cam_view(last_cam)  # Adjust perspective on space overlays.
 			update_alt_view(last_cam)  # Will hide the hover tile indicator
-			
+		if not curr_nav == null:
+			modes[curr_mode()].relieve_queue()
 #endregion
 
 #region Input Events
@@ -261,21 +268,27 @@ func on_cam_view_draw(canvas:Control, cam:Camera3D) -> void:
 	
 	# Navigation Graph Overlay
 	if pallet.is_nav_overlay_visible():
+		const corner = [Vector3(0.4, 0, -0.4), Vector3(0.4, 0, 0.4), Vector3(-0.4, 0, 0.4), Vector3(-0.4, 0, -0.4)]
 		var nav_overlay : Array[PackedVector2Array]
 		nav_overlay.resize(Tac.Trans.size())
 		var dir = Tac.Dir_Vect.values()
-		for coordi : Vector3i in curr_nav.navproxy:
-			var coord : Vector3 = curr_nav.nav3spatial(coordi, true)
-			var code := curr_nav.navproxy[coordi]
-			var corner = [Vector3(0.4, 0, -0.4), Vector3(0.4, 0, 0.4), Vector3(-0.4, 0, 0.4), Vector3(-0.4, 0, -0.4)]
-			for i in range(4):
-				# Drawing the edges of tiles.
-				var v1 = corner[i] * curr_nav.tile_size + coord
-				var v2 = corner[(i+1) % 4] * curr_nav.tile_size + coord
-				if cam.is_position_in_frustum(v1) and cam.is_position_in_frustum(v2):
-					var from = cam.unproject_position(v1)
-					var to = cam.unproject_position(v2)
-					nav_overlay[code[i]].append_array([from, to])
+		var x_range = Vector2i(curr_map.nav_area.position.x, curr_map.nav_area.end.x)
+		var y_range = Vector2i(curr_map.nav_area.position.y, curr_map.nav_area.end.y)
+		for nav_cell in Saliko.cells_of(x_range, y_range):
+			for layer in curr_nav.maps:
+				if not curr_nav.area[layer].has_point(nav_cell):
+					continue
+				var coordi := Vector3i(nav_cell.x, layer, nav_cell.y)
+				var coord := curr_nav.nav3spatial(coordi, true)
+				var code := curr_nav.navproxy.get(coordi, [0,0,0,0])
+				for i in range(4):
+					# Drawing the edges of tiles.
+					var v1 = corner[i] * curr_nav.tile_size + coord
+					var v2 = corner[(i+1) % 4] * curr_nav.tile_size + coord
+					if cam.is_position_in_frustum(v1) and cam.is_position_in_frustum(v2):
+						var from = cam.unproject_position(v1)
+						var to = cam.unproject_position(v2)
+						nav_overlay[code[i]].append_array([from, to])
 		for i in range(Tac.Trans.size()):
 			if not nav_overlay[i].is_empty():
 				canvas.draw_multiline(nav_overlay[i], Tac.TColor[i], 8)
@@ -420,10 +433,8 @@ func set_tile_asset(coord:Vector2i, side:Vector2i):
 		printerr("TacMap Editor: No valid active asset!")
 		return
 	curr_map.set_tile_asset(coord, side, asset_info_uid)
-	curr_nav.queue_nav(curr_nav.map3nav(coord, curr_map))
 
 func rem_tile_asset(coord:Vector2i, side:=Vector2i.ZERO):
-	curr_nav.queue_nav(curr_nav.map3nav(coord, curr_map))
 	var tile : TacTile = curr_map.tiles.get(coord)
 	if tile == null:
 		return

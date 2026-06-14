@@ -8,8 +8,6 @@ var save_filename : String
 var save := ConfigFile.new()
 
 func _ready() -> void:
-	add_to_group("observer_character_select")
-	
 	if not DirAccess.dir_exists_absolute("user://savedata/"):
 		DirAccess.make_dir_absolute("user://savedata/")
 	
@@ -21,6 +19,3 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	save.save(save_filename)
-
-func _on_character_selected(chara:TacCharacter):
-	pass

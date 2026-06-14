@@ -12,17 +12,19 @@ func _init(character:TacCharacter) -> void:
 func store_history() -> bool:
 	return false
 
-var stride := 1.6
+var stride := 3.5
 var nav_error : Error
 
 func enter(_prev:CharaAction):
 	nav_error = me.traversal_start(Tac.hover_tile, Tac.hover_map)
 	if nav_error == ERR_ALREADY_EXISTS or nav_error == ERR_CANT_CONNECT:
 		me.proceed(&"idle")
+	else:
+		me.animate(&"sprint", INF)
 
 func exit(_next:CharaAction):
-	if nav_error == OK:
-		me.audio_speak("ready")
+	if nav_error == OK and randf() > 0.6:
+		me.audio_speak(&"complete")
 	me.traversal_finish(OK)
 
 func process(delta:float):

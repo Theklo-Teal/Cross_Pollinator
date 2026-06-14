@@ -89,6 +89,7 @@ func get_maps_at(coord:Vector2i) -> Array[TacMap]:
 ## The entity tried to move between layers, but its maps and destin_map don't
 ## have ladders connecting them, or exiting ladders can't be used.[br]
 func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> PackedVector3Array:
+	#FIXME Character can't find path where it needs to change map in the same layer before climbing a ladder.
 	var loc = locate_entity(entity)
 	
 	if loc.tacmap == null or destin_map == null:  # Couldn't find the map the entity is on or where it's going.
@@ -257,14 +258,17 @@ func compute_area(layers:PackedInt32Array):
 		if not area[layer].has_area():
 			area.erase(layer)
 
-func queue_nav(coordi:Vector3i):
-	#NOTE Can't check if «coordi» is in the area here, because during «_ready()» 
-	# there will be «queue_nav()» calls that will be filtered out as the «area_queue»
-	# hasn't been processed yet, the associated Rect2i will have no size, so there
-	# won't be areas that contain the «coordi».
-	var in_area = area[coordi.y].has_point(Saliko.Vec3RemAxis(coordi))
-	if not coordi in nav_outdated and in_area:
-		nav_outdated.append(coordi)
+
+## flag one of more tiles for recalculating navigation, but takes and array.
+func queue_nav_arr(coords:Array):
+	for coordi in coords:
+		var in_area = area[coordi.y].has_point(Saliko.Vec3RemAxis(coordi))
+		if not coordi in nav_outdated and in_area:
+			nav_outdated.append(coordi)
+
+## Flag one or more tiles for recalculating navigation.
+func queue_nav(...coords):
+	queue_nav_arr(coords)
 
 func _process(_delta: float) -> void:
 	# This where frequent changes in terrain or area are handled, during level editing.
@@ -341,7 +345,7 @@ func _ready() -> void:
 		
 		#NOTE We always compute the navproxy. `navgraph` relies on it. If the game is started without the editor, we will still need the proxy.
 		build_navproxy(layer)
-		
+	
 	if not OS.has_feature("editor_hint"):
 		build_navgraph()
 		# `Navsession` is just a copy of `navgraph` at the start, but what's used in-game for pathfinding
@@ -349,9 +353,6 @@ func _ready() -> void:
 		navsession = navgraph.duplicate_deep()
 		for tile in chara_tiles:
 			block_navigation(Vector2i(tile.x, tile.z), tile.y)
-
-func at_map_edge(map_cell:Vector2i, map:TacMap):
-		return map_cell.x == 0 or map_cell.y == 0 or map_cell.x == map.size.x - 1 or map_cell.y == map.size.y - 1
 
 ## Applies the rules for obstacle codes on [code]navproxy[/code].
 func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):
@@ -362,7 +363,7 @@ func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):
 	var nav_coord = Vector3i(nav_cell.x, layer, nav_cell.y)
 	var adjacent : Dictionary[Vector2i, TacTile]
 	for dir in Tac.Dir_Vect.values():
-		adjacent[nav_cell + dir] = map.tiles.get(map_cell + dir)
+		adjacent[map_cell + dir] = map.tiles.get(map_cell + dir)
 	var map_tile : TacTile = map.tiles.get(map_cell)
 	var codes : PackedInt32Array = [0,0,0,0]
 	if map_tile != null:
@@ -377,7 +378,7 @@ func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):
 			codes[i] == Tac.Trans.NONE
 	
 	# Set path into and out of holes as "AERIAL".
-	for j in range(4):
+	for j in range(4):  # For each adjacent tile
 		var adja : TacTile = adjacent.values()[j]
 		var adja_cell : Vector2i = adjacent.keys()[j]
 		if Rect2i(Vector2i.ZERO, map.size).has_point(adja_cell):  # We want to keep map edges possible to cross, so characters can cross between maps of the same layer
@@ -385,10 +386,6 @@ func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):
 				# If the adjacent is a hole
 				if (adja == null or not adja.has_floor) and codes[j] == Tac.Trans.PASS:
 					codes[j] = Tac.Trans.AERIAL
-			else:
-				# If this cell is a hole
-				if adja != null and adja.has_floor:
-					codes[j] == Tac.Trans.AERIAL
 
 	if nav_cell.x == area[layer].position.x:
 		codes[Tac.WEST] = Tac.Trans.NONE
@@ -501,8 +498,8 @@ func map2spatial_tile(coordi:Vector2i, map:TacMap) -> Vector2i:
 
 ## Returns the Global 3D coordinate of a tile in the TacMap. Optionally point to the center of the tile on the XZ plane.
 func map3spatial(coordi:Vector2i, map:TacMap, centered:=false) -> Vector3:
-	var coord : Vector3 = tile3spatial(Saliko.Vec2AddAxis(coordi, 1, map.position.y), centered)
-	return coord + position
+	var coord : Vector3 = tile3spatial(Saliko.Vec2AddAxis(coordi), centered)
+	return coord + position + map.position
 #endregion
 
 #region To TacNav

@@ -90,6 +90,18 @@ func get_map_area(from:Vector2i, to:Vector2i, tacmap:TacMap=null, offset:float=0
 
 @abstract class TacEditorState:
 	var me : TacticalMapEditor
+	var update_queue : Array[Vector3i]  # In Nav coordinates with layer as Y; Tiles to have navigation updated at the end of an operation.
+	
+	func queue_update(map_cell:Vector2i):
+		var nav_coord = me.curr_nav.map3nav(map_cell, me.curr_map)
+		if not nav_coord in update_queue:
+			update_queue.append(nav_coord)
+	
+	func relieve_queue():
+		if not (me.curr_nav == null or update_queue.is_empty()):
+			me.curr_nav.queue_nav_arr(update_queue)
+			update_queue.clear()
+			me.update_cam_view(me.last_cam)
 	
 	func _init(manager:TacticalMapEditor):
 		me = manager
@@ -197,7 +209,7 @@ class Paint_Mode extends TacEditorState:
 	func while_dragging(alt:bool, left, right):
 		if me.pallet.get_paint_tool() == "Area":
 			area_polygon = me.get_map_area(me.map_start_tile, me.map_hover_tile, me.curr_map, 0.1)
-			me.update_cam_view.call_deferred(me.last_cam)
+			me.update_cam_view(me.last_cam)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func left_press(alternate:bool):
@@ -213,16 +225,15 @@ class Paint_Mode extends TacEditorState:
 	func left_release(alt:bool):
 		if not area_polygon.is_empty():
 			area_polygon.clear()
-			me.update_cam_view.call_deferred(me.last_cam)
 		if me.is_dragging:
+			me.update_cam_view(me.last_cam)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	func right_release(alt:bool):
 		if not area_polygon.is_empty():
 			area_polygon.clear()
-			me.update_cam_view.call_deferred(me.last_cam)
 		if me.is_dragging:
+			me.update_cam_view(me.last_cam)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
-
 
 class Zone_Mode extends Paint_Mode:
 	func help() -> String:
@@ -293,7 +304,7 @@ class Ladder_Mode extends Paint_Mode:
 			if not ladder_name.is_empty():
 				me.curr_map.ladders[ladder_name] = me.map_hover_tile
 				me.set_active_ladder(ladder_name)
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
+			return super(alt)
 	
 	func pick_tool(alternate:bool):
 		for each in me.sel_ladders:
@@ -357,6 +368,7 @@ class Floor_Mode extends Paint_Mode:
 						has_placed = true
 						last_placed = me.map_hover_tile
 						me.set_tile_asset(me.map_hover_tile, me.hover_tile_side)
+						queue_update(me.map_hover_tile)
 						if alt:
 							var tile : TacTile = me.curr_map.tiles.get(me.hover_tile)
 							tile.is_ceiling = not tile.is_ceiling
@@ -367,6 +379,7 @@ class Floor_Mode extends Paint_Mode:
 			"Single":
 				if me.within_map:
 					if has_placed == false or (last_placed != me.map_hover_tile):
+						queue_update(me.map_hover_tile)
 						if alt:
 							var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
 							tile.has_floor = not tile.has_floor
@@ -386,6 +399,7 @@ class Floor_Mode extends Paint_Mode:
 					for x in range(rect.position.x, rect.end.x):
 						var coord = Vector2i(x,y)
 						me.set_tile_asset(coord, me.hover_tile_side)
+						queue_update(coord)
 						if alt:  # raise ceiling
 							var tile : TacTile = me.curr_map.tiles.get(coord)
 							tile.is_ceiling = not tile.is_ceiling
@@ -400,6 +414,7 @@ class Floor_Mode extends Paint_Mode:
 					for y in range(rect.position.y, rect.end.y):
 						for x in range(rect.position.x, rect.end.x):
 							var coord = Vector2i(x,y)
+							queue_update(coord)
 							if alt:
 								var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
 								tile.has_floor = not tile.has_floor
@@ -462,6 +477,7 @@ class Wall_Mode extends Paint_Mode:
 				has_placed = true
 				last_placed = me.map_hover_tile
 				me.set_tile_asset(me.map_hover_tile, me.hover_tile_side)
+				queue_update(me.map_hover_tile)
 				if alt:
 					var adja = me.map_hover_tile + me.hover_tile_side
 					me.set_tile_asset(adja, me.hover_tile_side_opposite)
@@ -475,6 +491,7 @@ class Wall_Mode extends Paint_Mode:
 						has_placed = true
 						last_placed = me.map_hover_tile
 						me.rem_tile_asset(me.map_hover_tile, me.hover_tile_side)
+						queue_update(me.map_hover_tile)
 						if alt:
 							me.rem_tile_asset(me.map_hover_tile + me.hover_tile_side, me.hover_tile_side_opposite)
 		return super(alt)
@@ -484,21 +501,35 @@ class Wall_Mode extends Paint_Mode:
 			"Area":
 				var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
 				rect = rect.intersection(Rect2i(Vector2i.ZERO, me.curr_map.size))
+				var coord1 : Vector2i
+				var coord2 : Vector2i
 				for x in range(rect.position.x, rect.end.x):
 					if alt:  # Make exterior walls
-						me.set_tile_asset(Vector2i(x,rect.position.y - 1), Vector2i.DOWN)
-						me.set_tile_asset(Vector2i(x,rect.end.y), Vector2i.UP)
+						coord1 = Vector2i(x,rect.position.y - 1)
+						coord2 = Vector2i(Vector2i(x,rect.end.y))
+						me.set_tile_asset(coord1, Vector2i.DOWN)
+						me.set_tile_asset(coord2, Vector2i.UP)
 					else:  # Make interior walls
-						me.set_tile_asset(Vector2i(x,rect.position.y), Vector2i.UP)
-						me.set_tile_asset(Vector2i(x,rect.end.y - 1), Vector2i.DOWN)
+						coord1 = Vector2i(x,rect.position.y)
+						coord2 = Vector2i(x,rect.end.y - 1)
+						me.set_tile_asset(coord1, Vector2i.UP)
+						me.set_tile_asset(coord2, Vector2i.DOWN)
+					queue_update(coord1)
+					queue_update(coord2)
 				
 				for y in range(rect.position.y, rect.end.y):
 					if alt:  # Make exterior walls
-						me.set_tile_asset(Vector2i(rect.position.x - 1, y), Vector2i.RIGHT)
-						me.set_tile_asset(Vector2i(rect.end.x, y), Vector2i.LEFT)
+						coord1 = Vector2i(rect.position.x - 1, y)
+						coord2 = Vector2i(rect.end.x, y)
+						me.set_tile_asset(coord1, Vector2i.RIGHT)
+						me.set_tile_asset(coord2, Vector2i.LEFT)
 					else:  # Make interior walls
-						me.set_tile_asset(Vector2i(rect.position.x, y), Vector2i.LEFT)
-						me.set_tile_asset(Vector2i(rect.end.x - 1, y), Vector2i.RIGHT)
+						coord1 = Vector2i(rect.position.x, y)
+						coord2 = Vector2i(rect.end.x - 1, y)
+						me.set_tile_asset(coord1, Vector2i.LEFT)
+						me.set_tile_asset(coord2, Vector2i.RIGHT)
+					queue_update(coord1)
+					queue_update(coord2)
 		return super(alt)
 	
 	func right_release(alt:bool):
@@ -511,6 +542,7 @@ class Wall_Mode extends Paint_Mode:
 						for x in range(rect.position.x, rect.end.x):
 							var coord = Vector2i(x,y)
 							me.rem_tile_asset(coord)
+							queue_update(coord)
 		return super(alt)
 	
 	func draw_dragging(canvas:Control, cam:Camera3D):

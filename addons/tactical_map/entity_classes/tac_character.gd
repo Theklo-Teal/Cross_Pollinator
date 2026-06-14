@@ -38,6 +38,7 @@ var actions : Dictionary[StringName, CharaAction]
 
 func _ready():
 	super()
+	add_to_group("observer_character_select")
 	curr_team = team
 	
 	actions[&"idle"] = Tac.actions[&"idle"].new(self)
@@ -142,9 +143,12 @@ func proceed(next_state:StringName = &"") -> Error:
 ## ERR_SKIP: The action yielded to an action awaiting in the queue.[br]
 ## ERR_ALREADY_IN_USE: The action was accepted, but is awaiting in queue.[br]
 ## ERR_BUSY: Action failed to be accepted because character is busy.[br]
+## ERR_LOCKED: Action wasn't accepted as character is handling an interaction.[br]
 ## ERR_DOES_NOT_EXIST: There's no such action.[br]
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
 func command(next_state:StringName = &"") -> Error:
+	if mouse_hover and Tac.sel_chara:  # Give priority to interaction over command.
+		return ERR_LOCKED
 	if next_state.is_empty():
 		var err = _switch_state(true, null)
 		print("command: no state provided", error_string(err))
@@ -162,7 +166,18 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	stt.back().input(event)
 
-# TODO Distinguish whether interactions represent this character acting on another or other on this one.
+func _on_character_selected(chara:TacCharacter, again:bool):
+	if chara == self and not again:
+		stt.back().on_being_selected()
+
 func _interaction() -> Error:
-	stt.back().interact_receive(null)
+	if Tac.sel_chara == self:  # This character was clicked while active
+		stt.back().interact_transmit(null)
+	else:  # This character was clicked while another one is active.
+		if Tac.sel_chara == null:
+			stt.back().interact_receive(null)
+		else:
+			Tac.sel_chara.stt.back().interact_transmit(self)
+			stt.back().interact_receive(Tac.sel_chara)
+	
 	return OK

@@ -1,6 +1,12 @@
 extends Node3D
 class_name TacInterface
 
+func _ready() -> void:
+	add_to_group("observer_character_select")
+
+func _on_character_selected(chara:TacCharacter):
+	pass
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion: 
 		var camera = get_viewport().get_camera_3d()
@@ -33,7 +39,6 @@ func _input(event: InputEvent) -> void:
 				Tac.hover_tile_nav = Tac.hover_nav.spatial2nav_tile(ray_sect.position)
 				Tac.hover_tile_map = Tac.hover_nav.spatial2map_tile(ray_sect.position, Tac.hover_map)
 				
-				
 				# Change in parameters to try searching again.
 				var tile : TacTile = Tac.hover_map.tiles.get(Tac.hover_tile_map)
 				is_hole = tile == null or tile.is_empty()
@@ -51,3 +56,7 @@ func _input(event: InputEvent) -> void:
 				Tac.hover_entity = null
 			else:
 				Tac.hover_entity = ray_sect.collider
+	
+	if event.is_action_pressed(Tac.interact_input()):
+		if Tac.hover_entity is TacCharacter:
+			Tac.select_character(Tac.hover_entity)
