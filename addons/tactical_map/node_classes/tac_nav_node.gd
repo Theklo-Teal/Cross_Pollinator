@@ -100,49 +100,55 @@ func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> P
 	var start = Saliko.vec2i_id(loc.nav_coord)
 	var stop = Saliko.vec2i_id(destin_tile)
 	var full_path : PackedVector3Array
+	var closest_path : Array[Vector2i]
+	var inflection : int = 0
+	var destin_layer = destin_map.get_layer()
 	
-	if destin_map == loc.tacmap:
-		#NOTE Ladders are intended for traversing between layers, so we'd check 
-		# if initial and final layers are the same, but it might be interesting
-		# to connect different maps on the same layer. There won't be conflict
-		# because maps have their own coordinate on their ladders.
+	if destin_layer == loc.layer:
+		# Search for a direct path without using ladders first
 		var graph : AStar2D = navgraph[loc.layer][entity.attitude]
-		for tile : Vector2i in graph.get_point_path(start, stop, true):
-			full_path.append(Vector3(tile.x, loc.layer, tile.y))
-	else:
-		var common_ladders : Array[PackedInt64Array]  # [i][0/1]-> from_cell_id / to_cell_id
-		#NOTE The ints of cell ids are really big, so we need 64 bit numbers.
-		
-		for l_from in ladders.get(loc.tacmap, []):
-			for l_to in ladders.get(destin_map, []):
-				if l_from.name == l_to.name:
-					if l_from.can_enter and l_to.can_exit:
-						# Ladder is in common between entity's map and destin_map, and can be used.
-						var from_id = Saliko.vec2i_id(loc.tacmap.ladders[l_from.name])
-						var to_id = Saliko.vec2i_id(destin_map.ladders[l_to.name])
-						common_ladders.append([from_id, to_id])
-		
-		var closest_ladder : int  # Index of common ladders
-		var closest_path : Array[Vector2i]
-		var i : int = -1
-		for ladder in common_ladders:
-			i += 1
-			var path_from = navgraph[loc.layer][entity.attitude].get_point_path(start, ladder[0], false) 
-			if closest_path.size() > path_from.size() or i == 0:
-				closest_path.assign(path_from)
-				closest_ladder = i
-		
-		if closest_path.is_empty():
-			# No usable ladders in common between the entity's map and the destination map.
-			return []
-		
-		## AStar2D returns Vector2 coordinates, but we need Vector3.
-		for tile in closest_path:
-			full_path.append(Vector3i(tile.x, loc.layer, tile.y))
-		var path_to = navgraph[destin_map.get_layer()][entity.attitude].get_point_path(common_ladders[closest_ladder][1], stop, true)
-		for tile in path_to:
-			full_path.append(Vector3i(tile.x, destin_map.get_layer(), tile.y))
+		closest_path.assign(graph.get_point_path(start, stop, true))
 	
+	# Discover ladders
+	#NOTE This is setup such that characters can cross ladders of the same layer.
+	for l_from in ladders.get(loc.tacmap, []):
+		for l_to in ladders.get(destin_map, []):
+			if l_from.name == l_to.name:
+				if l_from.can_enter and l_to.can_exit:
+					# Ladder is in common between entity's map and destin_map, and can be used.
+					var from_cell = map2nav(loc.tacmap.ladders[l_from.name], loc.tacmap)
+					var to_cell = map2nav(destin_map.ladders[l_to.name], destin_map)
+					var from_id = Saliko.vec2i_id(from_cell)
+					var to_id = Saliko.vec2i_id(to_cell)
+					var path_from = navgraph[loc.layer][entity.attitude].get_point_path(start, from_id, false) 
+					var path_to = navgraph[destin_layer][entity.attitude].get_point_path(to_id, stop, true)
+					
+					# Add a position where the character climbs before advancing onto the next layer.
+					if destin_layer > loc.layer:
+						path_from.append(path_from[-1])
+					elif destin_layer < loc.layer:
+						path_from.append(path_to[0])
+					
+					var path = path_from + path_to
+					if closest_path.size() > path.size() or closest_path.is_empty():
+						inflection = path_from.size()
+						if destin_layer > loc.layer:
+							inflection -= 1
+						closest_path.assign(path)
+	
+	if closest_path.is_empty():
+		# No direct path, nor usable ladders in common between the entity's map and the destination map.
+		return []
+	else:
+		# AStar2D returns Vector2 coordinates, but we need Vector3.
+		var layer = loc.layer
+		var i : int = -1
+		for tile in closest_path:
+			i += 1
+			if inflection > 0 and i == inflection:
+				layer = destin_layer
+			full_path.append(Vector3i(tile.x, layer, tile.y))
+
 	block_navigation(loc.nav_coord, loc.layer)  # AStar2D Can't work if the character is sitting on a blocked tile.
 	return full_path
 
@@ -344,6 +350,8 @@ func _ready() -> void:
 		for tile in chara_tiles:
 			block_navigation(Vector2i(tile.x, tile.z), tile.y)
 
+func at_map_edge(map_cell:Vector2i, map:TacMap):
+		return map_cell.x == 0 or map_cell.y == 0 or map_cell.x == map.size.x - 1 or map_cell.y == map.size.y - 1
 
 ## Applies the rules for obstacle codes on [code]navproxy[/code].
 func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):
@@ -359,27 +367,29 @@ func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):
 	var codes : PackedInt32Array = [0,0,0,0]
 	if map_tile != null:
 		codes = map_tile.find_codes()
-		var i : int = -1
 		
-		# Block paths towards undefined cells.
-		for cell in adjacent:
-			i += 1
-			var adja = adjacent[cell]
-			if adja == null:
-				codes[i] == Tac.Trans.NONE
-		
-		# Set path into and out of holes as "AERIAL".
-		if map_tile.has_floor:  # If the adjacent is a hole
-			for j in range(4):
-				var adja : TacTile = adjacent.values()[j]
+	var i : int = -1
+	# Block paths towards undefined cells.
+	for cell in adjacent:
+		i += 1
+		var adja = adjacent[cell]
+		if adja == null:
+			codes[i] == Tac.Trans.NONE
+	
+	# Set path into and out of holes as "AERIAL".
+	for j in range(4):
+		var adja : TacTile = adjacent.values()[j]
+		var adja_cell : Vector2i = adjacent.keys()[j]
+		if Rect2i(Vector2i.ZERO, map.size).has_point(adja_cell):  # We want to keep map edges possible to cross, so characters can cross between maps of the same layer
+			if map_tile != null and map_tile.has_floor:
+				# If the adjacent is a hole
 				if (adja == null or not adja.has_floor) and codes[j] == Tac.Trans.PASS:
 					codes[j] = Tac.Trans.AERIAL
-		else:  # If this cell is a hole
-			for j in range(4):
-				var adja : TacTile = adjacent.values()[j]
+			else:
+				# If this cell is a hole
 				if adja != null and adja.has_floor:
 					codes[j] == Tac.Trans.AERIAL
-	
+
 	if nav_cell.x == area[layer].position.x:
 		codes[Tac.WEST] = Tac.Trans.NONE
 	if nav_cell.y == area[layer].position.y:

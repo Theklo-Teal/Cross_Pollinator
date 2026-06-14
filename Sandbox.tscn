@@ -3147,6 +3147,7 @@ spawners = Dictionary[Vector2i, ExtResource("4_oc8cb")]({
 Vector2i(5, 5): SubResource("Resource_t867u")
 })
 ladders = Dictionary[String, Vector2i]({
+"Side": Vector2i(3, 15),
 "Up": Vector2i(11, 10)
 })
 zones = Dictionary[String, Rect2i]({
@@ -3366,6 +3367,9 @@ metadata/_custom_type_script = "uid://h31ri5gda1bq"
 [node name="TacMap3" type="Area3D" parent="TacNav" unique_id=1410888579]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 12)
 script = ExtResource("6_ukipb")
+ladders = Dictionary[String, Vector2i]({
+"Side": Vector2i(0, 5)
+})
 tiles = Dictionary[Vector2i, ExtResource("7_ns6gl")]({
 Vector2i(0, 0): SubResource("Resource_pbmii"),
 Vector2i(0, 1): SubResource("Resource_mvb30"),

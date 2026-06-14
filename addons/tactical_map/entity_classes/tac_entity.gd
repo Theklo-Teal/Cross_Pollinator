@@ -3,7 +3,7 @@ class_name TacEntity
 
 ## The base of all object placed by a TacNav that can be clicked on for interaction.
 
-#FIXME Traversal logic is not flowing as expected.
+#FIXME have a way for tacnav.block/unblock to not throw error if character is using ladders.
 
 signal interacted  ## The player tried to click on this object.
 
@@ -136,15 +136,15 @@ func take_a_step() -> Error:
 		var zones = get_tacnav().check_zone(self, last_step, step)
 		get_tacnav().block_navigation(Vector2i(step.x, step.z), step.y)
 		get_tacnav().unblock_navigation(Vector2i(last_step.x, last_step.z), last_step.y)
-		last_step = step
 		result = _take_a_step(step, zones.exited, zones.entered)
+		last_step = step
 	return result
 
 ## Override this function to define what happens when the character moves from one tile to the other.[br]
 ## Return whether the movement to the «step» tile was successful. Errors won't halt the movement
 ## Return [code]ERR_CANT_CONNECT[/code] if that's desired.
 func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
-	if step.y != last_step.y:
+	if last_step.y == step.y:
 		look_at(next_step, Vector3.UP, true)
 	return OK
 

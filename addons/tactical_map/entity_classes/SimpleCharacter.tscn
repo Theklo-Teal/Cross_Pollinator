@@ -12,10 +12,10 @@ const NO_NAV := false  ## If true, the character just moves in straight lines.
 var just_stopped := true
 
 func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
+	super(step, zones_exited, zones_entered)
 	if not zones_entered.is_empty():
 		print(\"Entered: \", zones_entered)
 	return OK
-
 
 func _process(delta: float) -> void:
 	if position.is_equal_approx(next_step):
