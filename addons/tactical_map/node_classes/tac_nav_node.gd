@@ -192,18 +192,19 @@ func check_zone(actor:TacEntity, ini:Vector3i, end:Vector3i) -> Dictionary:
 	return ans
 
 ## Produce a sprite that fits a tile. Optionally provide a map if the [code]coord[/code] is relative to it.
-func place_tile_sprite(texture:Texture2D, coord:Vector2i, map:TacMap=null) -> Sprite3D:
+func place_tile_sprite(texture:Texture2D, coord:Vector3i, map:TacMap=null) -> Sprite3D:
 	var sprite = Sprite3D.new()
 	sprite.texture = texture
 	sprite.pixel_size = tile_size / sprite.texture.get_width()
 	sprite.rotation_degrees.x = -90
 	sprite.double_sided = false
 	if map == null:
-		sprite.position = tile2spatial(coord, 0, true)
-		map.add_child(sprite, false, Node.INTERNAL_MODE_BACK)
+		sprite.position = tile3spatial(coord, true)
+		sprites.add_child(sprite, false, Node.INTERNAL_MODE_BACK)
 	else:
-		sprite.position = map3spatial(coord, map, true)
-		add_child(sprite, false, Node.INTERNAL_MODE_BACK)
+		sprite.position = map3spatial(Saliko.Vec3RemAxis(coord), map, true)
+		map.sprites.add_child(sprite, false, Node.INTERNAL_MODE_BACK)
+		
 	return sprite
 #endregion
 
@@ -295,9 +296,12 @@ func _process(_delta: float) -> void:
 				# Change the NavSession
 				pass
 
-
+var sprites := Node3D.new()  # Where procedurally placed sprites all end up.
 var navgraph : Dictionary[int, Dictionary]  ## [Map Layer][Tac.Trans] -> AStart2D; Main navigation data.
 func _ready() -> void:
+	add_child(sprites, true, Node.INTERNAL_MODE_BACK)
+	sprites.name = "TacNavSprites"
+	
 	if not area_outdated.is_empty():
 		compute_area(area_outdated)
 		area_outdated.clear()
@@ -362,7 +366,7 @@ func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):
 	var map_cell = nav2map(nav_cell, map)
 	var nav_coord = Vector3i(nav_cell.x, layer, nav_cell.y)
 	var adjacent : Dictionary[Vector2i, TacTile]
-	for dir in Tac.Dir_Vect.values():
+	for dir in Tac.DIR_VEC.values():
 		adjacent[map_cell + dir] = map.tiles.get(map_cell + dir)
 	var map_tile : TacTile = map.tiles.get(map_cell)
 	var codes : PackedInt32Array = [0,0,0,0]

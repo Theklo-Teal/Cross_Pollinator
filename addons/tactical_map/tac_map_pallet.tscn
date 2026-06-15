@@ -110,11 +110,15 @@ func _on_show_navigation_toggled(toggled_on: bool) -> void:
 	nav_overlay.emit(toggled_on)
 func is_nav_overlay_visible():
 	return %show_navigation.button_pressed
+func set_navigation_overlay(shown:bool):
+	%show_navigation.button_pressed = shown
 
 func _on_show_floors_toggled(toggled_on: bool) -> void:
 	floor_overlay.emit(toggled_on)
 func is_floor_overlay_visible():
 	return %show_floors.button_pressed
+func set_floor_overlay(shown:bool):
+	%show_floors.button_pressed = shown
 
 #region Zoning
 var last_sel_zone_idx : int = -1

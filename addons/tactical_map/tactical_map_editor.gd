@@ -91,8 +91,8 @@ func _handles(object) -> bool:
 			curr_map = null
 			pallet.map_changed(null)
 			# Clear overlays
-			update_cam_view(last_cam) 
-			update_alt_view(last_cam)
+			pallet.set_floor_overlay(false)
+			pallet.set_navigation_overlay(false)
 		return false
 
 var last_bottom_panel : int
@@ -271,7 +271,7 @@ func on_cam_view_draw(canvas:Control, cam:Camera3D) -> void:
 		const corner = [Vector3(0.4, 0, -0.4), Vector3(0.4, 0, 0.4), Vector3(-0.4, 0, 0.4), Vector3(-0.4, 0, -0.4)]
 		var nav_overlay : Array[PackedVector2Array]
 		nav_overlay.resize(Tac.Trans.size())
-		var dir = Tac.Dir_Vect.values()
+		var dir = Tac.DIR_VEC.values()
 		var x_range = Vector2i(curr_map.nav_area.position.x, curr_map.nav_area.end.x)
 		var y_range = Vector2i(curr_map.nav_area.position.y, curr_map.nav_area.end.y)
 		for nav_cell in Saliko.cells_of(x_range, y_range):

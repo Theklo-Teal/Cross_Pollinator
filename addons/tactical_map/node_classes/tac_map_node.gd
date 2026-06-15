@@ -35,19 +35,12 @@ func add_spawner(where:Vector2i, which:TacEntitySpawner):
 			"map" : self,
 			"coordi" : where 
 			}
-	
 	var id = str(Saliko.vec2i_id(where))
 	if spawns.has_node(id):
 		# Ensure there isn't a sprite at that place already.
 		spawns.get_node(id).queue_free()
-	# Create new sprite.
-	var sprite := Sprite3D.new()
-	sprite.texture = which.icon
-	sprite.pixel_size = get_tile_size() / sprite.texture.get_width() * 0.65
-	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	sprite.position = Saliko.Vec2AddAxis(where, 1, get_tile_height() * 0.2) + Vector3(0.5, 0, 0.5) * get_tile_size()
-	sprite.name = id
-	spawns.add_child.call_deferred(sprite, true, Node.INTERNAL_MODE_FRONT)
+	set_spawn_indicator(id, where, which)
+	
 func rem_spawner(where:Vector2i):
 	spawners.erase(where)
 	var id = str(Saliko.vec2i_id(where))
@@ -140,6 +133,7 @@ func update_area():
 
 
 var area_collider := CollisionShape3D.new()
+var sprites := Node3D.new()
 var floors := Node3D.new()
 var walls := Node3D.new()
 var spawns := Node3D.new()
@@ -149,9 +143,11 @@ func _ready() -> void:
 	area_collider.position = area_collider.shape.size / 2
 	
 	add_child(area_collider, true, INTERNAL_MODE_BACK)
+	add_child(sprites, true, INTERNAL_MODE_BACK)
 	add_child(floors, true, INTERNAL_MODE_BACK)
 	add_child(walls, true, INTERNAL_MODE_FRONT)
 	area_collider.name = "TacMapArea"
+	sprites.name = "TacMapSprites"
 	floors.name = "TacMapFloors"
 	walls.name = "TacMapWalls"
 	
@@ -241,6 +237,30 @@ func set_tile_asset(cell:Vector2i, side:Vector2i, info_uid:String):
 			Vector2i.DOWN : "wall_south",
 		}
 		tiles[cell].set(wall_side[side], info_uid)
+
+
+func set_spawn_indicator(id:String, where:Vector2i, which:TacEntitySpawner):
+	# Create new sprite.
+	var container := Node3D.new()
+	var direction := Sprite3D.new()
+	var portrait := Sprite3D.new()
+	container.add_child(direction)
+	container.add_child(portrait)
+	container.name = id
+	spawns.add_child.call_deferred(container, true, Node.INTERNAL_MODE_FRONT)
+	container.position = Saliko.Vec2AddAxis(where, 1, 0.1) + Vector3(0.5, 0, 0.5) * get_tile_size()
+	
+	direction.texture = preload("res://addons/tactical_map/icons/ui_icons.tres")
+	direction.texture.region.position.x = 96
+	direction.rotation_degrees.x = -90
+	direction.rotation_degrees.y = Tac.DIR_ANG.values()[which.orientation]
+	direction.pixel_size = get_tile_size() / direction.texture.get_width()
+	direction.double_sided = false
+	
+	portrait.texture = which.icon
+	portrait.pixel_size = get_tile_size() / portrait.texture.get_width() * 0.65
+	portrait.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	portrait.position.y = get_tile_height() * 0.5
 
 
 func get_tile_size() -> float:

@@ -10,7 +10,7 @@ var title : String = "Empty Slot"  # The name shown to the player for selecting 
 var description : String = "This slot has not equipment."
 
 var cause_busy : bool = true  ## Should the character inhibit changing to another action when this action is active? The function [code]on_abort[/code] can only be executed if this is true.
-var yield_queue : bool = true  ## When [code]cause_busy[/code] is [code]false[/code] and the character is asked to enter this action, will it give permission to other action waiting in queue to replace it?.
+var yield_queue : bool = true  ## When [code]cause_busy[/code] is [code]false[/code] and the character is asked to enter this action, will it perform an action awaiting in queue instead?.
 var can_queue : bool = true  ## Can this action be held to activate later if the character is busy?
 var on_abort : Callable  ## If this action can be interrupted to change to other action. What should it do? Unlike just setting [code]cause_busy[/code], aborting executes a function.
 

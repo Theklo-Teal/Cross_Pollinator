@@ -15,12 +15,20 @@ enum {
 	NORTH
 }
 
-const Dir_Vect = {
+const DIR_VEC = {
 	"EAST" : Vector2i.RIGHT,
 	"SOUTH" : Vector2i.DOWN,
 	"WEST" : Vector2i.LEFT,
 	"NORTH" : Vector2i.UP,
 }
+
+const DIR_ANG = {
+	Vector2i.RIGHT: 0,
+	Vector2i.DOWN: 270,
+	Vector2i.LEFT: 180,
+	Vector2i.UP: 90,
+	}
+
 
 enum Trans{  ## Tile transisition types
 	PASS,  ## Anyone can traverse. Wary characters only traverse this kind of transition.
@@ -73,6 +81,7 @@ var hover_tile_map : Vector2i  ## Like [code]hover_tile[/code], but in [code]hov
 var hover_entity : TacEntity  ## What is under the mouse
 var sel_target : TacCharacter
 var sel_chara : TacCharacter
+var sel_action : CharaAction
 var actions : Dictionary[StringName, Resource]
 
 func select_character(chara:TacCharacter):

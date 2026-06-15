@@ -576,6 +576,7 @@ class Spawner_Mode extends TacEditorState:
 					spawner = spawner_copy.duplicate_deep()
 				else:
 					spawner = Tac.spawners[spawner_class].new()
+				spawner.orientation = Tac.DIR_VEC.values().find(me.hover_tile_side)
 				me.curr_map.add_spawner(me.map_hover_tile, spawner)
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	

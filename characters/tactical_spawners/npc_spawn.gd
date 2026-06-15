@@ -27,5 +27,6 @@ func generate(origin:Vector2i) -> Dictionary[TacEntity, Vector2i]:
 	for each in characters:
 		i += 1
 		var chara : TacEntity = load("res://characters/tactical/pmc_breacher.tscn").instantiate()
+		orient(chara, orientation)
 		dict[chara] = origin + Vector2i(i,0)
 	return dict

@@ -59,7 +59,7 @@ func setup_fsm():
 				elif each in refuse_ui:
 					each.hide()
 				each.visible = (each.name in ui) == visible
-
+	
 	func enter(_prev:ScenarioState):
 		pass
 	func exit(_next:ScenarioState):
@@ -68,19 +68,24 @@ func setup_fsm():
 		pass
 	func input(_event:InputEvent):
 		pass
-
+	
 ## Exploration RPG-like mode, outside combat.
 class Roaming extends ScenarioState:
 	func input(event:InputEvent):
-		if event.is_action_released(Tac.interact_input()):
-			if Tac.hover_entity is TacCharacter and Tac.hover_entity.curr_team == TacCharacter.Team.PLAYER:
-				Tac.select_chara = Tac.hover_entity
-		#if not Tac.select_chara == null:
-			#TODO Make character transmit interaction.
-			#pass
+		if event is InputEventMouseMotion:
+			var chara : Character = Tac.sel_chara
+			if chara != null:
+				var mouse_traject = Tac.hover_nav.get_traject(chara, Tac.hover_tile_nav, Tac.hover_map)
+				#var sight_line = Geometry2D.bresenham_line(chara.get_nav_coord(), Tac.hover_tile_nav)
+				me.get_tree().call_group("_scenario_director_sight_indicators", "queue_free")
+				for i in range(mouse_traject.size()):
+					var sprt = Tac.hover_nav.place_tile_sprite(Tac.ui_tile_walk, mouse_traject[i])
+					sprt.add_to_group("_scenario_director_sight_indicators")
+					sprt.modulate = Color(0.0, 0.0, 1.0, 1.0)
+					sprt.position.y += 0.1
 		if event.is_action_released(Tac.command_input()):
-			if Tac.select_chara != null:
-				Tac.select_chara.command(&"walk")
+			if Tac.sel_chara != null:
+				Tac.sel_chara.command(&"walk")
 
 class PauseMenu extends ScenarioState:
 	func store_history() -> bool:

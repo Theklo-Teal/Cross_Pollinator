@@ -2,13 +2,6 @@
 extends Resource
 class_name TacTile
 
-const DIR_ANGLE = {
-	Vector2i.RIGHT: 0,
-	Vector2i.DOWN: 270,
-	Vector2i.LEFT: 180,
-	Vector2i.UP: 90,
-	}
-
 @export_storage var is_ceiling : bool  ## The floor is actually a ceiling.
 @export_storage var force_floor : bool = false  ## Whether the current [code]has_floor[/code] was enforced manually, or is set by the definition of [code]floor[/code].
 @export_storage var has_floor : bool = false  ## Regardless of a floor asset, can characters walk over this tile?
@@ -23,7 +16,7 @@ const DIR_ANGLE = {
 @export_storage var floor_name : StringName  ## Which of the sprites referred in the FloorInfo.
 @export_storage var floor_dir := Vector2i.LEFT :  ## The orientation of the floor.
 	set(val):
-		if val in DIR_ANGLE:
+		if val in Tac.DIR_ANG:
 			floor_dir = val
 @export_storage var wall_east: StringName :  ## UID of the WallInfo that defines the assets.
 	set(val):
@@ -91,10 +84,11 @@ func get_floor_asset(tile_size:int = 32) -> Sprite3D:
 	var new_floor := Sprite3D.new()
 	new_floor.texture = info.atlas.duplicate()
 	new_floor.texture.region.position = Vector2(info.tiles.values()[0])  #NOTE when auto-tilling this should could be different.
+	new_floor.shaded = true
 	new_floor.double_sided = false
 	new_floor.pixel_size = tile_size / new_floor.texture.region.size.x
 	new_floor.rotation_degrees.x = -90
-	new_floor.rotation_degrees.y = DIR_ANGLE[floor_dir]
+	new_floor.rotation_degrees.y = Tac.DIR_ANG[floor_dir]
 	return new_floor
 
 func get_walls_asset() -> Array[Node3D]:
@@ -106,6 +100,6 @@ func get_walls_asset() -> Array[Node3D]:
 			var wall_info = Tac.pallet_info[wall_info_uid]
 			var uid = wall_info.asset_single  #NOTE when auto-tilling this should could be different.
 			var new_wall = load(uid).instantiate()
-			new_wall.rotation_degrees.y = DIR_ANGLE[dir]
+			new_wall.rotation_degrees.y = Tac.DIR_ANG[dir]
 			walls.append(new_wall)
 	return walls
