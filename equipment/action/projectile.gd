@@ -1,6 +1,7 @@
 extends CharaAction
 
 func _init() -> void:
-	icon = icon.duplicate()
-	icon.region.position = Vector2(0, 320)
+	noteworthy = true
+	icon = preload("res://equipment/action_icons.tres")
+	icon.region.position = Vector2(0, 0)
 	description = "Something that shots projectiles."

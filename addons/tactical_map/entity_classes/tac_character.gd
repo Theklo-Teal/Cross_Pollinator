@@ -40,12 +40,11 @@ func _ready():
 	super()
 	curr_team = team
 	
-	actions[&"idle"] = Tac.actions[&"idle"].new(self)
-	actions[&"activated"] = Tac.actions[&"activated"].new(self)
-	actions[&"acknowledge"] = Tac.actions[&"acknowledge"].new(self)
-	actions[&"walk"] = Tac.actions[&"walk"].new(self)
+	Tac.acquire_action(self, &"idle")
+	Tac.acquire_action(self, &"activated")
+	Tac.acquire_action(self, &"walk")
 	for each in equipment:
-		actions[each] = Tac.actions[each].new(self)
+		Tac.acquire_action(self, each)
 	stt.append(actions[&"idle"])
 	actions[&"idle"].enter(null)
 
@@ -59,15 +58,27 @@ func is_busy():
 ## Can the character interrupt the current action?
 func can_abort():
 	return stt.back().can_abort()
+## Are conditions met to allow the character action?
+func can_act(state:StringName):
+	return actions[state].switch_acceptance()
+## Does the character have this ability?
+func has_action(state:StringName):
+	return actions.has(state)
+
 
 func _switch_state(external:bool, next:CharaAction=null) -> Error:
 	var result : Error = ERR_BUG
+	
+	if next != null and not next.switch_acceptance():
+		return ERR_LOCKED
 	
 	var is_restoring_past_state :=false
 	if next == null:
 		#NOTE in restoring a state from history, we don't save the current one to it, so it's possible to keep back-tracking actions if needed.
 		prev = stt.pop_back()
 		next = stt.back()
+		printerr("Stack Underflow! Maybe tried to restore a CharaAction with store_history() == false ? ")
+		return ERR_UNAVAILABLE
 		is_restoring_past_state = true
 	else:
 		prev = stt.back()
@@ -123,6 +134,8 @@ func _switch_state(external:bool, next:CharaAction=null) -> Error:
 ## ERR_SKIP: The action yielded to an action awaiting in the queue.[br]
 ## ERR_ALREADY_IN_USE: The action was accepted, but is awaiting in queue.[br]
 ## ERR_BUSY: Action failed to be accepted because character is busy.[br]
+## ERR_LOCKED: Action wasn't accepted because it failed a requirement defined by the action.[br]
+## ERR_UNAVAILBLE: Attempted to restore a previous state causing stack underflow. Might have tried returning to a CharaAction with store_history() == false.
 ## ERR_DOES_NOT_EXIST: There's no such action.[br]
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
 func proceed(next_state:StringName = &"") -> Error:
@@ -143,7 +156,8 @@ func proceed(next_state:StringName = &"") -> Error:
 ## ERR_SKIP: The action yielded to an action awaiting in the queue.[br]
 ## ERR_ALREADY_IN_USE: The action was accepted, but is awaiting in queue.[br]
 ## ERR_BUSY: Action failed to be accepted because character is busy.[br]
-## ERR_LOCKED: Action wasn't accepted as character is handling an interaction.[br]
+## ERR_LOCKED: Action wasn't accepted because it failed a requirement defined by the action.[br]
+## ERR_UNAVAILBLE: Attempted to restore a previous state causing stack underflow. Might have tried returning to a CharaAction with store_history() == false.
 ## ERR_DOES_NOT_EXIST: There's no such action.[br]
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
 func command(next_state:StringName = &"") -> Error:
@@ -163,10 +177,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	stt.back().input(event)
 
 func on_being_activated() -> Error:
-	var err = command(&"activated")
-	print(error_string(err))
-	return err
-func interact_self() -> Error:
-	var err = command(&"acknowledge")
-	print(error_string(err))
-	return err
+	return command(&"activated")
+func interact_receive(source:TacEntity) -> Error:
+	if source == null:
+		return command(&"activated")
+	return OK

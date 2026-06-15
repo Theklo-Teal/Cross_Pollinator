@@ -142,6 +142,13 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	setts.save("res://addons/tactical_map/settings.ini")
 
+## Gives an instance of an action with the given name to a character.
+func acquire_action(character:TacCharacter, action:StringName):
+	var act : Resource = actions.get(action)
+	if act == null:
+		printerr("Action Doesn't Exist: ", action)
+	else:
+		character.actions[action] = act.new(character, action)
 
 func interact_input():
 	return setts.get_value("Events", "interact_action", "interact")

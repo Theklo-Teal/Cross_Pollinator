@@ -1,4 +1,4 @@
-extends CharaAction
+extends "res://equipment/action/projectile.gd"
 
 func _init() -> void:
 	icon = icon.duplicate()

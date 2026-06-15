@@ -78,7 +78,12 @@ func interact_receive(source:TacEntity) -> Error:
 func text_speak(speech:StringName):
 	pass
 
+## Play audio voice line of the character. If [code]speech[/code] is empty, halts any playing ongoing voice line.
 func audio_speak(speech:StringName):
+	if speech.is_empty():
+		halt_audio_speak()
+
+func halt_audio_speak():
 	pass
 
 ## Play an animation, if available. It's up to the entity's script extending this

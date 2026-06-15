@@ -50,11 +50,12 @@ func _input(event: InputEvent) -> void:
 				Tac.hover_entity = null
 			else:
 				Tac.hover_entity = ray_sect.collider
+			print(Tac.hover_entity)
 	
-	if event.is_action_pressed(Tac.command_input()):
+	if event.is_action_released(Tac.command_input()):
 		if Tac.hover_entity != null:
 			entity_chara_interaction(Tac.hover_entity)
-	if event.is_action_pressed(Tac.interact_input()):
+	if event.is_action_released(Tac.interact_input()):
 		if Tac.hover_entity != null:
 			entity_player_interaction(Tac.hover_entity)
 
@@ -66,6 +67,8 @@ func get_interaction_emitter() -> TacCharacter:
 ## This is meant to represent an action of a character on another entity, usually commanded by the player.
 func entity_chara_interaction(receiver:TacEntity):
 	var emitter = get_interaction_emitter()
+	if emitter == null:
+		return
 	if emitter == receiver:
 		receiver.interact_self()
 	elif emitter.get_nav_layer() == receiver.get_nav_layer():
@@ -80,7 +83,6 @@ func _entity_chara_interaction(emitter:TacEntity, receiver:TacEntity, distance:i
 		emitter.interact_emit(receiver)
 		receiver.interact_receive(emitter)
 
-
 ## This is meant to represent a direct action of the player on a character, usually a selection.
 func entity_player_interaction(receiver:TacEntity):
 	if receiver == Tac.sel_chara:
@@ -94,20 +96,24 @@ func _entity_player_interaction(receiver:TacEntity):
 	receiver.interact_receive(null)
 
 
-## Set the character receiving commands.
+## Set the character receiving commands.[br]
+## NOTE: the override callback is called before setting character, so they can tell whether
+## to behave differently before and after being selected.
 func select_active_character(chara:TacCharacter):
+	_select_active_character(chara)
 	Tac.sel_chara = chara
 	get_tree().call_group("observer_character_active", "_on_character_activated", chara)
-	_select_active_character(chara)
 
 func _select_active_character(chara:TacCharacter):
 	chara.on_being_activated()
 
-## Set the character targetted by an action.
+## Set the character targetted by an action.[br]
+## NOTE: the override callback is called before setting character, so they can tell whether
+## to behave differently before and after being selected.
 func select_target_character(chara:TacCharacter):
+	_select_target_character(chara)
 	Tac.sel_target = chara
 	get_tree().call_group("observer_target_select", "_on_target_selected", chara)
-	_select_target_character(chara)
 
 func _select_target_character(chara:TacCharacter):
 	chara.on_being_targetted()

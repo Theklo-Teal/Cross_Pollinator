@@ -1,7 +1,7 @@
 extends CharaAction
 
-func _init(character:TacCharacter) -> void:
-	super(character)
+func _init(character:TacCharacter, act_name:StringName) -> void:
+	super(character, act_name)
 	cause_busy = true
 	yield_queue = false
 	can_queue = true
@@ -11,6 +11,9 @@ func _init(character:TacCharacter) -> void:
 
 func store_history() -> bool:
 	return false
+
+func switch_acceptance() -> bool:
+	return Tac.hover_entity == null
 
 var stride := 3.5
 var nav_error : Error
@@ -35,6 +38,3 @@ func process(delta:float):
 			return
 	else:
 		me.position = me.position.move_toward(me.next_step, stride * delta)
-
-func interact_receive(from:TacCharacter=null):
-	me.audio_speak("later")
