@@ -38,10 +38,11 @@ var actions : Dictionary[StringName, CharaAction]
 
 func _ready():
 	super()
-	add_to_group("observer_character_select")
 	curr_team = team
 	
 	actions[&"idle"] = Tac.actions[&"idle"].new(self)
+	actions[&"activated"] = Tac.actions[&"activated"].new(self)
+	actions[&"acknowledge"] = Tac.actions[&"acknowledge"].new(self)
 	actions[&"walk"] = Tac.actions[&"walk"].new(self)
 	for each in equipment:
 		actions[each] = Tac.actions[each].new(self)
@@ -70,9 +71,6 @@ func _switch_state(external:bool, next:CharaAction=null) -> Error:
 		is_restoring_past_state = true
 	else:
 		prev = stt.back()
-		if not prev.store_history():
-			# if the current state doesn't want to be recorded, remove it from history.
-			stt.pop_back()
 	
 	if prev.cause_busy and external:
 		# Character is currently busy, see if we may abort the current action. if not, 
@@ -100,6 +98,10 @@ func _switch_state(external:bool, next:CharaAction=null) -> Error:
 		else:
 			result = OK
 		
+		if not is_restoring_past_state and not prev.store_history():
+			# if the current state doesn't want to be recorded, remove it from history.
+			stt.pop_back()
+		
 		prev.exit(next)
 		if not is_restoring_past_state:
 			# We don't want to put a retrieved past state back into the history. That will just duplicate it.
@@ -126,11 +128,9 @@ func _switch_state(external:bool, next:CharaAction=null) -> Error:
 func proceed(next_state:StringName = &"") -> Error:
 	if next_state.is_empty():
 		var err = _switch_state(false, null)
-		print("proceed: no state provided",  error_string(err))
 		return err
 	elif next_state in actions:
 		var err = _switch_state(false, actions[next_state])
-		print("proceed: ", next_state, " - ", error_string(err))
 		return err
 	else:
 		printerr("TacCharacter/proceed(): Not a valid state. " + next_state)
@@ -147,15 +147,11 @@ func proceed(next_state:StringName = &"") -> Error:
 ## ERR_DOES_NOT_EXIST: There's no such action.[br]
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
 func command(next_state:StringName = &"") -> Error:
-	if mouse_hover and Tac.sel_chara:  # Give priority to interaction over command.
-		return ERR_LOCKED
 	if next_state.is_empty():
 		var err = _switch_state(true, null)
-		print("command: no state provided", error_string(err))
 		return err
 	elif next_state in actions:
 		var err = _switch_state(true, actions[next_state])
-		print("command: ", next_state, " - ", error_string(err))
 		return err
 	else:
 		printerr("TacCharacter/command(): Not a valid state. " + next_state)
@@ -166,18 +162,11 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	stt.back().input(event)
 
-func _on_character_selected(chara:TacCharacter, again:bool):
-	if chara == self and not again:
-		stt.back().on_being_selected()
-
-func _interaction() -> Error:
-	if Tac.sel_chara == self:  # This character was clicked while active
-		stt.back().interact_transmit(null)
-	else:  # This character was clicked while another one is active.
-		if Tac.sel_chara == null:
-			stt.back().interact_receive(null)
-		else:
-			Tac.sel_chara.stt.back().interact_transmit(self)
-			stt.back().interact_receive(Tac.sel_chara)
-	
-	return OK
+func on_being_activated() -> Error:
+	var err = command(&"activated")
+	print(error_string(err))
+	return err
+func interact_self() -> Error:
+	var err = command(&"acknowledge")
+	print(error_string(err))
+	return err

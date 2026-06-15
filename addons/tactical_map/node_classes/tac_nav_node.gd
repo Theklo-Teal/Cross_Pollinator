@@ -307,7 +307,7 @@ func _ready() -> void:
 		area_outdated.clear()
 	
 	# Establish the existence of things.
-	var chara_tiles : Array[Vector3i]  # Where entities are being placed, so we can block those tiles.
+	var entity_tiles : Array[Vector3i]  # Where entities are being placed, so we can block those tiles.
 	for layer in maps:
 		var layer_cells : Dictionary[int, Dictionary] # [tile_id][transcodes / adjacent_ids] -> Array[int] / Array[int]
 		
@@ -320,12 +320,15 @@ func _ready() -> void:
 		for map : TacMap in maps[layer]:
 			if not OS.has_feature("editor_hint"):
 				# Place Entities/Characters
+				for each in get_children():
+					if each is TacEntity:
+						entity_tiles.append(each.get_nav_coord3())
 				for map_coord in map.spawners:
 					var spawn_nav_tile = map2nav(map_coord, map)
 					var characters = map.spawners[map_coord].generate(map_coord)
 					for chara : TacEntity in characters:
 						var chara_tile = map2nav(characters[chara], map)
-						chara_tiles.append(Vector3i(chara_tile.x, layer, chara_tile.y))
+						entity_tiles.append(Vector3i(chara_tile.x, layer, chara_tile.y))
 						chara.position = tile2spatial(chara_tile, layer, true)
 						add_child(chara, false, Node.INTERNAL_MODE_DISABLED)
 				
@@ -355,7 +358,7 @@ func _ready() -> void:
 		# `Navsession` is just a copy of `navgraph` at the start, but what's used in-game for pathfinding
 		# and will be edited if the terrain changes in-game.
 		navsession = navgraph.duplicate_deep()
-		for tile in chara_tiles:
+		for tile in entity_tiles:
 			block_navigation(Vector2i(tile.x, tile.z), tile.y)
 
 ## Applies the rules for obstacle codes on [code]navproxy[/code].

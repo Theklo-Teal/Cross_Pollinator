@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://c1k3fmmludxm3"]
+
+[sub_resource type="GDScript" id="GDScript_h4ctp"]
+script/source = "extends TacEntity
+
+func interact_receive(source:TacEntity) -> Error:
+	if source == null:
+		return OK
+	var tween := get_tree().create_tween()
+	tween.set_parallel(false)
+	tween.tween_property($Ball, \"position:y\", 0.8, 1).from(0.15)
+	tween.tween_property($Ball, \"position:y\", 0.15, 1).from(0.8)
+	tween.play()
+	return OK
+"
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_h4ctp"]
+height = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ukp4v"]
+albedo_color = Color(0.101960786, 0.14509805, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s4e5q"]
+albedo_color = Color(1, 0.81960785, 0, 1)
+
+[node name="MacGuffin" type="Area3D" unique_id=1102885929]
+script = SubResource("GDScript_h4ctp")
+metadata/_custom_type_script = "uid://d3bsnibqlxnig"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=794433601]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.41723633, 0)
+shape = SubResource("CylinderShape3D_h4ctp")
+
+[node name="CSGTorus3D" type="CSGTorus3D" parent="." unique_id=164636037]
+inner_radius = 0.2
+outer_radius = 0.5
+sides = 6
+ring_sides = 3
+smooth_faces = false
+material = SubResource("StandardMaterial3D_ukp4v")
+
+[node name="Ball" type="CSGSphere3D" parent="." unique_id=2029316504]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+radius = 0.25
+material = SubResource("StandardMaterial3D_s4e5q")

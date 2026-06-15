@@ -13,7 +13,7 @@ signal interacted  ## The player tried to click on this object.
 
 @export var attitude : ATT  ## How the character navigates the environment.
 @export var can_block_nav : bool = true  ## Will pathfinding avoid this entity?
-@export var interact_distance : float = 2.4  ## How far, in meters, can an active character be from this entity and still allow it to interact.
+@export var interact_distance : int = 3  ## How many tiles can an active character be from this entity and still allow it to interact.
 
 var mouse_hover : bool  # Is the mouse over this area?
 
@@ -24,6 +24,11 @@ enum ATT{  ## Which navigation graph the entity uses.
 	UNTOUCH,  ## The Character doesn't care about obstacles or might even be intangible.
 	FLYING,  ## (Don't Use: Tentative feature) The character can travel through holes in the floor, changing level.
 	}
+
+func _mouse_enter() -> void:
+	mouse_hover = true
+func _mouse_exit() -> void:
+	mouse_hover = false
 
 func _ready():
 	input_ray_pickable = true
@@ -42,24 +47,33 @@ func _get_configuration_warnings() -> PackedStringArray:
 		msg.append("TacEntity should be the child of a TacNav.")
 	return msg
 
-
-func _mouse_enter() -> void:
-	mouse_hover = true
-func _mouse_exit() -> void:
-	mouse_hover = false
-func _input(event: InputEvent) -> void:  #TODO make work with _unhandled_input()?
-	## A player's attemt to interact with this object.
-	if event.is_action_released(Tac.command_input()) and mouse_hover:
-		interaction()
-		interacted.emit()
-		#var chara_coord = Ses.curr_unit().get_global_coord()
-		#var self_coord = get_global_coord()
-		#if chara_coord.distance_to(self_coord) <= interact_distance:
-			#interacted.emit(self, Ses.curr_unit())
-func interaction() -> Error:
-	return _interaction()
-func _interaction() -> Error:
+#region Handling Interactions.
+## The entity is selected for performing actions.[br]
+## Return an error as a message to be interpreted by extending TacInterface.
+func on_being_activated() -> Error:
 	return OK
+## The entity is being target of an action.[br]
+## Return an error as a message to be interpreted by extending TacInterface.
+func on_being_targetted() -> Error:
+	return OK
+## This entity is active and promped itself.[br]
+## Return an error as a message to be interpreted by extending TacInterface.
+func interact_self() -> Error:
+	return OK
+## This entity is active and received a player command.[br]
+## Return an error as a message to be interpreted by extending TacInterface.
+func command_self() -> Error:
+	return OK
+
+## This entity is active and prompted other. If [code]target[/code] is [code]null[/code], it was a message to the player.[br]
+## Return an error as a message to be interpreted by extending TacInterface.
+func interact_emit(target:TacEntity) -> Error:
+	return OK
+## An active entity prompted this one. If [code]target[/code] is [code]null[/code], it was a direct player interaction.[br]
+## Return an error as a message to be interpreted by extending TacInterface.
+func interact_receive(source:TacEntity) -> Error:
+	return OK
+#endregion
 
 func text_speak(speech:StringName):
 	pass
@@ -75,7 +89,7 @@ func audio_speak(speech:StringName):
 func animate(sequence:StringName, duration:float=NAN):
 	pass
 
-#region Entity movement on the mapw
+#region Entity movement on the map
 #TODO Change TacNav.navsession to accound change in position of characters.
 
 var last_step : Vector3i  ## When walking a path, this is the last tile the character was in.

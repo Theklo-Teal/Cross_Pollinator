@@ -13,13 +13,3 @@ func store_history() -> bool:
 
 func enter(prev:CharaAction):
 	me.animate(&"idle", INF)
-
-func on_being_selected():
-	cause_busy = true
-	me.audio_speak(&"ready")
-	await me.animate(&"pose_T", 0.5)
-	me.animate(&"act_idle")
-	cause_busy = false
-
-func interact_receive(from:TacCharacter=null):
-	me.audio_speak(&"greeting")

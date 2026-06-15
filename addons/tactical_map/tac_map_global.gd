@@ -79,18 +79,11 @@ var hover_tile : Vector2i  ## Global space relative coordinate
 var hover_tile_nav : Vector2i  ## Like [code]hover_tile[/code], but in [code]hover_nav[/code] space.
 var hover_tile_map : Vector2i  ## Like [code]hover_tile[/code], but in [code]hover_map[/code] space.
 var hover_entity : TacEntity  ## What is under the mouse
+var sel_npc : TacCharacter
 var sel_target : TacCharacter
 var sel_chara : TacCharacter
 var sel_action : CharaAction
 var actions : Dictionary[StringName, Resource]
-
-func select_character(chara:TacCharacter):
-	if chara.curr_team == TacCharacter.Team.PLAYER:
-		get_tree().call_group("observer_character_select", "_on_character_selected", chara, chara == sel_chara)
-		sel_chara = chara
-	else:
-		get_tree().call_group("observer_character_select", "_on_character_selected", chara, chara == sel_target)
-		sel_target = chara
 
 # Level Editor Things
 var spawners : Dictionary[StringName, Resource]  # List of available spawners.

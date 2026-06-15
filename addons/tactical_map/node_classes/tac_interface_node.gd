@@ -1,12 +1,6 @@
 extends Node3D
 class_name TacInterface
 
-func _ready() -> void:
-	add_to_group("observer_character_select")
-
-func _on_character_selected(chara:TacCharacter):
-	pass
-
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion: 
 		var camera = get_viewport().get_camera_3d()
@@ -57,6 +51,63 @@ func _input(event: InputEvent) -> void:
 			else:
 				Tac.hover_entity = ray_sect.collider
 	
+	if event.is_action_pressed(Tac.command_input()):
+		if Tac.hover_entity != null:
+			entity_chara_interaction(Tac.hover_entity)
 	if event.is_action_pressed(Tac.interact_input()):
-		if Tac.hover_entity is TacCharacter:
-			Tac.select_character(Tac.hover_entity)
+		if Tac.hover_entity != null:
+			entity_player_interaction(Tac.hover_entity)
+
+
+## Override this function to decide what chara will be blamed for interacting with other entities.
+func get_interaction_emitter() -> TacCharacter:
+	return Tac.sel_chara
+
+## This is meant to represent an action of a character on another entity, usually commanded by the player.
+func entity_chara_interaction(receiver:TacEntity):
+	var emitter = get_interaction_emitter()
+	if emitter == receiver:
+		receiver.interact_self()
+	elif emitter.get_nav_layer() == receiver.get_nav_layer():
+		if receiver is TacCharacter and receiver != Tac.sel_target:
+			select_target_character(receiver)
+		else:
+			var distance = Geometry2D.bresenham_line(Tac.sel_chara.get_nav_coord(), receiver.get_nav_coord())
+			_entity_chara_interaction(emitter, receiver, distance.size())
+
+func _entity_chara_interaction(emitter:TacEntity, receiver:TacEntity, distance:int):
+	if distance <= max(emitter.interact_distance, receiver.interact_distance):
+		emitter.interact_emit(receiver)
+		receiver.interact_receive(emitter)
+
+
+## This is meant to represent a direct action of the player on a character, usually a selection.
+func entity_player_interaction(receiver:TacEntity):
+	if receiver == Tac.sel_chara:
+		receiver.command_self()
+	if receiver is TacCharacter and receiver.team == TacCharacter.Team.PLAYER and receiver != Tac.sel_chara:
+		select_active_character(receiver)
+	else:
+		_entity_player_interaction(receiver)
+
+func _entity_player_interaction(receiver:TacEntity):
+	receiver.interact_receive(null)
+
+
+## Set the character receiving commands.
+func select_active_character(chara:TacCharacter):
+	Tac.sel_chara = chara
+	get_tree().call_group("observer_character_active", "_on_character_activated", chara)
+	_select_active_character(chara)
+
+func _select_active_character(chara:TacCharacter):
+	chara.on_being_activated()
+
+## Set the character targetted by an action.
+func select_target_character(chara:TacCharacter):
+	Tac.sel_target = chara
+	get_tree().call_group("observer_target_select", "_on_target_selected", chara)
+	_select_target_character(chara)
+
+func _select_target_character(chara:TacCharacter):
+	chara.on_being_targetted()

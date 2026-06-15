@@ -48,6 +48,7 @@ folder_colors={
 "res://globals/": "gray",
 "res://interface/": "red",
 "res://modules/": "purple",
+"res://props/": "teal",
 "res://quests/": "orange",
 "res://scenarios/": "yellow"
 }

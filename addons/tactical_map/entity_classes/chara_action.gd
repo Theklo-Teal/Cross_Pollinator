@@ -41,20 +41,6 @@ func process(delta:float):
 func input(event:InputEvent):
 	pass
 
-func on_being_selected():
-	pass
-
-## Whether this character was clicked on or prompted. If [code]from[/code] is
-## [code]null[/code] it means the interaction is direct from the player.
-func interact_receive(from:TacCharacter=null):
-	pass
-
-## Whether another character was clicked on or prompted while this one was active.
-## If it represents this character acting on the other. If [code]to[/code] is
-## [code]null[/code] it means the interaction is direct from the player.
-func interact_transmit(to:TacCharacter=null):
-	pass
-
 ## Return a value from 0 to 1 about the confidence of whether an NPC should use this action.
 func utility_score() -> float:
 	return 0.5
