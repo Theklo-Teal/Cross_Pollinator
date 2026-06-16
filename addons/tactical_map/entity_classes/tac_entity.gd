@@ -75,24 +75,6 @@ func interact_receive(source:TacEntity) -> Error:
 	return OK
 #endregion
 
-func text_speak(speech:StringName):
-	pass
-
-## Play audio voice line of the character. If [code]speech[/code] is empty, halts any playing ongoing voice line.
-func audio_speak(speech:StringName):
-	if speech.is_empty():
-		halt_audio_speak()
-
-func halt_audio_speak():
-	pass
-
-## Play an animation, if available. It's up to the entity's script extending this
-## to implement how animation is done.[br]
-## If duration is INF, the animation should loop forever.
-## If duration is NAN, the animation should run one cycle and stop.
-## A duration value will loop or halt the animation so it lasts the given seconds.
-func animate(sequence:StringName, duration:float=NAN):
-	pass
 
 #region Entity movement on the map
 #TODO Change TacNav.navsession to accound change in position of characters.
@@ -122,6 +104,7 @@ func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Er
 	
 	if teleport:
 		trajectory = [destin]
+		get_tacnav().unblock_navigation(Vector2i(last_step.x, last_step.z), last_step.y)
 		take_a_step()  # Update information where the character goes first.
 	else:
 		trajectory.assign( get_tacnav().get_traject(self, destination, tacmap) )
@@ -133,6 +116,7 @@ func traversal_start(destination:Vector2i, tacmap:TacMap, teleport:=false) -> Er
 			if not trajectory[0] == destin: # Trajectory is a partial path.
 				result = ERR_QUERY_FAILED
 			else:
+				get_tacnav().unblock_navigation(Vector2i(last_step.x, last_step.z), last_step.y)
 				result = take_a_step()  # Update information where the character goes first.
 	result = _traversal_start(result, destin, teleport)
 	return result
@@ -160,8 +144,7 @@ func take_a_step() -> Error:
 		var step : Vector3i = trajectory.pop_back()
 		next_step = get_tacnav().tile3spatial(step, true)
 		var zones = get_tacnav().check_zone(self, last_step, step)
-		get_tacnav().block_navigation(Vector2i(step.x, step.z), step.y)
-		get_tacnav().unblock_navigation(Vector2i(last_step.x, last_step.z), last_step.y)
+		
 		result = _take_a_step(step, zones.exited, zones.entered)
 		last_step = step
 	return result
@@ -180,6 +163,7 @@ func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
 ## [code]take_a_step()[/code], enabling different solutions depending on the
 ## circunstances of the end of travel, but TacEntity alone doesn't call this function.
 func traversal_finish(condition:Error=OK) -> Error:
+	get_tacnav().block_navigation(Vector2i(last_step.x, last_step.z), last_step.y)
 	return _traversal_finish(condition)
 
 ## Override to define what the entity does after movement is finished.[br]
@@ -190,16 +174,24 @@ func _traversal_finish(condition:Error=OK) -> Error:
 
 #endregion
 
-### It returns if interaction was successful.
-#func npc_interaction(chara:Character) -> bool:
-	#var npc_coord = chara.get_global_coord()
-	#var prop_coord = get_global_coord()
-		#
-	#if prop_coord.distance_to(npc_coord) > interact_distance:
-		#return false
-	#
-	#interacted.emit(self, chara)
-	#return true
+func text_speak(speech:StringName):
+	pass
+
+## Play audio voice line of the character. If [code]speech[/code] is empty, halts any playing ongoing voice line.
+func audio_speak(speech:StringName):
+	if speech.is_empty():
+		halt_audio_speak()
+
+func halt_audio_speak():
+	pass
+
+## Play an animation, if available. It's up to the entity's script extending this
+## to implement how animation is done.[br]
+## If duration is INF, the animation should loop forever.
+## If duration is NAN, the animation should run one cycle and stop.
+## A duration value will loop or halt the animation so it lasts the given seconds.
+func animate(sequence:StringName, duration:float=NAN):
+	pass
 
 
 ## Get the TacNav this object is part of.

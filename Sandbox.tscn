@@ -11,7 +11,6 @@
 [ext_resource type="Script" uid="uid://darbq45b7j8m" path="res://addons/tactical_map/resource_classes/tac_tile.gd" id="7_ns6gl"]
 [ext_resource type="AudioStream" uid="uid://cpklgtdti1pjs" path="res://assets/music/Equatorial Complex.mp3" id="8_ukipb"]
 [ext_resource type="AudioStream" uid="uid://l5p6gfigrrif" path="res://assets/ui_sounds/Wood Block3.wav" id="9_ns6gl"]
-[ext_resource type="PackedScene" uid="uid://c1k3fmmludxm3" path="res://props/MacGuffin.tscn" id="12_1pa1w"]
 
 [sub_resource type="GDScript" id="GDScript_vrv26"]
 script/source = "extends TacInterface
@@ -5643,9 +5642,6 @@ text = "null
 [node name="TacNav" type="Node3D" parent="." unique_id=1089496864]
 script = ExtResource("5_fucb2")
 metadata/_custom_type_script = "uid://b624fpjrvtg43"
-
-[node name="MacGuffin" parent="TacNav" unique_id=1102885929 instance=ExtResource("12_1pa1w")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, 2, 10.5)
 
 [node name="TacMap" type="Area3D" parent="TacNav" unique_id=1184229908]
 script = ExtResource("6_ukipb")

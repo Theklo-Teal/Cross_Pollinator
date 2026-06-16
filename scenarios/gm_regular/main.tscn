@@ -11,6 +11,11 @@
 [ext_resource type="Script" uid="uid://darbq45b7j8m" path="res://addons/tactical_map/resource_classes/tac_tile.gd" id="7_sfgms"]
 [ext_resource type="Texture2D" uid="uid://nm1ni7d50dp1" path="res://addons/tactical_map/assets/trollface.png" id="8_ivtx7"]
 [ext_resource type="Script" uid="uid://8fl1n72805xy" path="res://characters/tactical_spawners/npc_spawn.gd" id="9_rpuyt"]
+[ext_resource type="PackedScene" uid="uid://c1k3fmmludxm3" path="res://props/MacGuffin.tscn" id="12_sfgms"]
+
+[sub_resource type="Resource" id="Resource_e620n"]
+script = ExtResource("7_ivtx7")
+icon = ExtResource("6_sn8kg")
 
 [sub_resource type="Resource" id="Resource_3ugyx"]
 script = ExtResource("9_rpuyt")
@@ -25,10 +30,6 @@ maximum = 2
 characters = Array[StringName]([&"pmc_breacher"])
 icon = ExtResource("8_ivtx7")
 orientation = 3
-
-[sub_resource type="Resource" id="Resource_e620n"]
-script = ExtResource("7_ivtx7")
-icon = ExtResource("6_sn8kg")
 
 [sub_resource type="Resource" id="Resource_sn8kg"]
 script = ExtResource("7_sfgms")
@@ -7697,3 +7698,6 @@ Vector2i(31, 31): SubResource("Resource_mnhur"),
 Vector2i(32, -1): SubResource("Resource_07a5j")
 })
 metadata/_custom_type_script = "uid://h31ri5gda1bq"
+
+[node name="MacGuffin" parent="TacNav" unique_id=1102885929 instance=ExtResource("12_sfgms")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0, 15.5)

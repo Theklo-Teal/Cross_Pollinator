@@ -137,6 +137,8 @@ func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> P
 							inflection -= 1
 						closest_path.assign(path)
 	
+	block_navigation(loc.nav_coord, loc.layer)
+	
 	if closest_path.is_empty():
 		# No direct path, nor usable ladders in common between the entity's map and the destination map.
 		return []
@@ -149,8 +151,7 @@ func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> P
 			if inflection > 0 and i == inflection:
 				layer = destin_layer
 			full_path.append(Vector3i(tile.x, layer, tile.y))
-
-	block_navigation(loc.nav_coord, loc.layer)  # AStar2D Can't work if the character is sitting on a blocked tile.
+	
 	return full_path
 
 ## Find the map and coordinate of a TacEntity.
@@ -217,7 +218,7 @@ func block_navigation(tile:Vector2i, layer:int):
 		if not nav.has_point(cell_id):
 			var in_area = area[layer].has_point(tile)
 			printerr("TacNav.block_navigation(): navigation point doesn't exist!; Coordinate within area: ", in_area)
-			break
+			return
 		nav.set_point_disabled(cell_id, true)
 
 ## Re-enable a tile in [code]navsession[/code].
@@ -229,7 +230,7 @@ func unblock_navigation(tile:Vector2i, layer:int):
 		if not nav.has_point(cell_id):
 			var in_area = area[layer].has_point(tile)
 			printerr("TacNav.unblock_navigation(): navigation point doesn't exist!; Coordinate within area: ", in_area)
-			break
+			return
 		nav.set_point_disabled(cell_id, false)
 
 # Any modification to a map's terrain should update the «nav_queue», so many modifications can be performed in
@@ -280,7 +281,7 @@ func _process(_delta: float) -> void:
 	
 	if not nav_outdated.is_empty():
 		# Set navigation connections according to changes in map terrain.
-		# Use block_navigation for placement of entities.
+		# Instead of this, use `block_navigation()` for placement of entities.
 		nav_outdated.clear.call_deferred()
 		for coord3i in nav_outdated:
 			var layer = coord3i.y
@@ -308,6 +309,11 @@ func _ready() -> void:
 	
 	# Establish the existence of things.
 	var entity_tiles : Array[Vector3i]  # Where entities are being placed, so we can block those tiles.
+	# Register manually placed entities
+	for each in get_children():
+		if each is TacEntity:
+			entity_tiles.append(each.get_nav_coord3())
+	
 	for layer in maps:
 		var layer_cells : Dictionary[int, Dictionary] # [tile_id][transcodes / adjacent_ids] -> Array[int] / Array[int]
 		
@@ -319,10 +325,8 @@ func _ready() -> void:
 		
 		for map : TacMap in maps[layer]:
 			if not OS.has_feature("editor_hint"):
+				
 				# Place Entities/Characters
-				for each in get_children():
-					if each is TacEntity:
-						entity_tiles.append(each.get_nav_coord3())
 				for map_coord in map.spawners:
 					var spawn_nav_tile = map2nav(map_coord, map)
 					var characters = map.spawners[map_coord].generate(map_coord)
@@ -358,8 +362,8 @@ func _ready() -> void:
 		# `Navsession` is just a copy of `navgraph` at the start, but what's used in-game for pathfinding
 		# and will be edited if the terrain changes in-game.
 		navsession = navgraph.duplicate_deep()
-		for tile in entity_tiles:
-			block_navigation(Vector2i(tile.x, tile.z), tile.y)
+		#for tile in entity_tiles:
+		#	block_navigation(Vector2i(tile.x, tile.z), tile.y)
 
 ## Applies the rules for obstacle codes on [code]navproxy[/code].
 func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):

@@ -50,7 +50,7 @@ func _input(event: InputEvent) -> void:
 				Tac.hover_entity = null
 			else:
 				Tac.hover_entity = ray_sect.collider
-			print(Tac.hover_entity)
+			#print(Tac.hover_entity)
 	
 	if event.is_action_released(Tac.command_input()):
 		if Tac.hover_entity != null:

@@ -77,8 +77,9 @@ func _switch_state(external:bool, next:CharaAction=null) -> Error:
 		#NOTE in restoring a state from history, we don't save the current one to it, so it's possible to keep back-tracking actions if needed.
 		prev = stt.pop_back()
 		next = stt.back()
-		printerr("Stack Underflow! Maybe tried to restore a CharaAction with store_history() == false ? ")
-		return ERR_UNAVAILABLE
+		if next == null:
+			printerr("Stack Underflow! Maybe tried to restore a CharaAction with store_history() == false ? ")
+			return ERR_UNAVAILABLE
 		is_restoring_past_state = true
 	else:
 		prev = stt.back()

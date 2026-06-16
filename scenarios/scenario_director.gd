@@ -75,11 +75,13 @@ class Roaming extends ScenarioState:
 		if event is InputEventMouseMotion:
 			var chara : Character = Tac.sel_chara
 			if chara != null:
-				var mouse_traject = Tac.hover_nav.get_traject(chara, Tac.hover_tile_nav, Tac.hover_map)
-				#var sight_line = Geometry2D.bresenham_line(chara.get_nav_coord(), Tac.hover_tile_nav)
+				var preview = Tac.hover_nav.get_traject(chara, Tac.hover_tile_nav, Tac.hover_map)
+				#var preview = Geometry2D.bresenham_line(chara.get_nav_coord(), Tac.hover_tile_nav)
 				me.get_tree().call_group("_scenario_director_sight_indicators", "queue_free")
-				for i in range(mouse_traject.size()):
-					var sprt = Tac.hover_nav.place_tile_sprite(Tac.ui_tile_walk, mouse_traject[i])
+				for i in range(preview.size()):
+					var coord = preview[i]
+					#var coord := Vector3i(preview[i].x, Tac.hover_layer, preview[i].y)
+					var sprt = Tac.hover_nav.place_tile_sprite(Tac.ui_tile_walk, coord)
 					sprt.add_to_group("_scenario_director_sight_indicators")
 					sprt.modulate = Color(0.0, 0.0, 1.0, 1.0)
 					sprt.position.y += 0.1
