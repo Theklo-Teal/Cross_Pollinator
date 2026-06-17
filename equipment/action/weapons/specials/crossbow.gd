@@ -5,3 +5,4 @@ func _init() -> void:
 	icon.region.position = Vector2(0, 448)
 	title = "Helsing"
 	description = "Seems like some armourer's free-time side project. An improvised weapon that fires bolts using compressed air."
+	slot = SLOT.SECO

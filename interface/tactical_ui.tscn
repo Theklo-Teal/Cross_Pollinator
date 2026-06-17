@@ -4,12 +4,85 @@
 [ext_resource type="Texture2D" uid="uid://cstypsgvc6u1o" path="res://icon.svg" id="1_ohlvf"]
 [ext_resource type="Texture2D" uid="uid://c7ijx5773w5i2" path="res://addons/tactical_map/assets/wojak_feels.png" id="1_ykasp"]
 [ext_resource type="Script" uid="uid://b4srl4wreld7v" path="res://modules/progressbar_stylebox.gd" id="3_6h4wv"]
+[ext_resource type="Texture2D" uid="uid://dtbvi5x64g7ie" path="res://equipment/action_icons.tres" id="4_14pcv"]
 [ext_resource type="Texture2D" uid="uid://cmoh04guop66l" path="res://assets/ui_textures/perks_status.tres" id="4_poa8g"]
 
 [sub_resource type="GDScript" id="GDScript_poa8g"]
 script/source = "extends Control
 
+signal action_picked(action:StringName)
+var actions = ButtonGroup.new()
+func action_button_pressed():
+	var butt : TextureButton = actions.get_pressed_button()
+	action_picked.emit(butt)
+	if butt != null:
+		%Action_Title.text = butt.get_meta(\"action\").title
+		%Action_Descript.text = butt.get_meta(\"action\").description
+	else:
+		%Action_Title.text = \"Default Action\"
+		%Action_Descript.text = \"Default Action Description\"
 
+@onready var slots = {
+	CharaAction.SLOT.PRIM: get_node(\"%Prim_Act\"),
+	CharaAction.SLOT.SECO: get_node(\"%Seco_Act\"),
+	CharaAction.SLOT.UPPER: get_node(\"%Upper_Act\"),
+	CharaAction.SLOT.LOWER: get_node(\"%Lower_Act\"),
+	CharaAction.SLOT.DPLOY: get_node(\"%Deploy_Act\"),
+}
+
+func _ready() -> void:
+	actions.allow_unpress = true
+	actions.pressed.connect(action_button_pressed.unbind(1))
+	for each : TextureButton in slots.values():
+		each.toggle_mode = true
+		each.button_group = actions 
+	
+
+func set_character(chara:Character):
+	%Portrait.texture = chara.info.portrait
+	%Chara_Name.text = chara.get_proper_name()
+	%Health.max_value = chara.max_health
+	%Health.value = chara.health
+	%Stamina.max_value = chara.max_stamina
+	%Stamina.value = chara.stamina
+	%Mental.max_value = chara.max_mental
+	%Mental.value = chara.mental
+	%Traits.text = \"WLL: \" + str(chara.will) + \"\\nSPD: \" + str(chara.speed) + \"\\nAPL: \" + str(chara.appeal)
+	
+	for child in %Actions.get_children():
+		child.queue_free()
+	
+	var other_i : int = -1
+	for act : CharaAction in chara.actions.values():
+		if act.noteworthy:
+			var slot : CharaAction.SLOT = act.slot
+			if slot == CharaAction.SLOT.OTHER:
+				other_i += 1
+				var butt := TextureButton.new()
+				butt.toggle_mode = true
+				butt.button_group = actions
+				butt.texture_normal = act.icon
+				butt.texture_hover = act.icon.duplicate()
+				butt.texture_pressed = act.icon.duplicate()
+				butt.texture_disabled = act.icon.duplicate()
+				butt.texture_hover.region.position.x = 64
+				butt.texture_pressed.region.position.x = 128
+				butt.texture_disabled.region.position.x = 192
+				butt.shortcut = Shortcut.new()
+				var hotkey := InputEventKey.new()
+				hotkey.keycode = 48 + other_i
+				butt.shortcut.events = [hotkey]
+				butt.set_meta(\"action\", act)
+				%Actions.add_child(butt)
+			else:
+				slots[slot].set_meta(\"action\", act)
+				slots[slot].texture_normal = act.icon
+				slots[slot].texture_hover = act.icon.duplicate()
+				slots[slot].texture_pressed = act.icon.duplicate()
+				slots[slot].texture_disabled = act.icon.duplicate()
+				slots[slot].texture_hover.region.position.x = 64
+				slots[slot].texture_pressed.region.position.x = 128
+				slots[slot].texture_disabled.region.position.x = 192
 
 func _on_action_title_toggled(toggled_on: bool) -> void:
 	%Action_Descript.visible = toggled_on
@@ -53,6 +126,24 @@ corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tucig"]
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.6378432, 0.6378432, 0.63784313, 0.36078432)
+border_width_left = 12
+border_width_top = 12
+border_width_right = 12
+border_width_bottom = 12
+border_color = Color(0.8047426, 0.80474263, 0.8047425, 1)
+border_blend = true
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+corner_detail = 5
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_2vnrp"]
 atlas = ExtResource("1_m0am5")
 region = Rect2(0, 0, 64, 64)
@@ -69,56 +160,46 @@ region = Rect2(64, 0, 64, 64)
 atlas = ExtResource("1_m0am5")
 region = Rect2(192, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_6h4wv"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(0, 320, 64, 64)
+[sub_resource type="InputEventAction" id="InputEventAction_14pcv"]
+action = &"primary_action"
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_poa8g"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(128, 320, 64, 64)
+[sub_resource type="Shortcut" id="Shortcut_kj1kg"]
+events = [SubResource("InputEventAction_14pcv")]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_ohlvf"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(64, 320, 64, 64)
+[sub_resource type="LabelSettings" id="LabelSettings_14pcv"]
+font_size = 24
+font_color = Color(1, 1, 0, 1)
+outline_size = 12
+outline_color = Color(0, 0, 0, 1)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_14pcv"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(192, 320, 64, 64)
+[sub_resource type="InputEventAction" id="InputEventAction_7fagx"]
+action = &"overwatch"
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_kj1kg"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(0, 384, 64, 64)
+[sub_resource type="Shortcut" id="Shortcut_44sng"]
+events = [SubResource("InputEventAction_7fagx")]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_7fagx"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(128, 384, 64, 64)
+[sub_resource type="InputEventAction" id="InputEventAction_kx18g"]
+action = &"hunkerdown"
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_44sng"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(64, 384, 64, 64)
+[sub_resource type="Shortcut" id="Shortcut_tucig"]
+events = [SubResource("InputEventAction_kx18g")]
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_kx18g"]
-load_path = "res://.godot/imported/action_icons_square.png-57d569f3f9b25f4ec1216d30cc28873a.ctex"
+[sub_resource type="InputEventAction" id="InputEventAction_hf7nb"]
+action = &"secondary_action"
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_tucig"]
-atlas = SubResource("CompressedTexture2D_kx18g")
-region = Rect2(192, 384, 64, 64)
+[sub_resource type="Shortcut" id="Shortcut_06s2n"]
+events = [SubResource("InputEventAction_hf7nb")]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_hf7nb"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(0, 640, 64, 64)
+[sub_resource type="InputEventAction" id="InputEventAction_8frf6"]
+action = &"deployable"
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_06s2n"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(128, 640, 64, 64)
+[sub_resource type="Shortcut" id="Shortcut_1640b"]
+events = [SubResource("InputEventAction_8frf6")]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_8frf6"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(64, 640, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_1640b"]
-atlas = ExtResource("1_m0am5")
-region = Rect2(192, 640, 64, 64)
+[sub_resource type="LabelSettings" id="LabelSettings_kj1kg"]
+font_size = 20
+font_color = Color(0, 0, 0, 1)
+outline_size = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ohlvf"]
 bg_color = Color(0.74968565, 0.1544564, 0.29441965, 1)
@@ -194,6 +275,7 @@ size_flags_vertical = 3
 layout_mode = 2
 
 [node name="Button" type="Button" parent="HBoxContainer/session_info/HBoxContainer" unique_id=996228508]
+visible = false
 layout_mode = 2
 text = "Undo"
 
@@ -205,27 +287,29 @@ text = "Auto"
 layout_mode = 2
 text = "Skip"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer" unique_id=1099069338]
+[node name="player_team" type="VBoxContainer" parent="HBoxContainer" unique_id=1099069338]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="team_inventory" type="HBoxContainer" parent="HBoxContainer/VBoxContainer" unique_id=2107788434]
+[node name="team_inventory" type="HBoxContainer" parent="HBoxContainer/player_team" unique_id=2107788434]
 custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
 alignment = 2
 
-[node name="Inventory Item" type="TextureButton" parent="HBoxContainer/VBoxContainer/team_inventory" unique_id=90563535]
+[node name="Inventory Item" type="TextureButton" parent="HBoxContainer/player_team/team_inventory" unique_id=90563535]
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 texture_normal = ExtResource("1_ohlvf")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/VBoxContainer/team_inventory" unique_id=1734532797]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/player_team/team_inventory" unique_id=1734532797]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 
-[node name="StyleboxProgressBar" type="Control" parent="HBoxContainer/VBoxContainer/team_inventory/VBoxContainer" unique_id=1448187366]
+[node name="Spritilo" type="Control" parent="HBoxContainer/player_team/team_inventory/VBoxContainer" unique_id=1448187366]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("3_6h4wv")
@@ -235,7 +319,7 @@ max_value = 12
 value = 5
 metadata/_custom_type_script = "uid://b4srl4wreld7v"
 
-[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/team_inventory/VBoxContainer/StyleboxProgressBar" unique_id=2109199555]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/team_inventory/VBoxContainer/Spritilo" unique_id=2109199555]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -245,7 +329,8 @@ text = "   Spritilo"
 label_settings = SubResource("LabelSettings_poa8g")
 vertical_alignment = 1
 
-[node name="StyleboxProgressBar2" type="Control" parent="HBoxContainer/VBoxContainer/team_inventory/VBoxContainer" unique_id=612962965]
+[node name="Ectoplasm" type="Control" parent="HBoxContainer/player_team/team_inventory/VBoxContainer" unique_id=612962965]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("3_6h4wv")
@@ -254,7 +339,7 @@ progress = SubResource("StyleBoxFlat_44sng")
 max_value = 12
 metadata/_custom_type_script = "uid://b4srl4wreld7v"
 
-[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/team_inventory/VBoxContainer/StyleboxProgressBar2" unique_id=2070989653]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/team_inventory/VBoxContainer/Ectoplasm" unique_id=2070989653]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -264,7 +349,8 @@ text = "   Ectoplasm"
 label_settings = SubResource("LabelSettings_poa8g")
 vertical_alignment = 1
 
-[node name="StyleboxProgressBar3" type="Control" parent="HBoxContainer/VBoxContainer/team_inventory/VBoxContainer" unique_id=999873386]
+[node name="Electric" type="Control" parent="HBoxContainer/player_team/team_inventory/VBoxContainer" unique_id=999873386]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("3_6h4wv")
@@ -274,7 +360,7 @@ max_value = 7
 value = 3
 metadata/_custom_type_script = "uid://b4srl4wreld7v"
 
-[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/team_inventory/VBoxContainer/StyleboxProgressBar3" unique_id=308070298]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/team_inventory/VBoxContainer/Electric" unique_id=308070298]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -284,45 +370,46 @@ text = "   Electrical"
 label_settings = SubResource("LabelSettings_poa8g")
 vertical_alignment = 1
 
-[node name="Spacer" type="Control" parent="HBoxContainer/VBoxContainer" unique_id=964659660]
+[node name="Spacer" type="Control" parent="HBoxContainer/player_team" unique_id=964659660]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="character_info" type="HBoxContainer" parent="HBoxContainer/VBoxContainer" unique_id=441068452]
+[node name="character_info" type="HBoxContainer" parent="HBoxContainer/player_team" unique_id=441068452]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 8
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/VBoxContainer/character_info" unique_id=1048590810]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/player_team/character_info" unique_id=1048590810]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Action_Title" type="Button" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer" unique_id=2105855359]
+[node name="Action_Title" type="Button" parent="HBoxContainer/player_team/character_info/VBoxContainer" unique_id=2105855359]
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
 button_pressed = true
-text = "·Walk·"
+text = "♦ Walk ♦"
 
-[node name="PanelContainer" type="PanelContainer" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer" unique_id=1358390678]
+[node name="PanelContainer" type="PanelContainer" parent="HBoxContainer/player_team/character_info/VBoxContainer" unique_id=1358390678]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_tucig")
 
-[node name="Action_Descript" type="RichTextLabel" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer/PanelContainer" unique_id=1290380270]
+[node name="Action_Descript" type="RichTextLabel" parent="HBoxContainer/player_team/character_info/VBoxContainer/PanelContainer" unique_id=1290380270]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Action Description"
 
-[node name="Actions" type="VFlowContainer" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer/PanelContainer" unique_id=2097192936]
+[node name="Actions" type="VFlowContainer" parent="HBoxContainer/player_team/character_info/VBoxContainer/PanelContainer" unique_id=2097192936]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 alignment = 2
 reverse_fill = true
 
-[node name="TextureButton" type="TextureButton" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer/PanelContainer/Actions" unique_id=45593374]
+[node name="TextureButton" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer/PanelContainer/Actions" unique_id=45593374]
 layout_mode = 2
 toggle_mode = true
 texture_normal = SubResource("AtlasTexture_2vnrp")
@@ -330,91 +417,147 @@ texture_pressed = SubResource("AtlasTexture_xiikd")
 texture_hover = SubResource("AtlasTexture_1gwai")
 texture_disabled = SubResource("AtlasTexture_3m2b8")
 
-[node name="VBoxContainer3" type="VBoxContainer" parent="HBoxContainer/VBoxContainer/character_info" unique_id=371623639]
+[node name="VBoxContainer3" type="VBoxContainer" parent="HBoxContainer/player_team/character_info" unique_id=1199325282]
 layout_mode = 2
+alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer3" unique_id=225087478]
-layout_mode = 2
-text = "Zone: None"
-horizontal_alignment = 1
-
-[node name="GridContainer" type="GridContainer" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer3" unique_id=552108835]
-layout_mode = 2
-columns = 3
-
-[node name="TextureButton" type="TextureButton" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer3/GridContainer" unique_id=1658871813]
+[node name="Prim_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer3" unique_id=644331513]
+unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
-texture_normal = SubResource("AtlasTexture_6h4wv")
-texture_pressed = SubResource("AtlasTexture_poa8g")
-texture_hover = SubResource("AtlasTexture_ohlvf")
-texture_disabled = SubResource("AtlasTexture_14pcv")
+shortcut = SubResource("Shortcut_kj1kg")
+texture_normal = ExtResource("4_14pcv")
 
-[node name="TextureButton2" type="TextureButton" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer3/GridContainer" unique_id=728781826]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer3/Prim_Act" unique_id=1159297965]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -34.0
+offset_right = 40.0
+grow_vertical = 0
+text = "Q"
+label_settings = SubResource("LabelSettings_14pcv")
+vertical_alignment = 2
+
+[node name="Upper_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer3" unique_id=529151760]
+unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
-texture_normal = SubResource("AtlasTexture_kj1kg")
-texture_pressed = SubResource("AtlasTexture_7fagx")
-texture_hover = SubResource("AtlasTexture_44sng")
-texture_disabled = SubResource("AtlasTexture_tucig")
+shortcut = SubResource("Shortcut_44sng")
+texture_normal = ExtResource("4_14pcv")
 
-[node name="TextureButton3" type="TextureButton" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer3/GridContainer" unique_id=1556270585]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer3/Upper_Act" unique_id=1702077737]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -34.0
+offset_right = 40.0
+grow_vertical = 0
+text = "R"
+label_settings = SubResource("LabelSettings_14pcv")
+vertical_alignment = 2
+
+[node name="Lower_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer3" unique_id=943145975]
+unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
-texture_normal = SubResource("AtlasTexture_hf7nb")
-texture_pressed = SubResource("AtlasTexture_06s2n")
-texture_hover = SubResource("AtlasTexture_8frf6")
-texture_disabled = SubResource("AtlasTexture_1640b")
+shortcut = SubResource("Shortcut_tucig")
+texture_normal = ExtResource("4_14pcv")
 
-[node name="TextureButton4" type="TextureButton" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer3/GridContainer" unique_id=996030377]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer3/Lower_Act" unique_id=354334398]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -34.0
+offset_right = 40.0
+grow_vertical = 0
+text = "F"
+label_settings = SubResource("LabelSettings_14pcv")
+vertical_alignment = 2
+
+[node name="VBoxContainer5" type="VBoxContainer" parent="HBoxContainer/player_team/character_info" unique_id=756411287]
+layout_mode = 2
+alignment = 1
+
+[node name="Seco_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer5" unique_id=2104328026]
+unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
-texture_normal = SubResource("AtlasTexture_2vnrp")
-texture_pressed = SubResource("AtlasTexture_xiikd")
-texture_hover = SubResource("AtlasTexture_1gwai")
-texture_disabled = SubResource("AtlasTexture_3m2b8")
+shortcut = SubResource("Shortcut_06s2n")
+texture_normal = ExtResource("4_14pcv")
 
-[node name="TextureButton5" type="TextureButton" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer3/GridContainer" unique_id=827420711]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer5/Seco_Act" unique_id=1155581087]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -34.0
+offset_right = 40.0
+grow_vertical = 0
+text = "E"
+label_settings = SubResource("LabelSettings_14pcv")
+vertical_alignment = 2
+
+[node name="Deploy_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer5" unique_id=1417112339]
+unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
-texture_normal = SubResource("AtlasTexture_2vnrp")
-texture_pressed = SubResource("AtlasTexture_xiikd")
-texture_hover = SubResource("AtlasTexture_1gwai")
-texture_disabled = SubResource("AtlasTexture_3m2b8")
+shortcut = SubResource("Shortcut_1640b")
+texture_normal = ExtResource("4_14pcv")
 
-[node name="TextureButton6" type="TextureButton" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer3/GridContainer" unique_id=1402289414]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer5/Deploy_Act" unique_id=478818938]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -34.0
+offset_right = 40.0
+grow_vertical = 0
+text = "G"
+label_settings = SubResource("LabelSettings_14pcv")
+vertical_alignment = 2
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="HBoxContainer/player_team/character_info" unique_id=1162518137]
 layout_mode = 2
-toggle_mode = true
-texture_normal = SubResource("AtlasTexture_2vnrp")
-texture_pressed = SubResource("AtlasTexture_xiikd")
-texture_hover = SubResource("AtlasTexture_1gwai")
-texture_disabled = SubResource("AtlasTexture_3m2b8")
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="HBoxContainer/VBoxContainer/character_info" unique_id=1162518137]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer2" unique_id=693578476]
+[node name="Chara_Name" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer2" unique_id=693578476]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Wojak"
+label_settings = SubResource("LabelSettings_kj1kg")
 horizontal_alignment = 1
+clip_text = true
+text_overrun_behavior = 6
 
-[node name="TextureRect" type="TextureRect" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer2" unique_id=304219237]
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/player_team/character_info/VBoxContainer2" unique_id=327018936]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer" unique_id=2102560529]
+layout_mode = 2
+
+[node name="Portrait" type="TextureRect" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer" unique_id=304219237]
+unique_name_in_owner = true
 layout_mode = 2
 texture = ExtResource("1_ykasp")
+stretch_mode = 3
 
-[node name="Label2" type="Label" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer2" unique_id=192463123]
+[node name="Traits" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer" unique_id=192463123]
+unique_name_in_owner = true
 layout_mode = 2
 text = "WLL: 00
 SPD: 00
 APL: 00"
 horizontal_alignment = 3
 
-[node name="VBoxContainer4" type="VBoxContainer" parent="HBoxContainer/VBoxContainer/character_info" unique_id=572900252]
+[node name="VBoxContainer4" type="VBoxContainer" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer" unique_id=572900252]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 
-[node name="StyleboxProgressBar2" type="Range" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer4" unique_id=905037532]
-unique_name_in_owner = false
+[node name="Health" type="Range" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer4" unique_id=905037532]
+unique_name_in_owner = true
 process_mode = 0
 process_priority = 0
 process_physics_priority = 0
@@ -482,7 +625,7 @@ progress = SubResource("StyleBoxFlat_ohlvf")
 value = 2
 metadata/_custom_type_script = "uid://b4srl4wreld7v"
 
-[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer4/StyleboxProgressBar2" unique_id=14529082]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer4/Health" unique_id=14529082]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -492,8 +635,8 @@ text = "     Integrity"
 label_settings = SubResource("LabelSettings_poa8g")
 vertical_alignment = 1
 
-[node name="StyleboxProgressBar3" type="Range" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer4" unique_id=1170071239]
-unique_name_in_owner = false
+[node name="Stamina" type="Range" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer4" unique_id=1170071239]
+unique_name_in_owner = true
 process_mode = 0
 process_priority = 0
 process_physics_priority = 0
@@ -563,7 +706,7 @@ max_value = 4
 value = 4
 metadata/_custom_type_script = "uid://b4srl4wreld7v"
 
-[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer4/StyleboxProgressBar3" unique_id=1061644878]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer4/Stamina" unique_id=1061644878]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -573,8 +716,8 @@ text = "     Volition"
 label_settings = SubResource("LabelSettings_poa8g")
 vertical_alignment = 1
 
-[node name="StyleboxProgressBar4" type="Range" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer4" unique_id=128255723]
-unique_name_in_owner = false
+[node name="Mental" type="Range" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer4" unique_id=128255723]
+unique_name_in_owner = true
 process_mode = 0
 process_priority = 0
 process_physics_priority = 0
@@ -644,7 +787,7 @@ max_value = 4
 value = 2
 metadata/_custom_type_script = "uid://b4srl4wreld7v"
 
-[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer4/StyleboxProgressBar4" unique_id=1351081362]
+[node name="Label" type="Label" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer4/Mental" unique_id=1351081362]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
@@ -654,13 +797,13 @@ text = "     Stability"
 label_settings = SubResource("LabelSettings_poa8g")
 vertical_alignment = 1
 
-[node name="status" type="HFlowContainer" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer4" unique_id=1343455889]
+[node name="Status" type="HFlowContainer" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer4" unique_id=1343455889]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="TextureRect" type="TextureRect" parent="HBoxContainer/VBoxContainer/character_info/VBoxContainer4/status" unique_id=414371293]
+[node name="TextureRect" type="TextureRect" parent="HBoxContainer/player_team/character_info/VBoxContainer2/HBoxContainer/VBoxContainer4/Status" unique_id=414371293]
 layout_mode = 2
 texture = ExtResource("4_poa8g")
 
-[connection signal="toggled" from="HBoxContainer/VBoxContainer/character_info/VBoxContainer/Action_Title" to="." method="_on_action_title_toggled"]
+[connection signal="toggled" from="HBoxContainer/player_team/character_info/VBoxContainer/Action_Title" to="." method="_on_action_title_toggled"]

@@ -1,5 +1,5 @@
 extends RefCounted
-class_name CharaAction
+class_name CharaState
 
 ## Actions are the states of the state machine in TacCharacter.[br]
 ## By default it represents and empty action slot.

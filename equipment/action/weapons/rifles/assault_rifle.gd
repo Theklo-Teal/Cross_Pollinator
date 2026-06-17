@@ -5,3 +5,4 @@ func _init() -> void:
 	icon.region.position = Vector2(0, 448)
 	title = "Sheolite"
 	description = "An agile low fire-rate bullpup with well rounded characteristics for the next generation soldier. This particular model was developed from experience and battle-tested in war-torn regions of the world."
+	slot = SLOT.PRIM

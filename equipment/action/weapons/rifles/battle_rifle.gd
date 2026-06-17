@@ -5,3 +5,4 @@ func _init() -> void:
 	icon.region.position = Vector2(0, 448)
 	title = "Wildcat"
 	description = "Fires heavy bullets capable of penetrating or destroying barriers. Doctrine is to only use semi-auto mode due concerns of collateral damage in tunnel combat. Born from sensibilities of the Cold War, not much changed on it ever since."
+	slot = SLOT.PRIM

@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://qldsf3cxfwuq"]
 
+[ext_resource type="Resource" uid="uid://cyry15hfrl5tl" path="res://characters/seigro_gamma.tres" id="1_3cysv"]
 [ext_resource type="PackedScene" uid="uid://cp1bci8yh7skh" path="res://characters/assets/Seigro_Gamma/female_gunner_002.glb" id="1_4xrqf"]
 [ext_resource type="AudioStream" uid="uid://bjwd3m2pu6nf" path="res://assets/voices/greeting_10_karen.wav" id="2_cobcf"]
 
@@ -47,6 +48,10 @@ radius = 0.25683594
 
 [node name="SeigroGamma" type="Area3D" unique_id=1830958031]
 script = SubResource("GDScript_yp348")
+info = ExtResource("1_3cysv")
+max_health = 4
+max_stamina = 6
+max_mental = 6
 team = 1
 metadata/_custom_type_script = "uid://7joc0mi1ivb5"
 

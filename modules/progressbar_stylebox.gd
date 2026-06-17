@@ -37,6 +37,8 @@ signal value_changed(value:int)
 @export var max_value : int = 6 : 
 	set(val):
 		max_value = max(1, val)
+		if not is_node_ready():
+			await ready
 		segm_thick = size.x / max_value - SPACING
 		queue_redraw()
 

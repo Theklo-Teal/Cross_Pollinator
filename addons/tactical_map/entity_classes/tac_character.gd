@@ -1,11 +1,11 @@
 extends TacEntity
 class_name TacCharacter
 
-signal switched_action(curr_action:CharaAction)  ## The character has executed the [code]enter()[/code] method of an action. This allows a state to message a TacInterface.
-signal queued_action(pushed_to_queue:CharaAction)  ## The character has queued up another action to execute once there's opportunity.
+signal switched_action(curr_action:CharaState)  ## The character has executed the [code]enter()[/code] method of an action. This allows a state to message a TacInterface.
+signal queued_action(pushed_to_queue:CharaState)  ## The character has queued up another action to execute once there's opportunity.
 
 ## A state machine manager for characters placed by a TacNav node. Each state is
-## a character's action. The actions are [code]CharaAction[/code] instances.[br]
+## a character's action. The actions are [code]CharaState[/code] instances.[br]
 ## Implementing a scene using or extending this script makes it into a character
 ## that can perform actions, unlike just [code]TacEntity[/code].[br]
 ## Use [code]proceed()[/code] to change action. A collection of available actions
@@ -14,7 +14,7 @@ signal queued_action(pushed_to_queue:CharaAction)  ## The character has queued u
 ## Use [code]proceed()/code] to change state. Typically you would use an external
 ## player interface script to call for a character to perform an action. If the
 ## character is in a state that's defined as "busy", that action waits until it 
-## gets to a state defined as not "busy" (unless [code]CharaAction.can_queue[/code]
+## gets to a state defined as not "busy" (unless [code]CharaState.can_queue[/code]
 ## is [code]false[/code] as an exception). When it is actions calling to be 
 ## changed to another action, the character won't care if its "busy".
 
@@ -35,7 +35,7 @@ var curr_team : Team  ## If a character defects or is mind-controlled, this keep
 @export_group("Actions")
 @export var equipment : Array[StringName]
 
-var actions : Dictionary[StringName, CharaAction]
+var actions : Dictionary[StringName, CharaState]
 
 func _ready():
 	super()
@@ -55,7 +55,7 @@ func _ready():
 func is_busy():
 	return acting.cause_busy
 ## May the character try to interrupt the current action? (Other conditions might apply)
-func can_abort(next:CharaAction=null):
+func can_abort(next:CharaState=null):
 	return acting.can_abort()
 ## Are conditions met to allow the character action?
 func can_act(state:StringName):
@@ -64,13 +64,13 @@ func can_act(state:StringName):
 func has_action(state:StringName):
 	return actions.has(state)
 
-var acting : CharaAction  ## Current state being performed.
-var queue : Array[CharaAction]  ## Actions waiting until one that yields to queue is active before being performed.
-var next : CharaAction = null  ## If not null, the character will attempt to switch to the given state at the next process frame.
+var acting : CharaState  ## Current state being performed.
+var queue : Array[CharaState]  ## Actions waiting until one that yields to queue is active before being performed.
+var next : CharaState = null  ## If not null, the character will attempt to switch to the given state at the next process frame.
 var resume := false  ## If [code][/code] is not null, should it resume upon switching?
 
 func _process(delta: float) -> void:
-	var prev : CharaAction
+	var prev : CharaState
 	
 	if next != null:
 		prev = acting

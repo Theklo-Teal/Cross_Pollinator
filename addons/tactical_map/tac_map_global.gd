@@ -82,7 +82,7 @@ var hover_entity : TacEntity  ## What is under the mouse
 var sel_npc : TacCharacter
 var sel_target : TacCharacter
 var sel_chara : TacCharacter
-var sel_action : CharaAction
+var sel_action : CharaState
 var actions : Dictionary[StringName, Resource]
 
 # Level Editor Things
@@ -122,7 +122,7 @@ func _ready() -> void:
 	for p in all_paths:
 		for file in DirAccess.get_files_at(p):
 			if file.get_extension() == "gd":
-				actions[file.get_basename()] = load(act_path.path_join(file))
+				actions[file.get_basename()] = load(p.path_join(file))
 	
 	var spawn_path : String = setts.get_value("Asset Paths", "entity_spawn", "")
 	if not spawn_path.is_empty():
