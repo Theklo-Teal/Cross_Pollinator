@@ -97,6 +97,7 @@ func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> P
 	if loc.nav_coord == destin_tile and loc.tacmap == destin_map:  # Position didn't change.
 		return []
 	
+	var was_blocked = is_navigation_blocked(loc.nav_coord, loc.layer)
 	unblock_navigation(loc.nav_coord, loc.layer)  # AStar2D Can't work if the character is sitting on a blocked tile.
 	var start = Saliko.vec2i_id(loc.nav_coord)
 	var stop = Saliko.vec2i_id(destin_tile)
@@ -137,7 +138,8 @@ func get_traject(entity:TacEntity, destin_tile:Vector2i, destin_map:TacMap) -> P
 							inflection -= 1
 						closest_path.assign(path)
 	
-	block_navigation(loc.nav_coord, loc.layer)
+	if was_blocked:
+		block_navigation(loc.nav_coord, loc.layer)
 	
 	if closest_path.is_empty():
 		# No direct path, nor usable ladders in common between the entity's map and the destination map.
@@ -220,6 +222,7 @@ func block_navigation(tile:Vector2i, layer:int):
 			printerr("TacNav.block_navigation(): navigation point doesn't exist!; Coordinate within area: ", in_area)
 			return
 		nav.set_point_disabled(cell_id, true)
+	visualize_blocks()
 
 ## Re-enable a tile in [code]navsession[/code].
 ## Usually because a character moved out of it
@@ -232,6 +235,30 @@ func unblock_navigation(tile:Vector2i, layer:int):
 			printerr("TacNav.unblock_navigation(): navigation point doesn't exist!; Coordinate within area: ", in_area)
 			return
 		nav.set_point_disabled(cell_id, false)
+	visualize_blocks()
+
+func is_navigation_blocked(tile:Vector2i, layer:int):
+	var cell_id : int = Saliko.vec2i_id(tile)
+	var nav : AStar2D = navsession[layer][Tac.Trans.PASS]
+	if not nav.has_point(cell_id):
+		var in_area = area[layer].has_point(tile)
+		printerr("TacNav.unblock_navigation(): navigation point doesn't exist!; Coordinate within area: ", in_area)
+		return
+	return nav.is_point_disabled(cell_id)
+
+func visualize_blocks():
+	get_tree().call_group("_blocked_tiles", "queue_free")
+	for layer in navsession:
+		var nav : AStar2D = navsession[layer][Tac.Trans.PASS]
+		var start = area[layer].position
+		var stop = area[layer].end
+		for cell in Saliko.cells_of(Vector2(start.x, stop.x), Vector2(start.y, stop.y)):
+			var cell_id = Saliko.vec2i_id(cell)
+			if nav.is_point_disabled(cell_id):
+				var sprite = place_tile_sprite(preload("res://assets/spatial_textures/grid_tile.png"), Vector3i(cell.x, layer, cell.y))
+				sprite.position.y += 0.2
+				sprite.add_to_group("_blocked_tiles")
+				sprite.modulate = Color.RED
 
 # Any modification to a map's terrain should update the «nav_queue», so many modifications can be performed in
 # a process frame and only committed once at the end of the frame.
@@ -362,8 +389,8 @@ func _ready() -> void:
 		# `Navsession` is just a copy of `navgraph` at the start, but what's used in-game for pathfinding
 		# and will be edited if the terrain changes in-game.
 		navsession = navgraph.duplicate_deep()
-		#for tile in entity_tiles:
-		#	block_navigation(Vector2i(tile.x, tile.z), tile.y)
+		for tile in entity_tiles:
+			block_navigation(Vector2i(tile.x, tile.z), tile.y)
 
 ## Applies the rules for obstacle codes on [code]navproxy[/code].
 func update_codes(nav_cell:Vector2i, layer:int, map:TacMap):

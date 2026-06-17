@@ -1,6 +1,9 @@
 extends TacEntity
 class_name TacCharacter
 
+signal switched_action(curr_action:CharaAction)  ## The character has executed the [code]enter()[/code] method of an action. This allows a state to message a TacInterface.
+signal queued_action(pushed_to_queue:CharaAction)  ## The character has queued up another action to execute once there's opportunity.
+
 ## A state machine manager for characters placed by a TacNav node. Each state is
 ## a character's action. The actions are [code]CharaAction[/code] instances.[br]
 ## Implementing a scene using or extending this script makes it into a character
@@ -14,8 +17,6 @@ class_name TacCharacter
 ## gets to a state defined as not "busy" (unless [code]CharaAction.can_queue[/code]
 ## is [code]false[/code] as an exception). When it is actions calling to be 
 ## changed to another action, the character won't care if its "busy".
-
-
 
 enum Team{
 	NONE,  ## A catch for teams being improperly set.
@@ -45,140 +46,149 @@ func _ready():
 	Tac.acquire_action(self, &"walk")
 	for each in equipment:
 		Tac.acquire_action(self, each)
-	stt.append(actions[&"idle"])
+	
 	actions[&"idle"].enter(null)
-
-var queue : Array[CharaAction]  ## When an action was attempted while the character was busy, they go here and wait for character to not be busy.
-var stt : Array[CharaAction]  ## State history stack. Current state is at the back.
-var prev : CharaAction  ## The last character action, even if not stored in the stack.
+	acting = actions[&"idle"]
+	switched_action.emit(actions[&"idle"], OK)
 
 ## Is the character busy with some action?
 func is_busy():
-	return stt.back().cause_busy
-## Can the character interrupt the current action?
-func can_abort():
-	return stt.back().can_abort()
+	return acting.cause_busy
+## May the character try to interrupt the current action? (Other conditions might apply)
+func can_abort(next:CharaAction=null):
+	return acting.can_abort()
 ## Are conditions met to allow the character action?
 func can_act(state:StringName):
 	return actions[state].switch_acceptance()
-## Does the character have this ability?
+## Does the character have the given ability?
 func has_action(state:StringName):
 	return actions.has(state)
 
+var acting : CharaAction  ## Current state being performed.
+var queue : Array[CharaAction]  ## Actions waiting until one that yields to queue is active before being performed.
+var next : CharaAction = null  ## If not null, the character will attempt to switch to the given state at the next process frame.
+var resume := false  ## If [code][/code] is not null, should it resume upon switching?
 
-func _switch_state(external:bool, next:CharaAction=null) -> Error:
-	var result : Error = ERR_BUG
+func _process(delta: float) -> void:
+	var prev : CharaAction
 	
-	if next != null and not next.switch_acceptance():
-		return ERR_LOCKED
+	if next != null:
+		prev = acting
+		acting = next
 	
-	var is_restoring_past_state :=false
-	if next == null:
-		#NOTE in restoring a state from history, we don't save the current one to it, so it's possible to keep back-tracking actions if needed.
-		prev = stt.pop_back()
-		next = stt.back()
-		if next == null:
-			printerr("Stack Underflow! Maybe tried to restore a CharaAction with store_history() == false ? ")
-			return ERR_UNAVAILABLE
-		is_restoring_past_state = true
+	if not queue.is_empty():
+		if acting.can_yield:
+			if prev == null:
+				prev == acting
+			resume = false
+			acting = queue.pop_back()
+	
+	if prev != null:
+		# we did a switch!
+		prev.exit(acting)
+		if resume:
+			resume = false
+			acting.resume(prev)
+		else:
+			acting.enter(prev)
+		next = null
+		switched_action.emit(acting)
+		if Tac.sel_chara == self or Tac.sel_npc == self:
+			activated_duration += 1
+		if Tac.sel_target == self:
+			targetted_duration += 1
 	else:
-		prev = stt.back()
-	
-	if prev.cause_busy and external:
-		# Character is currently busy, see if we may abort the current action. if not, 
-		# action goes into the queue.
-		# State switches called by CharaActions (ie. internal) bypass "cause_busy",
-		# because they would be the actions in "prev" and be blocked by their own "cause_busy".		
-		if prev.can_abort():
-			prev.on_abort.call()
-		elif next.can_queue:
-			queue.push_front(next)
-			result = ERR_ALREADY_IN_USE
-		else:
-			# Action doesn't want to wait in queue.
-			result = ERR_BUSY
-	
-	if result == ERR_BUG:
-		# None of the "cause_busy" situations were resolved yet.
-		
-		if not next.cause_busy and next.yield_queue and not queue.is_empty():
-			# The action about to be changed into doesn't make the character busy, so
-			# it will allow a queued action to take priority if available.
-			#NOTE We don't care to store skipped states in history, so they are effectively bypassed.
-			next = queue.pop_back()
-			result = ERR_SKIP
-		else:
-			result = OK
-		
-		if not is_restoring_past_state and not prev.store_history():
-			# if the current state doesn't want to be recorded, remove it from history.
-			stt.pop_back()
-		
-		prev.exit(next)
-		if not is_restoring_past_state:
-			# We don't want to put a retrieved past state back into the history. That will just duplicate it.
-			stt.push_back(next)
-		next.enter(prev)
-		
-	# Limit the history size.
-	if stt.size() >= MAX_STACK:
-		stt = stt.slice(-MAX_STACK)
-	
-	if queue.size() >= MAX_STACK:
-		printerr("TacCharacter: " + name + " Too many actions waiting to be performed.")
-	
-	return result
+		acting.process(delta)
 
-## Initiate the next action, called by another action. Pass an empty string to retrieve a previous action.
+
+## Initiate the next action, called by another action.[br]
 ## Errors that could be returned:[br]
-## OK: The action was accepted an is now in effect.[br]
-## ERR_SKIP: The action yielded to an action awaiting in the queue.[br]
-## ERR_ALREADY_IN_USE: The action was accepted, but is awaiting in queue.[br]
-## ERR_BUSY: Action failed to be accepted because character is busy.[br]
-## ERR_LOCKED: Action wasn't accepted because it failed a requirement defined by the action.[br]
-## ERR_UNAVAILBLE: Attempted to restore a previous state causing stack underflow. Might have tried returning to a CharaAction with store_history() == false.
-## ERR_DOES_NOT_EXIST: There's no such action.[br]
+## OK: The action was accepted.[br]
+## ERR_DUPLICATE_SYMBOL: Tried switching to current state.[br]
+## ERR_DOES_NOT_EXIST: There's no such action, or state name is empty[br]
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
-func proceed(next_state:StringName = &"") -> Error:
-	if next_state.is_empty():
-		var err = _switch_state(false, null)
-		return err
-	elif next_state in actions:
-		var err = _switch_state(false, actions[next_state])
-		return err
+func proceed(next_state:StringName = &"", resuming:=false) -> Error:
+	if next_state in actions:
+		var act = actions[next_state]
+		if act == acting:
+			return ERR_DUPLICATE_SYMBOL
+		next = actions[next_state]
+		resume = resuming
+		return OK
 	else:
 		printerr("TacCharacter/proceed(): Not a valid state. " + next_state)
 		return ERR_DOES_NOT_EXIST
 
-## Initiate the next action from an external interface. Pass an empty string to retrieve a previous action.
-## state in the history.[br]
+## Initiate the next action from an external interface.[br]
 ## Errors that could be returned:[br]
 ## OK: The action was accepted an is now in effect.[br]
 ## ERR_SKIP: The action yielded to an action awaiting in the queue.[br]
 ## ERR_ALREADY_IN_USE: The action was accepted, but is awaiting in queue.[br]
-## ERR_BUSY: Action failed to be accepted because character is busy.[br]
+## ERR_BUSY: Action failed to be accepted because character is busy or couldn't abort.[br]
 ## ERR_LOCKED: Action wasn't accepted because it failed a requirement defined by the action.[br]
-## ERR_UNAVAILBLE: Attempted to restore a previous state causing stack underflow. Might have tried returning to a CharaAction with store_history() == false.
-## ERR_DOES_NOT_EXIST: There's no such action.[br]
+## ERR_QUERY_FAILED: Action wasn't accepted because the current state failed to abort.[br]
+## ERR_DUPLICATE_SYMBOL: Action wasn't accepted because it tried switching to current state and can't enter the queue.[br]
+## ERR_DOES_NOT_EXIST: There's no such action, or state name is empty[br]
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
 func command(next_state:StringName = &"") -> Error:
-	if next_state.is_empty():
-		var err = _switch_state(true, null)
-		return err
-	elif next_state in actions:
-		var err = _switch_state(true, actions[next_state])
-		return err
+	if next_state in actions:
+		var act = actions[next_state]
+		if not act.allow_switch():
+			return ERR_LOCKED
+		
+		if act == acting:
+			if act.can_queue:
+				queue.push_back(act)
+				queued_action.emit(act)
+				if queue.size() >= MAX_STACK:
+					printerr("TacCharacter: " + name + " Stack Overflow! Too many actions waiting to be performed.")
+				return ERR_ALREADY_IN_USE
+			else:
+				return ERR_DUPLICATE_SYMBOL
+		
+		if acting.cause_busy:
+			if acting.on_abort.call(act):
+				# Successful abort
+				next = act
+				return OK
+			elif act.can_queue:
+				queue.push_back(act)
+				queued_action.emit(act)
+				if queue.size() >= MAX_STACK:
+					printerr("TacCharacter: " + name + " Stack Overflow! Too many actions waiting to be performed.")
+				return ERR_ALREADY_IN_USE
+			else:
+				return ERR_BUSY
+		else:
+			next = act
+			return OK
 	else:
 		printerr("TacCharacter/command(): Not a valid state. " + next_state)
 		return ERR_DOES_NOT_EXIST
 
-func _process(delta: float) -> void:
-	stt.back().process(delta)
 func _unhandled_input(event: InputEvent) -> void:
-	stt.back().input(event)
+	acting.input(event)
 
+var activated_duration : int = 0  ## How many states switched since character was activated?
+var targetted_duration : int = 0 ## How many states switched since character was targetted?
+## The character is selected for performing actions.[br]
+## Return an error as a message to be interpreted by extending TacInterface.
 func on_being_activated() -> Error:
+	activated_duration = 0
+	_on_being_activated()
+	return OK
+## The character is being target of an action.[br]
+## Return an error as a message to be interpreted by extending TacInterface.
+func on_being_targetted() -> Error:
+	targetted_duration = 0
+	_on_being_targetted()
+	return OK
+
+func _on_being_activated() -> Error:
 	return command(&"activated")
+func _on_being_targetted() -> Error:
+	return OK
+
 func interact_receive(source:TacEntity) -> Error:
 	if source == null:
 		return command(&"activated")

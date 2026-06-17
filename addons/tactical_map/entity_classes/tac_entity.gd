@@ -48,14 +48,6 @@ func _get_configuration_warnings() -> PackedStringArray:
 	return msg
 
 #region Handling Interactions.
-## The entity is selected for performing actions.[br]
-## Return an error as a message to be interpreted by extending TacInterface.
-func on_being_activated() -> Error:
-	return OK
-## The entity is being target of an action.[br]
-## Return an error as a message to be interpreted by extending TacInterface.
-func on_being_targetted() -> Error:
-	return OK
 ## This entity is active and promped itself.[br]
 ## Return an error as a message to be interpreted by extending TacInterface.
 func interact_self() -> Error:
@@ -65,7 +57,7 @@ func interact_self() -> Error:
 func command_self() -> Error:
 	return OK
 
-## This entity is active and prompted other. If [code]target[/code] is [code]null[/code], it was a message to the player.[br]
+## This entity is active and prompted other.[br]
 ## Return an error as a message to be interpreted by extending TacInterface.
 func interact_emit(target:TacEntity) -> Error:
 	return OK
@@ -73,6 +65,7 @@ func interact_emit(target:TacEntity) -> Error:
 ## Return an error as a message to be interpreted by extending TacInterface.
 func interact_receive(source:TacEntity) -> Error:
 	return OK
+
 #endregion
 
 
@@ -163,7 +156,8 @@ func _take_a_step(step:Vector3i, zones_exited, zones_entered) -> Error:
 ## [code]take_a_step()[/code], enabling different solutions depending on the
 ## circunstances of the end of travel, but TacEntity alone doesn't call this function.
 func traversal_finish(condition:Error=OK) -> Error:
-	get_tacnav().block_navigation(Vector2i(last_step.x, last_step.z), last_step.y)
+	if condition == OK:
+		get_tacnav().block_navigation(Vector2i(last_step.x, last_step.z), last_step.y)
 	return _traversal_finish(condition)
 
 ## Override to define what the entity does after movement is finished.[br]

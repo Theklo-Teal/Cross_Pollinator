@@ -1,4 +1,4 @@
-extends "res://equipment/action/projectile.gd"
+extends "res://equipment/action/weapons/projectile.gd"
 
 func _init() -> void:
 	icon = icon.duplicate()

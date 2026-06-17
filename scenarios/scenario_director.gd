@@ -5,42 +5,36 @@ class_name ScenarioDirector
 ## Extend this script to define new states, therefore different game rules.
 
 #region Finite State Machine
-var stt : Array[ScenarioState]  ## Stack representing to history of states.
+var stt : ScenarioState
 var states : Dictionary[String, ScenarioState]
 
-func switch_state(next_state:String=""):
-	var prev : ScenarioState
-	var next : ScenarioState
-	if next_state.is_empty():
-		prev = stt.pop_back()
-		next = stt.back()
-	else:
-		assert(next_state in states, "switch_state(): Not a valid state.")
-		if prev.store_history():
-			prev = stt.back()
-		else:
-			prev = stt.pop_back()
-		next = states[next_state]
-		stt.push_back(next)
-	if stt.size() >= Con.MAX_STT:
-		stt = stt.slice(-Con.MAX_STT, )
-	prev.exit(next)
-	next.enter(prev)
+func switch_state(next:StringName):
+	if next.is_empty():
+		return
+	if not next in states:
+		printerr("switch_state(): Not a valid state.")
+		return
+	
+	var next_stt = states[next]
+	stt.exit(next_stt)
+	next_stt.enter(stt)
+	stt = next_stt
 
-## Override this function to define which states to use and which one to start with. Can also be used to initialize their parameters.
 func setup_fsm():
 	states = {
-		"initial" = Roaming.new(self),
+		"roaming" = Roaming.new(self),
 		"pause" = PauseMenu.new(self),
 		}
-	stt.append(states["initial"])
+	var ini_state = _setup_fsm()
+	states[ini_state].enter(null)
+	stt = states[ini_state]
+## Override this function to define which states to use and return the name of the initial state. Can also be used to initialize their parameters.
+func _setup_fsm() -> StringName:
+	return "roaming"
 
 #region States of the FSM; Ie. Game rules.
 ## ScenarioState derived classes can be overriden to change their rules. Or new ones created, which then need to be acknowledged with [code]setup_fsm()[/code].
 @abstract class ScenarioState:
-	## Choose whether to save the state in the stack, so it can be returned to.
-	func store_history() -> bool:
-		return true
 	var me : ScenarioDirector
 	func _init(director:ScenarioDirector):
 		me = director
@@ -51,7 +45,7 @@ func setup_fsm():
 	var refuse_ui : Array[StringName]  ## Control node names in the «Scenario_UI» group we want to always stay hidden, regardless of mention in [code]set_ui()[/code].
 	## Given node names as String, it sets which UI to show, while hiding all others. It only affects Control nodes in the group «Scenario_UI».
 	func set_ui(visible:bool, ...ui):
-		var all = SceneTree.current_scene.get_tree().get_nodes_in_group("Scenario_UI")
+		var all = me.get_tree().get_nodes_in_group("Scenario_UI")
 		for each in all:
 			if each is Control:
 				if each in keep_ui:
@@ -59,6 +53,13 @@ func setup_fsm():
 				elif each in refuse_ui:
 					each.hide()
 				each.visible = (each.name in ui) == visible
+	
+	## The selected character has switched state.
+	func sel_chara_switched(curr_action:CharaAction, chara:TacCharacter):
+		return
+	## The selected character has queued a state.
+	func sel_chara_queued(curr_action:CharaAction, chara:TacCharacter):
+		return
 	
 	func enter(_prev:ScenarioState):
 		pass
@@ -90,8 +91,7 @@ class Roaming extends ScenarioState:
 				Tac.sel_chara.command(&"walk")
 
 class PauseMenu extends ScenarioState:
-	func store_history() -> bool:
-		return false
+	pass
 #endregion
 #endregion
 
@@ -99,10 +99,28 @@ class PauseMenu extends ScenarioState:
 func _ready() -> void:
 	Ses.scenario = self
 	setup_fsm()
-	assert(stt.size() > 0, "There are no states set up for the FSM.")
-	stt.back().enter(null)
+	assert(states.size() > 0, "There are no states set up for the FSM.")
 
 func _process(delta: float) -> void:
-	stt.back().process(delta)
+	stt.process(delta)
 func _unhandled_input(event: InputEvent) -> void:
-	stt.back().input(event)
+	stt.input(event)
+
+
+func _select_active_character(chara:TacCharacter):
+	var last = Tac.sel_chara
+	if last != null:
+		if last.switched_action.is_connected(sel_chara_switched):
+			last.switched_action.disconnect(sel_chara_switched)
+			last.queued_action.disconnect(sel_chara_queued)
+	if not chara.switched_action.is_connected(sel_chara_switched):
+		chara.switched_action.connect(sel_chara_switched.bind(chara))
+		chara.queued_action.connect(sel_chara_queued.bind(chara))
+	super(chara)
+
+## Called when the active player character has changed state.
+func sel_chara_switched(curr_action:CharaAction, chara:TacCharacter):
+	stt.sel_chara_switched(curr_action, chara)
+## Called when the active player character has queued a state.
+func sel_chara_queued(curr_action:CharaAction, chara:TacCharacter):
+	stt.sel_chara_queued(curr_action, chara)

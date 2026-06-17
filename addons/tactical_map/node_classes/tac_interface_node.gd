@@ -104,6 +104,7 @@ func select_active_character(chara:TacCharacter):
 	Tac.sel_chara = chara
 	get_tree().call_group("observer_character_active", "_on_character_activated", chara)
 
+## Override to define what happens if a character is selected for control. [code]Tac.sel_chara[/code] still contains the last selected character during this function call, if necessary to know.
 func _select_active_character(chara:TacCharacter):
 	chara.on_being_activated()
 

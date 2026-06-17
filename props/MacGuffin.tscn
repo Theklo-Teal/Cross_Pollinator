@@ -4,12 +4,18 @@
 script/source = "extends TacEntity
 
 func interact_receive(source:TacEntity) -> Error:
-	if source == null:
-		return OK
 	var tween := get_tree().create_tween()
 	tween.set_parallel(false)
-	tween.tween_property($Ball, \"position:y\", 0.8, 1).from(0.15)
-	tween.tween_property($Ball, \"position:y\", 0.15, 1).from(0.8)
+	if source == null or not $Ball.visible:
+		if not $Ball.visible:
+			$Label3D.text = \"Relic Removed!\"
+		$Label3D.show()
+		tween.tween_property($Nest, \"rotation:y\", TAU, 1).from(0)
+		tween.tween_callback($Label3D.hide)
+	else:
+		tween.tween_property($Ball, \"position:y\", 0.8, 1).from(0.15)
+		tween.tween_property($Ball, \"position:y\", 0.15, 1).from(0.8)
+		tween.tween_callback($Ball.hide)
 	tween.play()
 	return OK
 "
@@ -31,7 +37,7 @@ metadata/_custom_type_script = "uid://d3bsnibqlxnig"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.41723633, 0)
 shape = SubResource("CylinderShape3D_h4ctp")
 
-[node name="CSGTorus3D" type="CSGTorus3D" parent="." unique_id=164636037]
+[node name="Nest" type="CSGTorus3D" parent="." unique_id=164636037]
 inner_radius = 0.2
 outer_radius = 0.5
 sides = 6
@@ -43,3 +49,13 @@ material = SubResource("StandardMaterial3D_ukp4v")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 radius = 0.25
 material = SubResource("StandardMaterial3D_s4e5q")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=604588836]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3147938, 0)
+visible = false
+pixel_size = 0.0015
+billboard = 2
+fixed_size = true
+alpha_cut = 1
+text = "The Secret
+MacGuffin"

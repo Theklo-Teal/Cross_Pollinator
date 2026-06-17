@@ -5,22 +5,22 @@ extends "res://addons/tactical_map/assets/actions/idle.gd"
 
 func _init(character:TacCharacter, act_name:StringName) -> void:
 	super(character, act_name)
-	cause_busy = true
 	title = "Being Selected"
 
-func store_history() -> bool:
-	return false
-
-func switch_acceptance() -> bool:
+func allow_switch() -> bool:
 	return Tac.hover_entity == me
 
 func enter(prev:CharaAction):
-	if Tac.sel_chara == me:
-		me.audio_speak(&"ready")
-		await me.animate(&"pose_T", 0.5)
-	elif prev.name == &"walk":
+	if prev.name == &"walk":
 		me.audio_speak(&"later")
 	else:
-		me.audio_speak(&"greeting")
-		await me.get_tree().create_timer(0.2).timeout
-	me.proceed(&"")
+		if me.activated_duration > 1:
+			me.audio_speak(&"ready")
+			await me.animate(&"pose_T", 0.5)
+		else:
+			me.audio_speak(&"greeting")
+			await me.get_tree().create_timer(0.2).timeout
+	if prev == null:
+		me.proceed.call_deferred(&"idle")
+	else:
+		me.proceed.call_deferred(prev.name, true)

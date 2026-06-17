@@ -110,9 +110,19 @@ func _ready() -> void:
 			actions[file.get_basename()] = load(DEFAULT_ACTIONS_PATH.path_join(file))
 	# Get external action classes as well.
 	var act_path = setts.get_value("Asset Paths", "actions", DEFAULT_ACTIONS_PATH)
-	for file in DirAccess.get_files_at(act_path):
-		if file.get_extension() == "gd":
-			actions[file.get_basename()] = load(act_path.path_join(file))
+	var all_paths : Array[String] = [act_path]
+	var unvisited_paths : Array[String] = [act_path]
+	while not unvisited_paths.is_empty():
+		var new_paths : Array[String]
+		for unvisited in unvisited_paths:
+			for folder in DirAccess.get_directories_at(unvisited):
+				new_paths.append(unvisited.path_join(folder))
+				all_paths.append(unvisited.path_join(folder))
+			unvisited_paths = new_paths
+	for p in all_paths:
+		for file in DirAccess.get_files_at(p):
+			if file.get_extension() == "gd":
+				actions[file.get_basename()] = load(act_path.path_join(file))
 	
 	var spawn_path : String = setts.get_value("Asset Paths", "entity_spawn", "")
 	if not spawn_path.is_empty():
