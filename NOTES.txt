@@ -1,7 +1,13 @@
 General ideas for implementing in the game.
 
+There's no cell phone or satellite uplinks underground, so characters need to lay down telephone cable to progress, like a secondary save system.
+The cable requires connecting to particular sockets. Sometimes only accessible in crawl spaces.
+It allows to replay the combat on visited maps.
+The map of the underground follows the path of the wires layed down.
+
 Human characters can be promoted in rank. Each rank allows one of two abilities to add to the character.
-Agarthian characters don't rank up, but they have a "spritilo" and "ectoplasm" counts. Capturing certain Agarthian technology either increases one or the other. These are then consumed to use abilities based on Agarthian technology.
+Agarthian characters don't rank up, but can use abilities unique to them that deplete a common "spritilo" and "ectoplasm" pool. Capturing certain Agarthian technology either increases one or the other.
+Other abilities might require to consume "Electrical" power.
 Ectoplasm can be found:
 	Orgone Reactors in derelict Agarthian facilities.
 	Experimental Railgun Power Cells.
@@ -21,11 +27,12 @@ Spritilo allows between several special abilities depending on the amount owned:
 	Silk Shot, similar to Snare ability.
 	Electronic Warefare (remotely disables certain enemy abilities, like night vision or auto-sentries).
 	Active camouflage (Allows the character recover the Stealth Status).
-
-There's no cell phone or satellite uplinks underground, so characters need to lay down telephone cable to progress, like a secondary save system.
-The cable requires connecting to particular sockets. Sometimes only accessible in crawl spaces.
-It allows to replay the combat on visited maps.
-The map of the underground follows the path of the wires layed down.
+Electrical is required to use:
+	Robots
+	Cutting torches
+	Night Vision or illuminators
+	Make use of the laid down cable
+	Advanced computerized weapons
 
 In XCOM parlance, should all characters have "Run And Gun" by default? Maybe disable it in heavier characters? Or make it a perk like in XCOM?
 

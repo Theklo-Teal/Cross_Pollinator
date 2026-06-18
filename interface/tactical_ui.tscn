@@ -3,14 +3,16 @@
 [ext_resource type="Texture2D" uid="uid://brgnqh6tqffl6" path="res://assets/ui_textures/action_icons_square.png" id="1_m0am5"]
 [ext_resource type="Texture2D" uid="uid://cstypsgvc6u1o" path="res://icon.svg" id="1_ohlvf"]
 [ext_resource type="Texture2D" uid="uid://c7ijx5773w5i2" path="res://addons/tactical_map/assets/wojak_feels.png" id="1_ykasp"]
-[ext_resource type="Script" uid="uid://b4srl4wreld7v" path="res://modules/progressbar_stylebox.gd" id="3_6h4wv"]
+[ext_resource type="Script" uid="uid://b4srl4wreld7v" path="res://modules/segmented_progressbar.gd" id="3_6h4wv"]
 [ext_resource type="Texture2D" uid="uid://dtbvi5x64g7ie" path="res://equipment/action_icons.tres" id="4_14pcv"]
 [ext_resource type="Texture2D" uid="uid://cmoh04guop66l" path="res://assets/ui_textures/perks_status.tres" id="4_poa8g"]
 
 [sub_resource type="GDScript" id="GDScript_poa8g"]
 script/source = "extends Control
 
+signal pause_requested()
 signal action_picked(action:StringName)
+
 var actions = ButtonGroup.new()
 func action_button_pressed():
 	var butt : TextureButton = actions.get_pressed_button()
@@ -71,11 +73,13 @@ func set_character(chara:Character):
 				butt.texture_disabled.region.position.x = 192
 				butt.shortcut = Shortcut.new()
 				var hotkey := InputEventKey.new()
-				hotkey.keycode = 48 + other_i
+				hotkey.keycode = 48 + other_i as Key
 				butt.shortcut.events = [hotkey]
 				butt.set_meta(\"action\", act)
 				%Actions.add_child(butt)
 			else:
+				if slot == CharaAction.SLOT.NONE:
+					continue
 				slots[slot].set_meta(\"action\", act)
 				slots[slot].texture_normal = act.icon
 				slots[slot].texture_hover = act.icon.duplicate()
@@ -88,6 +92,10 @@ func set_character(chara:Character):
 func _on_action_title_toggled(toggled_on: bool) -> void:
 	%Action_Descript.visible = toggled_on
 	%Actions.visible = not toggled_on
+
+
+func _on_pause_button_pressed() -> void:
+	pause_requested.emit()
 "
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_poa8g"]
@@ -235,7 +243,7 @@ corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
-[node name="TacticalUI" type="Control" unique_id=1970566199]
+[node name="TacticalUI" type="Control" unique_id=1970566199 groups=["Scenario_UI"]]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -259,7 +267,8 @@ unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 0
 
-[node name="Button" type="Button" parent="HBoxContainer/session_info" unique_id=1234605808]
+[node name="pause_button" type="Button" parent="HBoxContainer/session_info" unique_id=1234605808]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Review Briefing"
 
@@ -318,8 +327,8 @@ size_flags_vertical = 3
 script = ExtResource("3_6h4wv")
 segment = SubResource("StyleBoxFlat_poa8g")
 progress = SubResource("StyleBoxFlat_7fagx")
-max_value = 12
-value = 5
+spacing = 4
+value = 2
 metadata/_custom_type_script = "uid://b4srl4wreld7v"
 
 [node name="Label" type="Label" parent="HBoxContainer/player_team/team_inventory/VBoxContainer/Spritilo" unique_id=2109199555]
@@ -404,6 +413,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_tucig")
 [node name="Action_Descript" type="RichTextLabel" parent="HBoxContainer/player_team/character_info/VBoxContainer/PanelContainer" unique_id=1290380270]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 5
 text = "Action Description"
 
 [node name="Actions" type="VFlowContainer" parent="HBoxContainer/player_team/character_info/VBoxContainer/PanelContainer" unique_id=2097192936]
@@ -428,6 +440,7 @@ alignment = 1
 [node name="Prim_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer3" unique_id=644331513]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Primary Weapon"
 toggle_mode = true
 shortcut = SubResource("Shortcut_kj1kg")
 texture_normal = ExtResource("4_14pcv")
@@ -447,6 +460,7 @@ vertical_alignment = 2
 [node name="Upper_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer3" unique_id=529151760]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Overwatch Tactic"
 toggle_mode = true
 shortcut = SubResource("Shortcut_44sng")
 texture_normal = ExtResource("4_14pcv")
@@ -466,6 +480,7 @@ vertical_alignment = 2
 [node name="Lower_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer3" unique_id=943145975]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Hunker Down Tactic"
 toggle_mode = true
 shortcut = SubResource("Shortcut_tucig")
 texture_normal = ExtResource("4_14pcv")
@@ -489,6 +504,7 @@ alignment = 1
 [node name="Seco_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer5" unique_id=2104328026]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Secondary Weapon"
 toggle_mode = true
 shortcut = SubResource("Shortcut_06s2n")
 texture_normal = ExtResource("4_14pcv")
@@ -508,6 +524,7 @@ vertical_alignment = 2
 [node name="Deploy_Act" type="TextureButton" parent="HBoxContainer/player_team/character_info/VBoxContainer5" unique_id=1417112339]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Deployable Gadget"
 toggle_mode = true
 shortcut = SubResource("Shortcut_1640b")
 texture_normal = ExtResource("4_14pcv")
@@ -810,4 +827,5 @@ size_flags_vertical = 3
 layout_mode = 2
 texture = ExtResource("4_poa8g")
 
+[connection signal="pressed" from="HBoxContainer/session_info/pause_button" to="." method="_on_pause_button_pressed"]
 [connection signal="toggled" from="HBoxContainer/player_team/character_info/VBoxContainer/Action_Title" to="." method="_on_action_title_toggled"]

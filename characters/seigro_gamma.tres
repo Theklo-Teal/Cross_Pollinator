@@ -7,7 +7,7 @@
 script = ExtResource("2_n84kg")
 portrait = ExtResource("1_pyig4")
 codename = "Anthracite"
-proper_name = Array[String](["Seigro Gamma 1693"])
+proper_name = Array[String](["Seigro Γ 1693"])
 alias = Array[String](["Heart Ace"])
 sex = 4
 blood = 19

@@ -4,6 +4,9 @@ extends Node
 var scenario : ScenarioDirector
 var selected_action : CharaAction
 
+#WARNING getting values from ConfigFile will return a reference, if a data type
+# is passed by reference (like Array or Dictionary), so modifying the returned
+# value will also modify the contents of the ConfigFile. Use `duplicate()`!
 var save_filename : String
 var save := ConfigFile.new()
 

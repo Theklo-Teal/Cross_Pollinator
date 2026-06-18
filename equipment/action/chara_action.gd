@@ -11,4 +11,4 @@ enum SLOT {
 	OTHER,
 	}
 
-var slot : SLOT = 0
+var slot := SLOT.NONE

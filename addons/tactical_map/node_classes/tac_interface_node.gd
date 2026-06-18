@@ -50,7 +50,6 @@ func _input(event: InputEvent) -> void:
 				Tac.hover_entity = null
 			else:
 				Tac.hover_entity = ray_sect.collider
-			#print(Tac.hover_entity)
 	
 	if event.is_action_released(Tac.command_input()):
 		if Tac.hover_entity != null:
@@ -116,5 +115,6 @@ func select_target_character(chara:TacCharacter):
 	Tac.sel_target = chara
 	get_tree().call_group("observer_target_select", "_on_target_selected", chara)
 
+## Override to define what happens when a character is set as the target of an action.
 func _select_target_character(chara:TacCharacter):
 	chara.on_being_targetted()

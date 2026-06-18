@@ -52,6 +52,9 @@ info = ExtResource("1_3cysv")
 max_health = 4
 max_stamina = 6
 max_mental = 6
+appeal = 5
+speed = 8
+will = 8
 team = 1
 metadata/_custom_type_script = "uid://7joc0mi1ivb5"
 

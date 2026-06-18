@@ -1,37 +1,34 @@
 [Maps]
-unlocked = ["entrance",]
+unlocked = ["entrance"]
 
 [Team]
-characters = ["seigro_gamma",]
+characters = ["seigro_gamma"]
 carapace = false
 mayfly = false
 sensokugol = false
 exokiraso = false
 items = []
+max_spritilo = 12
+spritilo = 4
+max_ectoplasm = 12
+ectoplasm = 4
 
 [seigro_gamma]
 health = 5
+stamina = 4
 mental = 5
 rank = 0
 status = []
 armor = []
-actions = []
+weapons = ["scout_carbine", "diverflexo", "stunnade"]
+added = []
 
 [ethan_lennox]
 health = 5
+stamina
 mental = 5
 rank = 0
 status = []
 armor = []
-actions = []
-
-[sven_muller]
-health = 5
-mental = 5
-rank = 0
-status = []
-armor = []
-actions = []
-
-[katherine_klein]
-rank = 0
+weapons = []
+added = []

@@ -1,6 +1,7 @@
 extends "res://equipment/action/weapons/long_rifle.gd"
 
-func _init() -> void:
+func _init(character:TacCharacter, act_name:StringName) -> void:
+	super(character, act_name)
 	icon = icon.duplicate()
 	icon.region.position = Vector2(0, 448)
 	title = "Sheolite"

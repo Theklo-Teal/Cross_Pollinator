@@ -11,7 +11,7 @@ Other projects:
 Read "CREDITS.txt" for information on third-party assets, in folders containing them.
 
 ![Logo](XPoll_logo.png)
-![Video of a character navigating and interacting](media/Character_Walking.webm)
+![Example Level Scenario](media/Demo_Scenario.png)
 
 
 
