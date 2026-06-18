@@ -2,7 +2,6 @@ extends Node
 
 ## Global data about a play session.
 var scenario : ScenarioDirector
-var selected_action : CharaAction
 
 #WARNING getting values from ConfigFile will return a reference, if a data type
 # is passed by reference (like Array or Dictionary), so modifying the returned

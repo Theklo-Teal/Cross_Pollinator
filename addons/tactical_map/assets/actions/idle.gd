@@ -1,4 +1,4 @@
-extends CharaAction
+extends CharaState
 
 func _init(character:TacCharacter, act_name:StringName) -> void:
 	super(character, act_name)
@@ -8,8 +8,8 @@ func _init(character:TacCharacter, act_name:StringName) -> void:
 	title = "Idle"  # The name shown to the player for selecting this action.
 	description = "Awaiting the opportunity, the tool and the command."
 
-func enter(prev:CharaAction):
+func enter(prev:CharaState):
 	me.animate(&"idle", INF)
 
-func resume(prev:CharaAction):
+func resume(prev:CharaState):
 	enter(prev)

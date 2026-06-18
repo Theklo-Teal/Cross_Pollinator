@@ -10,7 +10,7 @@ func _init(character:TacCharacter, act_name:StringName) -> void:
 func allow_switch() -> bool:
 	return Tac.hover_entity == me
 
-func enter(prev:CharaAction):
+func enter(prev:CharaState):
 	if prev.name == &"walk":
 		me.audio_speak(&"later")
 	else:
@@ -23,4 +23,4 @@ func enter(prev:CharaAction):
 	if prev == null:
 		me.proceed.call_deferred(&"idle")
 	else:
-		me.proceed.call_deferred(prev.name, true)
+		me.proceed.call_deferred(prev.name, {"resume":true})

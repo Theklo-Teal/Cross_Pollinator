@@ -11,10 +11,11 @@ var title : String = "Empty Slot"  ## The name shown to the player for selecting
 var description : String = "This slot has not equipment."
 var noteworthy := false  ## Is the action intended to represent equipment that can be selected in menus?
 
+var entry_info := TacCharacter.QueueEntry.new()  ## The information associated with request of this action.
 var cause_busy : bool = true  ## Should the character inhibit changing to another action when this action is active? The function [code]on_abort[/code] can only be executed if this is true.
 var can_yield : bool = true  ## Let an action waiting in queue to take over.
 var can_queue : bool = true  ## Can this action be held to activate later if the character is busy?
-var on_abort : Callable  ## If this action can be interrupted to change to other action. What should it do?[br]It must take a [code]CharaAction[/code] argument which receives the state asking to take over.[br]It must return a [code]bool[/code] of whether to accept aborting. [br]Unlike just setting [code]cause_busy[/code], aborting executes a function.
+var on_abort : Callable  ## If this action can be interrupted to change to other action. What should it do?[br]It must take a [code]CharaState[/code] argument which receives the state asking to take over.[br]It must return a [code]bool[/code] of whether to accept aborting. [br]Unlike just setting [code]cause_busy[/code], aborting executes a function.
 
 func _init(character:TacCharacter, act_name:StringName) -> void:
 	me = character
@@ -46,16 +47,16 @@ func allow_switch() -> bool:
 ## again. Instead of [code]enter()[/code], this function is called instead.[br]
 ## If it's desired to change state here use [code]call_deferred()[/code] or
 ## things will break.
-func resume(prev:CharaAction):
+func resume(prev:CharaState):
 	return &""
 
 ## Constructor of the state. If it's desired to change state here use
 ## [code]call_deferred()[/code] or things will break.
-func enter(prev:CharaAction):
+func enter(prev:CharaState):
 	return &""
 
 ## Deconstructor of the state. Please don't try to change state here.
-func exit(next:CharaAction):
+func exit(next:CharaState):
 	return
 
 func process(delta:float):

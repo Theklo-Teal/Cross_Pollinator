@@ -26,6 +26,11 @@ class BetweenTurn extends ScenarioState:
 			me.switch_state_of.call_deferred(&"player")
 
 class PlayerTurn extends ScenarioState:
+	var max_range : int = 5
+	var comm_accept = {  ## Flags of whether a command would be acceptable to issue.
+		&"walk" : false,
+	}
+	
 	func _init(director:ScenarioDirector):
 		super(director)
 		refuse_ui = ["PauseMenu"]
@@ -36,15 +41,21 @@ class PlayerTurn extends ScenarioState:
 			set_ui(false, "TacticalUI")
 		else:
 			set_ui(true, "TacticalUI")
-	func sel_chara_switched(curr_action:CharaAction, chara:TacCharacter):
-		set_ui(true, "TacticalUI")
-		Tac.sel_action = chara.actions["walk"]
+			Tac.sel_action = chara.default_action
 	func input(event:InputEvent):
+		if Tac.sel_chara == null:
+			return
+		if event is InputEventMouseMotion:
+			if Tac.sel_action.name == &"walk":
+				var traject = Tac.sel_chara.get_tacnav().get_traject(Tac.sel_chara, Tac.hover_tile, Tac.hover_map)
+				comm_accept[&"walk"] = traject.size() <= max_range
+			
 		if event.is_action_pressed("command"):
-			Tac.sel_chara.command(&"walk")
+			if comm_accept.get(Tac.sel_action.name, true):
+				Tac.sel_chara.command(Tac.sel_action.name)
 		#if event.is_action_pressed("interact"):
 			#print("Interacted")
-
+	
 class RobotTurn extends ScenarioState:
 	func _init(director:ScenarioDirector):
 		super(director)
@@ -54,6 +65,7 @@ class RobotTurn extends ScenarioState:
 		print("NPCs Turn")
 	func on_npc_finished():
 		pass
+
 
 func _setup_fsm():
 	states = {

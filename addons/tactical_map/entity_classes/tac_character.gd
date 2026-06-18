@@ -36,6 +36,10 @@ var curr_team : Team  ## If a character defects or is mind-controlled, this keep
 @export var equipment : Array[StringName]
 
 var actions : Dictionary[StringName, CharaState]
+var default_action : CharaState :  ## What action should the character assume when the player hasn't set any to command? This shouldn't be "idle".
+	set(val):
+		if val != null:
+			default_action = val
 
 func _ready():
 	super()
@@ -47,6 +51,7 @@ func _ready():
 	for each in equipment:
 		Tac.acquire_action(self, each)
 	
+	default_action = actions[&"walk"]
 	actions[&"idle"].enter(null)
 	acting = actions[&"idle"]
 	switched_action.emit(actions[&"idle"], OK)
@@ -64,30 +69,35 @@ func can_act(state:StringName):
 func has_action(state:StringName):
 	return actions.has(state)
 
+class QueueEntry:
+	var act : CharaState  ## The action requested to push into the queue.
+	var resume : bool  ## If this action is interrupted, should it resume, rather than entering normally?
+	var args : Dictionary  ## Arguments that this action might require.
+
 var acting : CharaState  ## Current state being performed.
-var queue : Array[CharaState]  ## Actions waiting until one that yields to queue is active before being performed.
-var next : CharaState = null  ## If not null, the character will attempt to switch to the given state at the next process frame.
-var resume := false  ## If [code][/code] is not null, should it resume upon switching?
+var queue : Array[QueueEntry]  ## Actions waiting until one that yields to queue is active before being performed.
+var next : QueueEntry  ## If not null, the character will attempt to switch to the given state at the next process frame.
 
 func _process(delta: float) -> void:
 	var prev : CharaState
+	var next_info : QueueEntry
 	
 	if next != null:
 		prev = acting
-		acting = next
+		acting = next.act
 	
 	if not queue.is_empty():
 		if acting.can_yield:
 			if prev == null:
 				prev == acting
-			resume = false
-			acting = queue.pop_back()
+			next = queue.pop_back()
+			acting = next.act
 	
 	if prev != null:
 		# we did a switch!
 		prev.exit(acting)
-		if resume:
-			resume = false
+		acting.entry_info = next
+		if next.resume:
 			acting.resume(prev)
 		else:
 			acting.enter(prev)
@@ -101,19 +111,27 @@ func _process(delta: float) -> void:
 		acting.process(delta)
 
 
+func new_entry(act_name:StringName, args:Dictionary={}) -> QueueEntry:
+	var entry = QueueEntry.new()
+	entry.act = actions[act_name]
+	for k in args.keys():
+		if k in entry:
+			entry.set(k, args[k])
+			args.erase(k)
+	entry.args = args
+	return entry
+
 ## Initiate the next action, called by another action.[br]
 ## Errors that could be returned:[br]
 ## OK: The action was accepted.[br]
 ## ERR_DUPLICATE_SYMBOL: Tried switching to current state.[br]
 ## ERR_DOES_NOT_EXIST: There's no such action, or state name is empty[br]
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
-func proceed(next_state:StringName = &"", resuming:=false) -> Error:
+func proceed(next_state:StringName, args:Dictionary={}) -> Error:
 	if next_state in actions:
-		var act = actions[next_state]
-		if act == acting:
+		if next_state == acting.name:
 			return ERR_DUPLICATE_SYMBOL
-		next = actions[next_state]
-		resume = resuming
+		next = new_entry(next_state, args)
 		return OK
 	else:
 		printerr("TacCharacter/proceed(): Not a valid state. " + next_state)
@@ -130,16 +148,16 @@ func proceed(next_state:StringName = &"", resuming:=false) -> Error:
 ## ERR_DUPLICATE_SYMBOL: Action wasn't accepted because it tried switching to current state and can't enter the queue.[br]
 ## ERR_DOES_NOT_EXIST: There's no such action, or state name is empty[br]
 ## ERR_BUG: Hopefully this one never comes up. It would mean conditions weren't checked.
-func command(next_state:StringName = &"") -> Error:
+func command(next_state:StringName, args:Dictionary={}) -> Error:
 	if next_state in actions:
-		var act = actions[next_state]
-		if not act.allow_switch():
+		var entry := new_entry(next_state, args)
+		if not entry.act.allow_switch():
 			return ERR_LOCKED
 		
-		if act == acting:
-			if act.can_queue:
-				queue.push_back(act)
-				queued_action.emit(act)
+		if entry.act == acting:
+			if entry.act.can_queue:
+				queue.push_back(entry)
+				queued_action.emit(entry.act)
 				if queue.size() >= MAX_STACK:
 					printerr("TacCharacter: " + name + " Stack Overflow! Too many actions waiting to be performed.")
 				return ERR_ALREADY_IN_USE
@@ -147,20 +165,20 @@ func command(next_state:StringName = &"") -> Error:
 				return ERR_DUPLICATE_SYMBOL
 		
 		if acting.cause_busy:
-			if acting.on_abort.call(act):
+			if acting.can_abort() and acting.on_abort.call(entry.act):
 				# Successful abort
-				next = act
+				next = entry
 				return OK
-			elif act.can_queue:
-				queue.push_back(act)
-				queued_action.emit(act)
+			elif entry.act.can_queue:
+				queue.push_back(entry)
+				queued_action.emit(entry.act)
 				if queue.size() >= MAX_STACK:
 					printerr("TacCharacter: " + name + " Stack Overflow! Too many actions waiting to be performed.")
 				return ERR_ALREADY_IN_USE
 			else:
 				return ERR_BUSY
 		else:
-			next = act
+			next = entry
 			return OK
 	else:
 		printerr("TacCharacter/command(): Not a valid state. " + next_state)

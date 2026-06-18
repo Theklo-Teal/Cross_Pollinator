@@ -5699,6 +5699,12 @@ has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(0, 1)
 
+[sub_resource type="Resource" id="Resource_jfhpw"]
+script = ExtResource("8_ddq48")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(0, 1)
+
 [sub_resource type="Resource" id="Resource_q3u3u"]
 script = ExtResource("8_ddq48")
 has_floor = true
@@ -5880,6 +5886,12 @@ floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(0, 1)
 
 [sub_resource type="Resource" id="Resource_k4tna"]
+script = ExtResource("8_ddq48")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(0, 1)
+
+[sub_resource type="Resource" id="Resource_lur5a"]
 script = ExtResource("8_ddq48")
 has_floor = true
 floor = &"uid://baal4guq7nueq"
@@ -6301,6 +6313,32 @@ has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(0, -1)
 
+[sub_resource type="Resource" id="Resource_wtbl4"]
+script = ExtResource("8_ddq48")
+is_ceiling = true
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_k8742"]
+script = ExtResource("8_ddq48")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_0sx0n"]
+script = ExtResource("8_ddq48")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+wall_south = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_ncepr"]
+script = ExtResource("8_ddq48")
+is_ceiling = true
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(1, 0)
+
 [sub_resource type="Resource" id="Resource_yggab"]
 script = ExtResource("8_ddq48")
 is_ceiling = true
@@ -6494,6 +6532,32 @@ has_floor = true
 floor = &"uid://baal4guq7nueq"
 floor_dir = Vector2i(0, -1)
 
+[sub_resource type="Resource" id="Resource_2ldgb"]
+script = ExtResource("8_ddq48")
+is_ceiling = true
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(0, 1)
+
+[sub_resource type="Resource" id="Resource_b2w0x"]
+script = ExtResource("8_ddq48")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+wall_north = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_hmr2v"]
+script = ExtResource("8_ddq48")
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+wall_south = &"uid://qe6vkc1vpl6x"
+
+[sub_resource type="Resource" id="Resource_p8wn8"]
+script = ExtResource("8_ddq48")
+is_ceiling = true
+has_floor = true
+floor = &"uid://baal4guq7nueq"
+floor_dir = Vector2i(0, 1)
+
 [sub_resource type="Resource" id="Resource_6tv3r"]
 script = ExtResource("8_ddq48")
 is_ceiling = true
@@ -6601,70 +6665,6 @@ has_floor = true
 
 [sub_resource type="Resource" id="Resource_iabx7"]
 script = ExtResource("8_ddq48")
-
-[sub_resource type="Resource" id="Resource_0sx0n"]
-script = ExtResource("8_ddq48")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-wall_south = &"uid://qe6vkc1vpl6x"
-
-[sub_resource type="Resource" id="Resource_hmr2v"]
-script = ExtResource("8_ddq48")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-wall_south = &"uid://qe6vkc1vpl6x"
-
-[sub_resource type="Resource" id="Resource_b2w0x"]
-script = ExtResource("8_ddq48")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-wall_north = &"uid://qe6vkc1vpl6x"
-
-[sub_resource type="Resource" id="Resource_k8742"]
-script = ExtResource("8_ddq48")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-wall_north = &"uid://qe6vkc1vpl6x"
-
-[sub_resource type="Resource" id="Resource_wtbl4"]
-script = ExtResource("8_ddq48")
-is_ceiling = true
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-
-[sub_resource type="Resource" id="Resource_2ldgb"]
-script = ExtResource("8_ddq48")
-is_ceiling = true
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, 1)
-
-[sub_resource type="Resource" id="Resource_p8wn8"]
-script = ExtResource("8_ddq48")
-is_ceiling = true
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, 1)
-
-[sub_resource type="Resource" id="Resource_ncepr"]
-script = ExtResource("8_ddq48")
-is_ceiling = true
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(1, 0)
-
-[sub_resource type="Resource" id="Resource_lur5a"]
-script = ExtResource("8_ddq48")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, 1)
-
-[sub_resource type="Resource" id="Resource_jfhpw"]
-script = ExtResource("8_ddq48")
-has_floor = true
-floor = &"uid://baal4guq7nueq"
-floor_dir = Vector2i(0, 1)
 
 [sub_resource type="Resource" id="Resource_cfa2o"]
 script = ExtResource("8_ddq48")

@@ -1,4 +1,4 @@
-extends CharaAction
+extends CharaState
 
 func _init(character:TacCharacter, act_name:StringName) -> void:
 	super(character, act_name)
@@ -10,10 +10,10 @@ func _init(character:TacCharacter, act_name:StringName) -> void:
 	title = "Walk"
 	description = "If you walk without rhythm, you won't attract the worm."
 
-func can_abort(next:CharaAction=null) -> bool:
+func can_abort(next:CharaState=null) -> bool:
 	return next == null or not (next.noteworthy or next == self)
 
-func abortion(next:CharaAction) -> bool:
+func abortion(next:CharaState) -> bool:
 	return can_abort(next)
 
 func allow_switch() -> bool:
@@ -22,14 +22,16 @@ func allow_switch() -> bool:
 var stride := 3.5
 var nav_error : Error
 
-func enter(prev:CharaAction):
-	nav_error = me.traversal_start(Tac.hover_tile, Tac.hover_map)
+func enter(prev:CharaState):
+	var to_cell = entry_info.args.get("cell_coord", Tac.hover_tile)
+	var to_map = entry_info.args.get("tacmap", Tac.hover_map)
+	nav_error = me.traversal_start(to_cell, to_map)
 	if nav_error == ERR_ALREADY_EXISTS or nav_error == ERR_CANT_CONNECT:
 		me.proceed(&"idle")
 	else:
 		me.animate(&"sprint", INF)
 
-func exit(next:CharaAction):
+func exit(next:CharaState):
 	if next.name == &"idle":
 		if nav_error == OK and randf() > 0.6:
 			me.audio_speak(&"complete")

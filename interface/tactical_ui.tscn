@@ -18,11 +18,17 @@ func action_button_pressed():
 	var butt : TextureButton = actions.get_pressed_button()
 	action_picked.emit(butt)
 	if butt != null:
+		Tac.sel_action = butt.get_meta(\"action\")
 		%Action_Title.text = butt.get_meta(\"action\").title
 		%Action_Descript.text = butt.get_meta(\"action\").description
+	elif Tac.sel_chara != null:
+		Tac.sel_action = Tac.sel_chara.default_action
+		%Action_Title.text = Tac.sel_chara.default_action.title
+		%Action_Descript.text = Tac.sel_chara.default_action.description
 	else:
-		%Action_Title.text = \"Default Action\"
-		%Action_Descript.text = \"Default Action Description\"
+		var empty_act = CharaAction.new(null, \"\")
+		%Action_Title.text = empty_act.title
+		%Action_Descript.text = empty_act.description
 
 @onready var slots = {
 	CharaAction.SLOT.PRIM: get_node(\"%Prim_Act\"),
@@ -56,38 +62,39 @@ func set_character(chara:Character):
 		child.queue_free()
 	
 	var other_i : int = -1
-	for act : CharaAction in chara.actions.values():
-		if act.noteworthy:
-			var slot : CharaAction.SLOT = act.slot
-			if slot == CharaAction.SLOT.OTHER:
-				other_i += 1
-				var butt := TextureButton.new()
-				butt.toggle_mode = true
-				butt.button_group = actions
-				butt.texture_normal = act.icon
-				butt.texture_hover = act.icon.duplicate()
-				butt.texture_pressed = act.icon.duplicate()
-				butt.texture_disabled = act.icon.duplicate()
-				butt.texture_hover.region.position.x = 64
-				butt.texture_pressed.region.position.x = 128
-				butt.texture_disabled.region.position.x = 192
-				butt.shortcut = Shortcut.new()
-				var hotkey := InputEventKey.new()
-				hotkey.keycode = 48 + other_i as Key
-				butt.shortcut.events = [hotkey]
-				butt.set_meta(\"action\", act)
-				%Actions.add_child(butt)
-			else:
-				if slot == CharaAction.SLOT.NONE:
-					continue
-				slots[slot].set_meta(\"action\", act)
-				slots[slot].texture_normal = act.icon
-				slots[slot].texture_hover = act.icon.duplicate()
-				slots[slot].texture_pressed = act.icon.duplicate()
-				slots[slot].texture_disabled = act.icon.duplicate()
-				slots[slot].texture_hover.region.position.x = 64
-				slots[slot].texture_pressed.region.position.x = 128
-				slots[slot].texture_disabled.region.position.x = 192
+	for act : CharaState in chara.actions.values():
+		if not act.noteworthy:
+			continue
+		var slot : CharaAction.SLOT = act.slot
+		if slot == CharaAction.SLOT.OTHER:
+			other_i += 1
+			var butt := TextureButton.new()
+			butt.toggle_mode = true
+			butt.button_group = actions
+			butt.texture_normal = act.icon
+			butt.texture_hover = act.icon.duplicate()
+			butt.texture_pressed = act.icon.duplicate()
+			butt.texture_disabled = act.icon.duplicate()
+			butt.texture_hover.region.position.x = 64
+			butt.texture_pressed.region.position.x = 128
+			butt.texture_disabled.region.position.x = 192
+			butt.shortcut = Shortcut.new()
+			var hotkey := InputEventKey.new()
+			hotkey.keycode = 48 + other_i as Key
+			butt.shortcut.events = [hotkey]
+			butt.set_meta(\"action\", act)
+			%Actions.add_child(butt)
+		else:
+			if slot == CharaAction.SLOT.NONE:
+				continue
+			slots[slot].set_meta(\"action\", act)
+			slots[slot].texture_normal = act.icon
+			slots[slot].texture_hover = act.icon.duplicate()
+			slots[slot].texture_pressed = act.icon.duplicate()
+			slots[slot].texture_disabled = act.icon.duplicate()
+			slots[slot].texture_hover.region.position.x = 64
+			slots[slot].texture_pressed.region.position.x = 128
+			slots[slot].texture_disabled.region.position.x = 192
 
 func _on_action_title_toggled(toggled_on: bool) -> void:
 	%Action_Descript.visible = toggled_on

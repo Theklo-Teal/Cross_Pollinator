@@ -222,7 +222,7 @@ func block_navigation(tile:Vector2i, layer:int):
 			printerr("TacNav.block_navigation(): navigation point doesn't exist!; Coordinate within area: ", in_area)
 			return
 		nav.set_point_disabled(cell_id, true)
-	visualize_blocks()
+	#visualize_blocks()
 
 ## Re-enable a tile in [code]navsession[/code].
 ## Usually because a character moved out of it
@@ -235,7 +235,7 @@ func unblock_navigation(tile:Vector2i, layer:int):
 			printerr("TacNav.unblock_navigation(): navigation point doesn't exist!; Coordinate within area: ", in_area)
 			return
 		nav.set_point_disabled(cell_id, false)
-	visualize_blocks()
+	#visualize_blocks()
 
 func is_navigation_blocked(tile:Vector2i, layer:int):
 	var cell_id : int = Saliko.vec2i_id(tile)
