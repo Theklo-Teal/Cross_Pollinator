@@ -1,0 +1,252 @@
+[gd_scene format=3 uid="uid://he14gq1q05vb"]
+
+[ext_resource type="Texture2D" uid="uid://b001fw7qgf0b6" path="res://XPoll_logo.png" id="1_1dei0"]
+
+[node name="PauseMenu" type="Control" unique_id=283461791]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1118938066]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer" unique_id=695912582]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/VBoxContainer" unique_id=1513288860]
+layout_mode = 2
+text = "Briefing"
+
+[node name="TabContainer" type="TabContainer" parent="HBoxContainer" unique_id=465530684]
+layout_mode = 2
+size_flags_horizontal = 3
+current_tab = 0
+
+[node name="Gallery" type="MarginContainer" parent="HBoxContainer/TabContainer" unique_id=1378910385]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+metadata/_tab_index = 0
+
+[node name="VBoxContainer" type="HFlowContainer" parent="HBoxContainer/TabContainer/Gallery" unique_id=180518546]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="HBoxContainer/TabContainer/Gallery/VBoxContainer" unique_id=335817027]
+layout_mode = 2
+text = "Logo"
+icon = ExtResource("1_1dei0")
+icon_alignment = 1
+vertical_icon_alignment = 0
+
+[node name="Controls" type="MarginContainer" parent="HBoxContainer/TabContainer" unique_id=1479748148]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+metadata/_tab_index = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/TabContainer/Controls" unique_id=642968664]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label2" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer" unique_id=971095795]
+layout_mode = 2
+text = "- Configurable -"
+horizontal_alignment = 1
+
+[node name="Controls" type="GridContainer" parent="HBoxContainer/TabContainer/Controls/VBoxContainer" unique_id=1009800866]
+layout_mode = 2
+columns = 2
+
+[node name="Button" type="Button" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=1155027588]
+layout_mode = 2
+text = "Interact"
+alignment = 0
+
+[node name="Label" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=408032826]
+layout_mode = 2
+text = "MOUSE LEFT"
+horizontal_alignment = 2
+
+[node name="Button2" type="Button" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=216302836]
+layout_mode = 2
+text = "Command"
+alignment = 0
+
+[node name="Label2" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=109411651]
+layout_mode = 2
+text = "MOUSE RIGHT"
+horizontal_alignment = 2
+
+[node name="Button3" type="Button" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=1791342917]
+layout_mode = 2
+text = "Select Character"
+alignment = 0
+
+[node name="Label3" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=1396880943]
+layout_mode = 2
+text = "Tab"
+horizontal_alignment = 2
+
+[node name="Button4" type="Button" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=1751041968]
+layout_mode = 2
+text = "Primary Weapon"
+alignment = 0
+
+[node name="Label4" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=798136524]
+layout_mode = 2
+text = "Q"
+horizontal_alignment = 2
+
+[node name="Button5" type="Button" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=499807678]
+layout_mode = 2
+text = "Secondary Weapon"
+alignment = 0
+
+[node name="Label5" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=1962836820]
+layout_mode = 2
+text = "E"
+horizontal_alignment = 2
+
+[node name="Button6" type="Button" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=777541846]
+layout_mode = 2
+text = "Overwatch"
+alignment = 0
+
+[node name="Label6" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=257406809]
+layout_mode = 2
+text = "R"
+horizontal_alignment = 2
+
+[node name="Button7" type="Button" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=1974635721]
+layout_mode = 2
+text = "Hunker Down"
+alignment = 0
+
+[node name="Label7" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=102364378]
+layout_mode = 2
+text = "F"
+horizontal_alignment = 2
+
+[node name="Button8" type="Button" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=1151283615]
+layout_mode = 2
+text = "Deployable"
+alignment = 0
+
+[node name="Label8" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/Controls" unique_id=1651133685]
+layout_mode = 2
+text = "G"
+horizontal_alignment = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer" unique_id=1929160220]
+layout_mode = 2
+text = "- Other -"
+horizontal_alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="HBoxContainer/TabContainer/Controls/VBoxContainer" unique_id=1625138305]
+layout_mode = 2
+columns = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/GridContainer" unique_id=669767488]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Camera"
+
+[node name="Label2" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/GridContainer" unique_id=838313190]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MOUSE MIDDLE"
+horizontal_alignment = 2
+
+[node name="Label3" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/GridContainer" unique_id=2022054761]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Additional Actions"
+
+[node name="Label4" type="Label" parent="HBoxContainer/TabContainer/Controls/VBoxContainer/GridContainer" unique_id=976656587]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "1, 2, 3, ..."
+horizontal_alignment = 2
+
+[node name="Gameplay" type="MarginContainer" parent="HBoxContainer/TabContainer" unique_id=1332154321]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+metadata/_tab_index = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/TabContainer/Gameplay" unique_id=676886989]
+layout_mode = 2
+
+[node name="CheckButton" type="CheckButton" parent="HBoxContainer/TabContainer/Gameplay/VBoxContainer" unique_id=2050477903]
+layout_mode = 2
+button_pressed = true
+text = "Auto-Saving"
+
+[node name="Audio" type="MarginContainer" parent="HBoxContainer/TabContainer" unique_id=1975127822]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+metadata/_tab_index = 3
+
+[node name="GridContainer" type="GridContainer" parent="HBoxContainer/TabContainer/Audio" unique_id=1444630154]
+layout_mode = 2
+columns = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/TabContainer/Audio/GridContainer" unique_id=1918728776]
+layout_mode = 2
+text = "Master"
+
+[node name="HSlider" type="HSlider" parent="HBoxContainer/TabContainer/Audio/GridContainer" unique_id=2130214320]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+
+[node name="Label2" type="Label" parent="HBoxContainer/TabContainer/Audio/GridContainer" unique_id=621897778]
+layout_mode = 2
+text = "Background  Music"
+
+[node name="HSlider2" type="HSlider" parent="HBoxContainer/TabContainer/Audio/GridContainer" unique_id=1961043791]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+
+[node name="Label3" type="Label" parent="HBoxContainer/TabContainer/Audio/GridContainer" unique_id=1682210366]
+layout_mode = 2
+text = "Character Speech"
+
+[node name="HSlider3" type="HSlider" parent="HBoxContainer/TabContainer/Audio/GridContainer" unique_id=774093791]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+
+[node name="Label4" type="Label" parent="HBoxContainer/TabContainer/Audio/GridContainer" unique_id=155325457]
+layout_mode = 2
+text = "Audio Effects"
+
+[node name="HSlider4" type="HSlider" parent="HBoxContainer/TabContainer/Audio/GridContainer" unique_id=703896412]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0

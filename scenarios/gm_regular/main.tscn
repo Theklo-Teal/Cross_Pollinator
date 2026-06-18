@@ -13,6 +13,7 @@
 [ext_resource type="Script" uid="uid://8fl1n72805xy" path="res://characters/tactical_spawners/npc_spawn.gd" id="9_rpuyt"]
 [ext_resource type="PackedScene" uid="uid://cud5s8c8n3eeb" path="res://interface/tactical_ui.tscn" id="12_g0gby"]
 [ext_resource type="PackedScene" uid="uid://c1k3fmmludxm3" path="res://props/MacGuffin.tscn" id="12_sfgms"]
+[ext_resource type="PackedScene" uid="uid://he14gq1q05vb" path="res://interface/pause_menu.tscn" id="14_e2ycg"]
 
 [sub_resource type="Resource" id="Resource_e620n"]
 script = ExtResource("7_ivtx7")
@@ -7738,3 +7739,6 @@ size_flags_vertical = 3
 
 [node name="TacticalUI" parent="." unique_id=1970566199 groups=["Scenario_UI"] instance=ExtResource("12_g0gby")]
 unique_name_in_owner = true
+
+[node name="PauseMenu" parent="." unique_id=283461791 groups=["Scenario_UI"] instance=ExtResource("14_e2ycg")]
+visible = false

@@ -36,6 +36,7 @@ func _ready() -> void:
 	for each : TextureButton in slots.values():
 		each.toggle_mode = true
 		each.button_group = actions 
+		each.get_node(\"Label\").text = each.shortcut.get_as_text()
 	
 
 func set_character(chara:Character):
@@ -256,6 +257,7 @@ mouse_filter = 2
 [node name="session_info" type="VBoxContainer" parent="HBoxContainer" unique_id=1308268889]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 0
 
 [node name="Button" type="Button" parent="HBoxContainer/session_info" unique_id=1234605808]
 layout_mode = 2
@@ -295,6 +297,7 @@ size_flags_horizontal = 3
 [node name="team_inventory" type="HBoxContainer" parent="HBoxContainer/player_team" unique_id=2107788434]
 custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
+mouse_filter = 0
 alignment = 2
 
 [node name="Inventory Item" type="TextureButton" parent="HBoxContainer/player_team/team_inventory" unique_id=90563535]
@@ -380,6 +383,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 8
+mouse_filter = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/player_team/character_info" unique_id=1048590810]
 layout_mode = 2

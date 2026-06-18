@@ -287,7 +287,6 @@ func compute_area(layers:PackedInt32Array):
 		if not area[layer].has_area():
 			area.erase(layer)
 
-
 ## flag one of more tiles for recalculating navigation, but takes and array.
 func queue_nav_arr(coords:Array):
 	for coordi in coords:
@@ -336,10 +335,12 @@ func _ready() -> void:
 	
 	# Establish the existence of things.
 	var entity_tiles : Array[Vector3i]  # Where entities are being placed, so we can block those tiles.
-	# Register manually placed entities
-	for each in get_children():
-		if each is TacEntity:
-			entity_tiles.append(each.get_nav_coord3())
+	
+	if not OS.has_feature("editor_hint"):
+		# Register manually placed entities
+		for each in get_children():
+			if each is TacEntity:
+				entity_tiles.append(each.get_nav_coord3())
 	
 	for layer in maps:
 		var layer_cells : Dictionary[int, Dictionary] # [tile_id][transcodes / adjacent_ids] -> Array[int] / Array[int]
@@ -351,8 +352,8 @@ func _ready() -> void:
 				navgraph[layer][trans] = AStar2D.new()
 		
 		for map : TacMap in maps[layer]:
+			
 			if not OS.has_feature("editor_hint"):
-				
 				# Place Entities/Characters
 				for map_coord in map.spawners:
 					var spawn_nav_tile = map2nav(map_coord, map)

@@ -45,7 +45,7 @@ func _enter_tree() -> void:
 		"coordcapt": Coord_Capture.new(self)
 		}
 	
-	add_custom_type("CharaAction", "RefCounted", preload("res://addons/tactical_map/entity_classes/chara_action.gd"), preload("res://addons/tactical_map/icons/TacCharaAction.svg"))
+	add_custom_type("CharaState", "RefCounted", preload("res://addons/tactical_map/entity_classes/chara_state.gd"), preload("res://addons/tactical_map/icons/TacCharaAction.svg"))
 	add_custom_type("FloorInfo", "Resource", preload("res://addons/tactical_map/resource_classes/floor_info.gd"), preload("res://addons/tactical_map/icons/FloorInfo.svg"))
 	add_custom_type("WallInfo", "Resource", preload("res://addons/tactical_map/resource_classes/wall_info.gd"), preload("res://addons/tactical_map/icons/WallInfo.svg"))
 	add_custom_type("TacTile", "Resource", preload("res://addons/tactical_map/resource_classes/tac_tile.gd"), preload("res://addons/tactical_map/icons/TacTile.svg"))
