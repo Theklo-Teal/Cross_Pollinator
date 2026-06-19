@@ -1,6 +1,15 @@
 extends Node3D
 class_name TacInterface
 
+var tacnavs : Array[TacNav]
+## Called by TacNav when they enter the scene.
+func _tacnav_entered(tacnav:TacNav):
+	if not tacnav in tacnavs:
+		tacnavs.append(tacnav)
+## Called by TacNav when they exit the scene.
+func _tacnav_exited(tacnav:TacNav):
+	tacnavs.erase(tacnav)
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion: 
 		var camera = get_viewport().get_camera_3d()

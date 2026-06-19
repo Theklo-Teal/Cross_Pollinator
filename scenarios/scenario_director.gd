@@ -78,10 +78,10 @@ func _setup_fsm() -> StringName:
 		return
 	
 	## The selected character has switched state.
-	func sel_chara_switched(curr_action:CharaAction, chara:TacCharacter):
+	func sel_chara_switched(curr_action:CharaState, chara:TacCharacter):
 		return
 	## The selected character has queued a state.
-	func sel_chara_queued(curr_action:CharaAction, chara:TacCharacter):
+	func sel_chara_queued(curr_action:CharaState, chara:TacCharacter):
 		return
 	
 	func enter(prev:ScenarioState):
@@ -143,6 +143,8 @@ func _select_active_character(chara:TacCharacter):
 	if not chara.switched_action.is_connected(sel_chara_switched):
 		chara.switched_action.connect(sel_chara_switched.bind(chara))
 		chara.queued_action.connect(sel_chara_queued.bind(chara))
+	for quest_set in quests.get(chara as TacEntity, []):
+		quest_set.selected_chara(chara)
 	super(chara)
 
 func _select_target_character(chara:TacCharacter):
@@ -151,8 +153,45 @@ func _select_target_character(chara:TacCharacter):
 	super(chara)
 
 ## Called when the active player character has changed state.
-func sel_chara_switched(curr_action:CharaAction, chara:TacCharacter):
+func sel_chara_switched(curr_action:CharaState, chara:TacCharacter):
 	stt.sel_chara_switched(curr_action, chara)
 ## Called when the active player character has queued a state.
-func sel_chara_queued(curr_action:CharaAction, chara:TacCharacter):
+func sel_chara_queued(curr_action:CharaState, chara:TacCharacter):
 	stt.sel_chara_queued(curr_action, chara)
+
+#region Quest Handling
+signal entities_changed(added:Array[TacEntity], removed:Array[TacEntity])
+var quests : Dictionary[TacEntity, Array]  ## [trigger_node][i] -> scenario_quests
+
+func _on_entities_changed(added:Array[TacEntity], removed:Array[TacEntity]):
+	entities_changed.emit(added, removed)
+
+func _tacnav_entered(tacnav:TacNav):
+	super(tacnav)
+	tacnav.zone_entered.connect(_entity_zone_entered)
+	tacnav.zone_exited.connect(_entity_zone_exited)
+	tacnav.entities_changed.connect(_on_entities_changed)
+func _tacnav_exited(tacnav:TacNav):
+	super(tacnav)
+	_on_entities_changed([], tacnav.entities)
+
+func _entity_zone_entered(entity:TacEntity, zone:StringName):
+	for quest_set in quests.get(entity, []):
+		quest_set.entity_zone_entered(entity, zone)
+
+func _entity_zone_exited(entity:TacEntity, zone:StringName):
+	for quest_set in quests.get(entity, []):
+		quest_set.entity_zone_exited(entity, zone)
+
+func _entity_chara_interaction(emitter:TacEntity, receiver:TacEntity, distance:int):
+	super(emitter, receiver, distance)
+	for quest_set in quests.get(emitter,[]):
+		quest_set.emitted_interaction(emitter, distance)
+	for quest_set in quests.get(receiver, []):
+		quest_set.received_interaction(receiver, distance)
+
+func _entity_player_interaction(receiver:TacEntity):
+	super(receiver)
+	for quest_set in quests.get(receiver, []):
+		quest_set.player_interaction(receiver)
+#endregion

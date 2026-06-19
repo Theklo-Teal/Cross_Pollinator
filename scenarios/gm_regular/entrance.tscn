@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://cii0yb8goh3cp" path="res://scenarios/gm_regular/main.tscn" id="1_nfxuj"]
 [ext_resource type="Script" uid="uid://h31ri5gda1bq" path="res://addons/tactical_map/node_classes/tac_map_node.gd" id="2_7xhbv"]
+[ext_resource type="Script" uid="uid://cgudhn77f42qw" path="res://quests/quest_entry.gd" id="2_ovjmh"]
 [ext_resource type="Script" uid="uid://dpiatxxpamlw0" path="res://addons/tactical_map/resource_classes/tac_spawner.gd" id="3_hbms2"]
 [ext_resource type="Texture2D" uid="uid://c7ijx5773w5i2" path="res://addons/tactical_map/assets/wojak_feels.png" id="4_ovjmh"]
 [ext_resource type="Script" uid="uid://dl6vb88eepnr1" path="res://characters/tactical_spawners/player_spawn.gd" id="5_iabx7"]
@@ -9,6 +10,15 @@
 [ext_resource type="Script" uid="uid://8fl1n72805xy" path="res://characters/tactical_spawners/npc_spawn.gd" id="7_y5lw2"]
 [ext_resource type="Script" uid="uid://darbq45b7j8m" path="res://addons/tactical_map/resource_classes/tac_tile.gd" id="8_ddq48"]
 [ext_resource type="PackedScene" uid="uid://c1k3fmmludxm3" path="res://props/MacGuffin.tscn" id="9_7xhbv"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_7xhbv"]
+font_size = 40
+font_color = Color(1, 1, 0, 1)
+outline_size = 12
+outline_color = Color(0.42358777, 0.4235877, 0, 1)
+shadow_size = 12
+shadow_color = Color(0, 0, 0, 0.77254903)
+shadow_offset = Vector2(4, 0)
 
 [sub_resource type="Resource" id="Resource_7xhbv"]
 script = ExtResource("5_iabx7")
@@ -8195,6 +8205,24 @@ wall_south = &"uid://qe6vkc1vpl6x"
 [node name="DirectionalLight3D" parent="." index="0" unique_id=1620685391]
 transform = Transform3D(0.1839857, 0.6950357, -0.6950357, 0, 0.7071068, 0.7071068, 0.98292905, -0.13009754, 0.13009754, 0, 11, 0)
 
+[node name="ScenarioQuests" parent="." index="4" unique_id=480395874 node_paths=PackedStringArray("scenario")]
+scenario = NodePath("..")
+
+[node name="QuestEntry" type="Node" parent="ScenarioQuests" index="0" unique_id=710328415]
+script = ExtResource("2_ovjmh")
+metadata/_custom_type_script = "uid://cgudhn77f42qw"
+
+[node name="RobotSign" type="Label" parent="TacticalUI" parent_id_path=PackedInt32Array(2076823872) index="1" unique_id=547161039 groups=["Scenario_UI"]]
+visible = false
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+text = "Symposium's Turn"
+label_settings = SubResource("LabelSettings_7xhbv")
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="TacMap" type="Area3D" parent="TacNav" parent_id_path=PackedInt32Array(730974787) index="0" unique_id=675664887]
 script = ExtResource("2_7xhbv")
 size = Vector2i(32, 32)
@@ -9484,3 +9512,5 @@ metadata/_custom_type_script = "uid://h31ri5gda1bq"
 
 [node name="MacGuffin" parent="TacNav" parent_id_path=PackedInt32Array(730974787) index="2" unique_id=1102885929 instance=ExtResource("9_7xhbv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48.5, 0, 16)
+
+[connection signal="skip_turn" from="TacticalUI/TacticalSessionPanel" to="." method="_on_tactical_session_panel_skip_turn"]

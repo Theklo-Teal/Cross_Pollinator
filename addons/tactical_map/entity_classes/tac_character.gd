@@ -1,6 +1,7 @@
 extends TacEntity
 class_name TacCharacter
 
+signal quest_communicate(messages:Dictionary)  ## To be connected by a [code]QuestEntry[/code] extension so it can respond to something the character does.
 signal switched_action(curr_action:CharaState)  ## The character has executed the [code]enter()[/code] method of an action. This allows a state to message a TacInterface.
 signal queued_action(pushed_to_queue:CharaState)  ## The character has queued up another action to execute once there's opportunity.
 

@@ -85,15 +85,15 @@ func assess_options() -> Dictionary:
 	return assessment
 
 ## Decide which of the options to pick.
-func take_decision() -> Decision:
+func _take_decision() -> Decision:
 	if not options.is_empty():
 		return options.back()
 	else:
 		return Decision.new([Vector2i.ZERO])
 
 ## Automatically take action.
-func perform_action(_decision: Decision):
-	pass
+func perform_action():
+	var decision = _take_decision()
 
 
 #region

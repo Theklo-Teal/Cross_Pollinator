@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://bnabx6s6d3t5q"]
+
+[sub_resource type="GDScript" id="GDScript_xage5"]
+script/source = "extends VBoxContainer
+
+signal pause_requested
+signal skip_turn
+
+func _on_pause_pressed() -> void:
+	pause_requested.emit()
+func _on_skip_turn_pressed() -> void:
+	skip_turn.emit()
+"
+
+[node name="TacticalSessionPanel" type="VBoxContainer" unique_id=1117842951 groups=["Scenario_UI"]]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 128.0
+grow_vertical = 2
+mouse_filter = 0
+script = SubResource("GDScript_xage5")
+
+[node name="pause" type="Button" parent="." unique_id=2028077976]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Review Briefing"
+
+[node name="Label" type="Label" parent="." unique_id=297514356]
+layout_mode = 2
+text = "Enemies: 00"
+horizontal_alignment = 3
+
+[node name="targets" type="VFlowContainer" parent="." unique_id=1411680983]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=594693836]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="HBoxContainer" unique_id=1617573863]
+visible = false
+layout_mode = 2
+text = "Undo"
+
+[node name="auto_turn" type="Button" parent="HBoxContainer" unique_id=1913197966]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Auto"
+
+[node name="skip_turn" type="Button" parent="HBoxContainer" unique_id=395609003]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Skip"
+
+[connection signal="pressed" from="pause" to="." method="_on_pause_pressed"]
+[connection signal="pressed" from="HBoxContainer/skip_turn" to="." method="_on_skip_turn_pressed"]

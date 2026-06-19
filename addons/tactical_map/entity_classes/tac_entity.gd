@@ -9,8 +9,6 @@ class_name TacEntity
 #FIXME Allow traversal between maps of the same layer before reaching and crossing a ladder.
 #FIXME Have a way for tacnav.block/unblock to not throw error if character is using ladders.
 
-signal interacted  ## The player tried to click on this object.
-
 @export var attitude : ATT  ## How the character navigates the environment.
 @export var can_block_nav : bool = true  ## Will pathfinding avoid this entity?
 @export var interact_distance : int = 3  ## How many tiles can an active character be from this entity and still allow it to interact.

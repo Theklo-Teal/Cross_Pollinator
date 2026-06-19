@@ -5,7 +5,9 @@
 [ext_resource type="PackedScene" uid="uid://cxfeoyapo1k04" path="res://modules/turntable_cam.tscn" id="2_rpuyt"]
 [ext_resource type="AudioStream" uid="uid://bikd0qyxgdh7j" path="res://assets/music/Unlicensed/Superpredators.mp3" id="3_rpuyt"]
 [ext_resource type="AudioStream" uid="uid://l5p6gfigrrif" path="res://assets/ui_sounds/Wood Block3.wav" id="4_aaksy"]
-[ext_resource type="PackedScene" uid="uid://cud5s8c8n3eeb" path="res://interface/tactical_ui.tscn" id="12_g0gby"]
+[ext_resource type="PackedScene" uid="uid://bnabx6s6d3t5q" path="res://interface/tactical_session_panel.tscn" id="5_qgcci"]
+[ext_resource type="Script" uid="uid://dr6p51r7h0xai" path="res://quests/scenario_quests.gd" id="5_sn8kg"]
+[ext_resource type="PackedScene" uid="uid://cud5s8c8n3eeb" path="res://interface/tactical_player_panel.tscn" id="12_g0gby"]
 [ext_resource type="PackedScene" uid="uid://he14gq1q05vb" path="res://interface/pause_menu.tscn" id="14_e2ycg"]
 
 [node name="Main" type="Node3D" unique_id=962802027]
@@ -29,9 +31,26 @@ bus = &"BG_Music"
 stream = ExtResource("4_aaksy")
 bus = &"UI_Sounds"
 
-[node name="TacticalUI" parent="." unique_id=1970566199 instance=ExtResource("12_g0gby")]
+[node name="ScenarioQuests" type="Node" parent="." unique_id=480395874]
+script = ExtResource("5_sn8kg")
+metadata/_custom_type_script = "uid://dr6p51r7h0xai"
+
+[node name="TacticalUI" type="HBoxContainer" parent="." unique_id=2076823872 groups=["Scenario_UI"]]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TacticalSessionPanel" parent="TacticalUI" unique_id=1117842951 instance=ExtResource("5_qgcci")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TacticalPlayerPanel" parent="TacticalUI" unique_id=1970566199 instance=ExtResource("12_g0gby")]
 unique_name_in_owner = true
 process_mode = 1
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="PauseMenu" parent="." unique_id=283461791 instance=ExtResource("14_e2ycg")]
 unique_name_in_owner = true
@@ -43,4 +62,4 @@ process_mode = 1
 script = ExtResource("2_ick2d")
 metadata/_custom_type_script = "uid://b624fpjrvtg43"
 
-[connection signal="pause_requested" from="TacticalUI" to="." method="request_pause"]
+[connection signal="pause_requested" from="TacticalUI/TacticalSessionPanel" to="." method="request_pause"]

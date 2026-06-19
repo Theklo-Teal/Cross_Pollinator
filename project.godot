@@ -11,8 +11,10 @@ config_version=5
 [application]
 
 config/name="XPoll"
+config/version="1.0.0"
 run/main_scene="uid://8xdvbddoca3k"
 config/features=PackedStringArray("4.6", "Forward Plus")
+run/max_fps=30
 config/icon="uid://b001fw7qgf0b6"
 
 [audio]
@@ -28,6 +30,13 @@ Tac="*uid://dglwlgu3v753o"
 [debug]
 
 gdscript/warnings/unused_parameter=0
+
+[display]
+
+window/size/viewport_width=1200
+window/size/viewport_height=650
+window/energy_saving/keep_screen_on=false
+window/stretch/aspect="ignore"
 
 [editor]
 
