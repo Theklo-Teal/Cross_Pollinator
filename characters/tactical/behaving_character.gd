@@ -19,8 +19,8 @@ class_name Character
 # Geometry2D.bresenham_line() for line of sight
 
 enum APPR{
-	DEFENSE,
 	OFFENSE,
+	DEFENSE,
 	RETREAT,
 	PANIC
 }
@@ -67,10 +67,10 @@ func assess_options() -> Dictionary:
 		approach = APPR.PANIC
 	elif chance > courage:
 		approach = APPR.OFFENSE
-	elif chance > threat:
+	elif chance >= threat:
 		approach = APPR.DEFENSE
 	elif chance < threat:
-		approach = APPR.DEFENSE
+		approach = APPR.RETREAT
 	
 	#TODO couple approach to the actions available
 	 
@@ -94,17 +94,3 @@ func _take_decision() -> Decision:
 ## Automatically take action.
 func perform_action():
 	var decision = _take_decision()
-
-
-#region
-var enemy_spotted : Dictionary[TacCharacter, Vector2i]  ## Remember which enemies were detected and where.
-
-func can_see(_chara:TacCharacter) -> bool:
-	## Is the "chara" in range and line of sight of this character?
-	#NOTE This assumes both this character the "chara" are in the same TacMap.
-	if "Blinded_Ailment" in info.ailment:
-		return false
-	if "Conceal_Bonus" in info.perks: #and not chara.is_in_group(team):
-		return false
-	return true
-#endregion

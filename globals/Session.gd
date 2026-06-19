@@ -2,6 +2,9 @@ extends Node
 
 ## Global data about a play session.
 var scenario : ScenarioDirector
+var player : Array[Character]
+var belligerents : Array[Character]
+var player_centroid : Dictionary[int, Vector2i]  ## [tacnav_layer] -> average position of player character in that layer.
 
 #WARNING getting values from ConfigFile will return a reference, if a data type
 # is passed by reference (like Array or Dictionary), so modifying the returned

@@ -36,8 +36,16 @@ class PlayerTurn extends ScenarioState:
 		super(director)
 		keep_ui = ["TacticalUI", "TacticalSessionPanel"]
 		refuse_ui = ["PauseMenu", "RobotSign"]
-	func enter(_prev:ScenarioState):
+	func enter(prev:ScenarioState):
 		player_chara_selected(Tac.sel_chara)
+	func exit(next:ScenarioState):
+		for tacnav : TacNav in me.tacnavs:
+			var cells : Dictionary[int, PackedVector2Array]
+			for each in Ses.player:
+				var cell := each.get_nav_coord3()
+				cells.get_or_add(cell.y, []).append(Vector2(cell.x, cell.z))
+			for layer in cells:
+				Ses.player_centroid[layer] = tacnav.spatial2tile(Math.centroid.callv(cells[layer]))
 	func player_chara_selected(chara:TacCharacter):
 		if chara == null:
 			set_ui(false, "TacticalPlayerPanel")
@@ -73,7 +81,7 @@ class RobotTurn extends ScenarioState:
 		chara_i = 0
 		on_npc_finished()
 	func on_npc_finished():
-		var rating = acting_chara[chara_i].assess_options()
+		var assessment = acting_chara[chara_i].assess_options()
 		#acting_chara[chara_i].perform_action()
 
 

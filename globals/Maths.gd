@@ -1,4 +1,15 @@
 extends Node
+class_name Math
+
+## Find the center of mass of a group of points.
+static func centroid(...points) -> Vector2:
+	var sum := Vector2.ZERO
+	for p in points:
+		sum.x += p.x
+		sum.y += p.y
+	sum.x /= points.size()
+	sum.y /= points.size()
+	return sum
 
 ## Return a list of the grid coordinates surrounding the given cell.
 ## Optionally, rotates the list to have the cell at a certain direction as the first element.

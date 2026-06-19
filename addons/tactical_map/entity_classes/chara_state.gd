@@ -64,7 +64,3 @@ func process(delta:float):
 
 func input(event:InputEvent):
 	pass
-
-## Return a value from 0 to 1 about the confidence of whether an NPC should use this action.
-func utility_score() -> float:
-	return 0.5

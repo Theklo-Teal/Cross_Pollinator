@@ -196,6 +196,13 @@ func get_tacnav() -> TacNav:
 func get_tacmap() -> TacMap:
 	return get_tacnav().locate_entity(self).tacmap
 
+## Returns all data about a character in a TacNav.
+## According to [code]TacNav.locate_entity()[/code], available keys are
+## [code]tacmap[/code], [code]tacnav[/code], [code]map_coord[/code],
+## [code]nav_coord[/code] and [code]layer[/code].
+func get_location_info() -> Dictionary:
+	return get_tacnav().locate_entity(self)
+
 func get_nav_coord() -> Vector2i:
 	return get_tacnav().locate_entity(self).nav_coord
 

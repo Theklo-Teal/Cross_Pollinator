@@ -165,6 +165,21 @@ var quests : Dictionary[TacEntity, Array]  ## [trigger_node][i] -> scenario_ques
 
 func _on_entities_changed(added:Array[TacEntity], removed:Array[TacEntity]):
 	entities_changed.emit(added, removed)
+	for each in added:
+		if not each is TacCharacter:
+			continue
+		if each.curr_team == TacCharacter.Team.PLAYER:
+			if not each in Ses.player:
+				Ses.player.append(each)
+		elif not each in Ses.belligerents:
+			Ses.belligerents.append(each)
+	for each in removed:
+		if not each is TacCharacter:
+			continue
+		if each.curr_team == TacCharacter.Team.PLAYER:
+			Ses.player.erase(each)
+		else:
+			Ses.belligerents.append(each)
 
 func _tacnav_entered(tacnav:TacNav):
 	super(tacnav)

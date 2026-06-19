@@ -15,9 +15,6 @@
 [sub_resource type="GDScript" id="GDScript_vrv26"]
 script/source = "extends TacInterface
 
-func _ready() -> void:
-	$TacNav.zone_entered.connect(func(entity, zone): print(\"Sandbox: \", entity, \" has entered \", zone))
-
 func _input(event: InputEvent) -> void:
 	super(event)
 	

@@ -6,34 +6,47 @@
 [ext_resource type="AudioStream" uid="uid://bikd0qyxgdh7j" path="res://assets/music/Unlicensed/Superpredators.mp3" id="3_rpuyt"]
 [ext_resource type="AudioStream" uid="uid://l5p6gfigrrif" path="res://assets/ui_sounds/Wood Block3.wav" id="4_aaksy"]
 [ext_resource type="PackedScene" uid="uid://bnabx6s6d3t5q" path="res://interface/tactical_session_panel.tscn" id="5_qgcci"]
-[ext_resource type="Script" uid="uid://dr6p51r7h0xai" path="res://quests/scenario_quests.gd" id="5_sn8kg"]
 [ext_resource type="PackedScene" uid="uid://cud5s8c8n3eeb" path="res://interface/tactical_player_panel.tscn" id="12_g0gby"]
 [ext_resource type="PackedScene" uid="uid://he14gq1q05vb" path="res://interface/pause_menu.tscn" id="14_e2ycg"]
+
+[sub_resource type="Environment" id="Environment_qgcci"]
+background_mode = 1
+background_color = Color(0.17761931, 0.16678277, 0.11657099, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.6227495, 0.08047528, 0.2856516, 1)
+ambient_light_energy = 3.0
+reflected_light_source = 2
+sdfgi_enabled = true
+
+[sub_resource type="CameraAttributesPhysical" id="CameraAttributesPhysical_qgcci"]
+frustum_focus_distance = 5.0
+frustum_focal_length = 60.0
 
 [node name="Main" type="Node3D" unique_id=962802027]
 process_mode = 3
 script = ExtResource("1_g0gby")
 metadata/_custom_type_script = "uid://ux8gwv20kdf3"
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1620685391]
-transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 11, 0)
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=961315266]
+environment = SubResource("Environment_qgcci")
+camera_attributes = SubResource("CameraAttributesPhysical_qgcci")
 
 [node name="CamGimbal" parent="." unique_id=1014619467 instance=ExtResource("2_rpuyt")]
 process_mode = 1
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 4, 15)
 
-[node name="BG_Music" type="AudioStreamPlayer" parent="." unique_id=10364052]
+[node name="Audio" type="Node" parent="." unique_id=86726153]
+
+[node name="BG_Music" type="AudioStreamPlayer" parent="Audio" unique_id=10364052]
 stream = ExtResource("3_rpuyt")
 autoplay = true
 bus = &"BG_Music"
 
-[node name="UI_Sounds" type="AudioStreamPlayer" parent="." unique_id=24500466]
+[node name="UI_Sounds" type="AudioStreamPlayer" parent="Audio" unique_id=24500466]
 stream = ExtResource("4_aaksy")
 bus = &"UI_Sounds"
 
-[node name="ScenarioQuests" type="Node" parent="." unique_id=480395874]
-script = ExtResource("5_sn8kg")
-metadata/_custom_type_script = "uid://dr6p51r7h0xai"
+[node name="Quests" type="Node" parent="." unique_id=1415691801]
 
 [node name="TacticalUI" type="HBoxContainer" parent="." unique_id=2076823872 groups=["Scenario_UI"]]
 anchors_preset = 15
@@ -50,7 +63,6 @@ layout_mode = 2
 unique_name_in_owner = true
 process_mode = 1
 layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="PauseMenu" parent="." unique_id=283461791 instance=ExtResource("14_e2ycg")]
 unique_name_in_owner = true

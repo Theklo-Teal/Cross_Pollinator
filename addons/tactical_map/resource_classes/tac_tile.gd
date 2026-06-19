@@ -41,7 +41,7 @@ func _asset_checker(old:StringName, new:StringName) -> StringName:
 
 ## What would the «find_codes()» output be if there was a TacTile where there is no content.
 static func get_empty_codes() -> PackedInt32Array:
-	return []
+	return [Tac.Trans.NONE,Tac.Trans.NONE,Tac.Trans.NONE,Tac.Trans.NONE]
 
 ## Whether we should delete this tile from the map.
 func is_empty() -> bool:

@@ -2,7 +2,6 @@
 
 [ext_resource type="PackedScene" uid="uid://cii0yb8goh3cp" path="res://scenarios/gm_regular/main.tscn" id="1_nfxuj"]
 [ext_resource type="Script" uid="uid://h31ri5gda1bq" path="res://addons/tactical_map/node_classes/tac_map_node.gd" id="2_7xhbv"]
-[ext_resource type="Script" uid="uid://cgudhn77f42qw" path="res://quests/quest_entry.gd" id="2_ovjmh"]
 [ext_resource type="Script" uid="uid://dpiatxxpamlw0" path="res://addons/tactical_map/resource_classes/tac_spawner.gd" id="3_hbms2"]
 [ext_resource type="Texture2D" uid="uid://c7ijx5773w5i2" path="res://addons/tactical_map/assets/wojak_feels.png" id="4_ovjmh"]
 [ext_resource type="Script" uid="uid://dl6vb88eepnr1" path="res://characters/tactical_spawners/player_spawn.gd" id="5_iabx7"]
@@ -8202,16 +8201,6 @@ wall_south = &"uid://qe6vkc1vpl6x"
 
 [node name="Main" unique_id=962802027 instance=ExtResource("1_nfxuj")]
 
-[node name="DirectionalLight3D" parent="." index="0" unique_id=1620685391]
-transform = Transform3D(0.1839857, 0.6950357, -0.6950357, 0, 0.7071068, 0.7071068, 0.98292905, -0.13009754, 0.13009754, 0, 11, 0)
-
-[node name="ScenarioQuests" parent="." index="4" unique_id=480395874 node_paths=PackedStringArray("scenario")]
-scenario = NodePath("..")
-
-[node name="QuestEntry" type="Node" parent="ScenarioQuests" index="0" unique_id=710328415]
-script = ExtResource("2_ovjmh")
-metadata/_custom_type_script = "uid://cgudhn77f42qw"
-
 [node name="RobotSign" type="Label" parent="TacticalUI" parent_id_path=PackedInt32Array(2076823872) index="1" unique_id=547161039 groups=["Scenario_UI"]]
 visible = false
 custom_minimum_size = Vector2(0, 100)
@@ -9262,6 +9251,26 @@ Vector2i(33, 13): SubResource("Resource_iabx7")
 })
 metadata/_custom_type_script = "uid://h31ri5gda1bq"
 
+[node name="OmniLight3D" type="OmniLight3D" parent="TacNav/TacMap" index="2" unique_id=2445103]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 7, 16)
+light_color = Color(0.6039216, 0.6039216, 0.23529412, 1)
+light_energy = 4.0
+light_size = 10.0
+light_bake_mode = 1
+shadow_enabled = true
+omni_range = 10.0
+omni_attenuation = 0.6
+
+[node name="OmniLight3D2" type="OmniLight3D" parent="TacNav/TacMap" index="3" unique_id=2072871191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 4, 16)
+light_color = Color(0.52767473, 0.30891457, 0.22992742, 1)
+light_energy = 4.0
+light_size = 10.0
+light_bake_mode = 1
+shadow_enabled = true
+omni_range = 20.0
+omni_attenuation = 0.6
+
 [node name="TacMap2" type="Area3D" parent="TacNav" parent_id_path=PackedInt32Array(730974787) index="1" unique_id=13807858]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, 10)
 script = ExtResource("2_7xhbv")
@@ -9509,6 +9518,16 @@ Vector2i(19, 10): SubResource("Resource_vhwm7"),
 Vector2i(19, 11): SubResource("Resource_4teuk")
 })
 metadata/_custom_type_script = "uid://h31ri5gda1bq"
+
+[node name="OmniLight3D4" type="OmniLight3D" parent="TacNav/TacMap2" index="2" unique_id=1471034644]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 7, 6)
+light_color = Color(0.8656788, 0.8715856, 0.48131365, 1)
+light_energy = 4.0
+light_size = 10.0
+light_bake_mode = 1
+shadow_enabled = true
+omni_range = 10.0
+omni_attenuation = 0.6
 
 [node name="MacGuffin" parent="TacNav" parent_id_path=PackedInt32Array(730974787) index="2" unique_id=1102885929 instance=ExtResource("9_7xhbv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48.5, 0, 16)
