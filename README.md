@@ -24,6 +24,8 @@ As part of an independent expedition to verify rumours of an extensive secret tu
 
 Some basic concepts of the story take inspiration from the secret experiments in the [STALKER series](https://www.stalker-game.com/en), but also there are references to things in other fiction set in the underground, like [Metro 2033](https://en.wikipedia.org/wiki/Metro_2033) and [Half-Life](https://en.wikipedia.org/wiki/Half-Life_(video_game)).
 
+There's a Technical Document on the architecture use in this project in `/media/Design Architecture.odg`.
+
 ## The Story
 The government is generically referred as The Warehouse, collecting highly advanced mysterious artifacts who they found to have been made by a secret society of Agartha, but can't find them, nor are their motivations clear. This takes the concept of the [SCP Foundation](https://scp-wiki.wikidot.com/) or in stories like [Control](https://www.remedygames.com/games/control).
 
