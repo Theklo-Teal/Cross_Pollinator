@@ -14,7 +14,7 @@ extends EditorPlugin
 #FIXME Navoverlay not updating as objects are placed.
 
 #NOTE How to use undo_redo
-	##undo_redo.create_action("TacMap: set floor tiles")
+	##undo_redo.create_action("TacMap: set wall tiles")
 	##undo_redo.add_do_property()
 	##undo_redo.add_undo_property()
 	##undo_redo.commit_action()
@@ -43,10 +43,12 @@ var modes : Dictionary
 func curr_mode() -> StringName:
 	return pallet.get_mode()
 
-func _on_state_changed(mode:StringName):
-	if not mode.is_empty():
-		modes[mode].enter()
-		pallet.set_help(modes[curr_mode()].help())
+func _on_state_changed(next:StringName, prev:StringName):
+	if not prev.is_empty():
+		modes[prev].exit()
+	if not next.is_empty():
+		modes[next].enter()
+		pallet.set_help(modes[next].help())
 
 func _on_paint_tool_changed(tool:StringName):
 	if not tool.is_empty():
@@ -88,9 +90,10 @@ func get_map_area(from:Vector2i, to:Vector2i, tacmap:TacMap=null, offset:float=0
 		area.append(vert)
 	return area
 
+
 @abstract class TacEditorState:
 	var me : TacticalMapEditor
-	var update_queue : Array[Vector3i]  # In Nav coordinates with layer as Y; Tiles to have navigation updated at the end of an operation.
+	var update_queue : Array[Vector3i]  ## In Nav coordinates with layer as Y; Tiles to have navigation updated at the end of an operation.
 	
 	func queue_update(map_cell:Vector2i):
 		var nav_coord = me.curr_nav.map3nav(map_cell, me.curr_map)
@@ -101,7 +104,7 @@ func get_map_area(from:Vector2i, to:Vector2i, tacmap:TacMap=null, offset:float=0
 		if not (me.curr_nav == null or update_queue.is_empty()):
 			me.curr_nav.queue_nav_arr(update_queue)
 			update_queue.clear()
-			me.update_cam_view(me.last_cam)
+			me.update_cam_view(me.last_cam) #FIXME why won't the navigation overlay update with this?
 	
 	func _init(manager:TacticalMapEditor):
 		me = manager
@@ -112,6 +115,8 @@ func get_map_area(from:Vector2i, to:Vector2i, tacmap:TacMap=null, offset:float=0
 	func enter():
 		# Enable all tools
 		me.pallet.force_paint_tool(&"Single", &"Area", &"Flood")
+	func exit():
+		pass
 	
 	func input(event:InputEvent):
 		if me.curr_map == null or me.curr_nav == null:
@@ -119,12 +124,12 @@ func get_map_area(from:Vector2i, to:Vector2i, tacmap:TacMap=null, offset:float=0
 		
 		var alternate = Input.is_key_pressed(KEY_CTRL)
 		
-		if event is InputEventMouseMotion and me.is_dragging:
+		if event is InputEventMouseMotion and me.is_dragging and me.within_map:
 			var left_button = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 			var right_button = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT)
 			return while_dragging(alternate, left_button, right_button)
 		
-		if event is InputEventMouseButton:
+		if event is InputEventMouseButton and me.within_map:
 			if event.is_pressed():
 				match event.button_index:
 					MOUSE_BUTTON_LEFT:
@@ -173,38 +178,43 @@ class Paint_Mode extends TacEditorState:
 	var last_placed : Vector2i  # Remember last affected tile, avoiding it constantly changing while the mouse button is held.
 	var has_placed : bool = false  # Whether to acknowledge «last_placed»
 	
-	## Finding all tiles according to breadth-first search.
-	## For flood-fill tool implementations.[br]
-	## Define what to cover in the search with a Callable in «searcher».
-	func flood_find(origin:Vector2i, searcher:Callable=pick_target) -> Array[Vector2i]:
-		#TODO Is «origin» this supposed to be nav coords or map coords?
-		var src_tgt = searcher.call(origin)
-		var map_area = Rect2i(Vector2i.ZERO, me.curr_map.size)
-		var hits : Array[Vector2i]
-		var checked : Array[Vector2i]
-		var found : Array[Vector2i]
-		for dir in [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]:
-			var adja = origin + dir
-			if map_area.has_point(adja):
-				found.append(adja)
-		while not found.is_empty():
-			var coordi = found.pop_back()
-			var content = pick_target(coordi)
-			if searcher.call(content) == src_tgt:
-				hits.append(coordi)
-			for dir in [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]:
-				var adja = origin + dir
-				if not (adja in found or adja in checked) and map_area.has_point(adja):
-					found.push_front(adja)
-		return hits
+	## Performs [code]operation[/code] on tiles in breadth-first search for which
+	## [code]seek[/code] returns [code]true[/code] from a given [code]origin[/code]
+	## in map coordinates. This function constrains itself to the area of the active TacMap.[br]
+	## [code]edging[/code] tells to only operate on tiles at the edge of flooded area.[br]
+	## [code]seek[/code] should take a [code]TacTile[/code] as argument.[br]
+	## [code]operation[/code] should take a Vector2i of the map coordinate for a cell
+	## and a [code]TacTile[/code].[br]
+	func flood_fill(origin:Vector2i, seek:Callable, operation:Callable, edging:=false):
+		var area := Rect2(Vector2.ZERO, me.curr_map.size)
+		var reject : Array
+		var queue : Array = [origin]
+		var head : int = - 1
+		while head <= queue.size() - 1:
+			for curr in queue.slice(head, queue.size()):
+				head += 1
+				var accepted : Array
+				for dir in Tac.DIR_VEC.values():
+					var next = curr + dir
+					if not area.has_point(next): continue
+					if next in queue: continue
+					if next in reject: continue
+					accepted.append(next)
+				var at_edge : bool = accepted.size() < 4
+				for next in accepted:
+					var tile = me.curr_map.tiles.get(next)
+					if seek.call(tile):
+						queue.append(next)
+						if not(edging and not at_edge):
+							operation.call(next, tile)
+					else: reject.append(next)
 	
-	## Returns what on a tile is of interest for the picker tool or flood-fill tool.
+	## Returns what on a tile is of interest for the picker tool.
 	## If not overriden returns the transition code.
 	func pick_target(tile:TacTile) -> Variant:
 		var dir = [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP].find(me.hover_tile_side)
 		var adja = me.curr_map.tiles.get(me.map_hover_tile + me.hover_tile_side)
 		return tile.get_transition(dir, adja)
-		
 	
 	func while_dragging(alt:bool, left, right):
 		if me.pallet.get_paint_tool() == "Area":
@@ -214,13 +224,11 @@ class Paint_Mode extends TacEditorState:
 	
 	func left_press(alternate:bool):
 		has_placed = false
-		if me.within_map:
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
+		return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func right_press(alternate:bool):
 		has_placed = false
-		if me.within_map:
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
+		return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func left_release(alt:bool):
 		if not area_polygon.is_empty():
@@ -299,12 +307,11 @@ class Ladder_Mode extends Paint_Mode:
 		me.update_cam_view(me.last_cam)
 	
 	func left_release(alt:bool):
-		if me.within_map:
-			var ladder_name = me.pallet.on_add_ladder(me.curr_map.ladders.keys())
-			if not ladder_name.is_empty():
-				me.curr_map.ladders[ladder_name] = me.map_hover_tile
-				me.set_active_ladder(ladder_name)
-			return super(alt)
+		var ladder_name = me.pallet.on_add_ladder(me.curr_map.ladders.keys())
+		if not ladder_name.is_empty():
+			me.curr_map.ladders[ladder_name] = me.map_hover_tile
+			me.set_active_ladder(ladder_name)
+		return super(alt)
 	
 	func pick_tool(alternate:bool):
 		for each in me.sel_ladders:
@@ -332,114 +339,128 @@ class Ladder_Mode extends Paint_Mode:
 				me.draw_area_outlined_polygon(canvas, polygon, fill, fill, 3)
 		for each in dirty_ladders:
 			me.sel_ladders.erase(each)
-	
-class Floor_Mode extends Paint_Mode:
+
+class Floors_Mode extends Paint_Mode:
 	func help() -> String:
-		const which = {
-			"Single": "Tiles are set under the mouse while the left button is held.",
-			"Area": "All tiles within the area will be set.",
-			}
-		return which.get(me.pallet.get_paint_tool()) + " Right-click to remove, Right-click and CTRL to set whether tiles are walkable if needed.\nIf CTRL is held, the floors become ceilings. The tiles will be oriented depending on the side of the first tile pressed."
+		return "Sets which tiles a character can walk on. Hold CTRL for setting ceilings.
+		The overlay shows red for tiles that exist, but have no floor, and blue for tiles with floor."
+	func enter():  # Display overlay
+		super()
+		me.update_cam_view(me.last_cam)
 	
-	func while_dragging(alt:bool, left, right):
-		super(alt, left, right)
-		if me.within_map and me.pallet.get_paint_tool() == "Single":
-				if has_placed == false or (last_placed != me.map_hover_tile):
-					has_placed = true
-					last_placed = me.map_hover_tile
-					if left:
-						me.set_tile_asset(me.map_hover_tile, me.hover_tile_side)
-						if alt:
-							var tile : TacTile = me.curr_map.tiles.get(me.hover_tile)
-							tile.is_ceiling = not tile.is_ceiling
-					if right:
-						if alt:
-							var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
-							tile.has_floor = not tile.has_floor
-						else:
-							me.rem_tile_asset(me.map_hover_tile, me.hover_tile_side)
-				return EditorPlugin.AFTER_GUI_INPUT_STOP
+	func draw(canvas:Control, cam:Camera3D):
+		if not area_polygon.is_empty():
+			var clr := Color.WHEAT
+			clr.a = 0.4
+			me.draw_area_polygon(canvas, area_polygon, clr)
+	
+	func while_dragging(alt:bool, left:bool, right:bool):
+		if me.pallet.get_paint_tool() == "Single":
+			if has_placed == false or (last_placed != me.map_hover_tile):
+				has_placed = true
+				
+				var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
+				queue_update(me.map_hover_tile)
+				if alt:
+					tile.has_ceiling = left
+				else:
+					tile.has_floor = left
+			me.update_cam_view(me.last_cam)
+			return EditorPlugin.AFTER_GUI_INPUT_STOP
+		return super(alt, left, right)
 	
 	func left_press(alt:bool):
-		match me.pallet.get_paint_tool():
-			"Single":
-				if me.within_map:
-					if has_placed == false or (last_placed != me.map_hover_tile):
-						has_placed = true
-						last_placed = me.map_hover_tile
-						me.set_tile_asset(me.map_hover_tile, me.hover_tile_side)
-						queue_update(me.map_hover_tile)
-						if alt:
-							var tile : TacTile = me.curr_map.tiles.get(me.hover_tile)
-							tile.is_ceiling = not tile.is_ceiling
+		if me.pallet.get_paint_tool() == "Single" or me.pallet.get_paint_tool() == "Flood":
+				if has_placed == false or (last_placed != me.map_hover_tile):
+					has_placed = true
+					
+					var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
+					queue_update(me.map_hover_tile)
+					if alt:
+						tile.has_ceiling = true
+					else:
+						tile.has_floor = true
+				me.update_cam_view(me.last_cam)
+				return EditorPlugin.AFTER_GUI_INPUT_STOP
 		return super(alt)
 	
 	func right_press(alt:bool):
-		match me.pallet.get_paint_tool():
-			"Single":
-				if me.within_map:
-					if has_placed == false or (last_placed != me.map_hover_tile):
-						queue_update(me.map_hover_tile)
-						if alt:
-							var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
-							tile.has_floor = not tile.has_floor
-						else:
-							has_placed = true
-							last_placed = me.map_hover_tile
-							me.rem_tile_asset(me.map_hover_tile, me.hover_tile_side)
+		if me.pallet.get_paint_tool() == "Single" or me.pallet.get_paint_tool() == "Flood":
+			if has_placed == false or (last_placed != me.map_hover_tile):
+				has_placed = true
+				
+				var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
+				queue_update(me.map_hover_tile)
+				if alt:
+					tile.has_ceiling = false
+				else:
+					tile.has_floor = false
 		return super(alt)
+		
 	
-
 	func left_release(alt:bool):
 		match me.pallet.get_paint_tool():
+			"Flood":
+				if alt:
+					flood_fill(me.hover_tile, seek_flood.bind(true, true), oper_flood.bind(true, true))
+				else:
+					flood_fill(me.hover_tile, seek_flood.bind(true, false), oper_flood.bind(true, false))
 			"Area":
 				var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
 				rect = rect.intersection(Rect2i(Vector2i.ZERO, me.curr_map.size))
 				for y in range(rect.position.y, rect.end.y):
 					for x in range(rect.position.x, rect.end.x):
 						var coord = Vector2i(x,y)
-						me.set_tile_asset(coord, me.hover_tile_side)
+						var tile : TacTile = me.curr_map.tiles.get_or_add(coord, TacTile.new())
 						queue_update(coord)
-						if alt:  # raise ceiling
-							var tile : TacTile = me.curr_map.tiles.get(coord)
-							tile.is_ceiling = not tile.is_ceiling
+						if alt:
+							tile.has_ceil = true
+						else:
+							tile.has_floor = true
 		return super(alt)
 	
 	func right_release(alt:bool):
-		if not me.camera_moved:
-			match me.pallet.get_paint_tool():
-				"Area":
-					var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
-					rect = rect.intersection(Rect2i(Vector2i.ZERO, me.curr_map.size))
-					for y in range(rect.position.y, rect.end.y):
-						for x in range(rect.position.x, rect.end.x):
-							var coord = Vector2i(x,y)
-							queue_update(coord)
-							if alt:
-								var tile : TacTile = me.curr_map.tiles.get_or_add(me.map_hover_tile, TacTile.new())
-								tile.has_floor = not tile.has_floor
-							else:
-								me.rem_tile_asset(coord)
+		match me.pallet.get_paint_tool():
+			"Flood":
+				
+				if alt:
+					flood_fill(me.hover_tile, seek_flood.bind(false, true), oper_flood.bind(false, true))
+				else:
+					flood_fill(me.hover_tile, seek_flood.bind(false, false), oper_flood.bind(false, false))
+			"Area":
+				var rect = me.get_map_rect(me.map_start_tile, me.map_hover_tile, true)
+				rect = rect.intersection(Rect2i(Vector2i.ZERO, me.curr_map.size))
+				for y in range(rect.position.y, rect.end.y):
+					for x in range(rect.position.x, rect.end.x):
+						var coord = Vector2i(x,y)
+						var tile : TacTile = me.curr_map.tiles.get_or_add(coord, TacTile.new())
+						queue_update(coord)
+						if alt:
+							tile.has_ceil = false
+						else:
+							tile.has_floor = false
 		return super(alt)
 	
-	func pick_target(tile:TacTile):
-		return tile.floor
-	
-	func pick_tool(alternate:bool):
-		if me.within_map:
-			var tile = me.curr_map.tiles.get(me.map_hover_tile)
-			if tile == null:
-				return
-			var asset_uid = pick_target(tile)
-			var info_uid = asset_uid  #FIXME
-			me.pallet.set_active_asset(info_uid)
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
-	
-	func draw_dragging(canvas:Control, cam:Camera3D):
-		if not area_polygon.is_empty():
-			var color = Color.WHEAT
-			color.a = 0.4
-			me.draw_area_outlined_polygon(canvas, area_polygon, color, Color.BISQUE, 3)
+	func seek_flood(tile:TacTile, add:bool, ceiling:bool) -> bool:
+		if add:
+			if tile == null: return true
+			if ceiling:
+				return not tile.has_ceiling
+			return not tile.has_floor
+		else:
+			if tile == null: return false
+			if ceiling: return tile.has_ceiling
+			return tile.has_floor
+	func oper_flood(cell:Vector2i, tile:TacTile, add:bool, ceiling:bool) -> void:
+		queue_update(cell)
+		if add:
+			if tile == null: tile = me.curr_map.tiles.get_or_add(cell, TacTile.new())
+			if ceiling: tile.has_ceiling = true; return
+			tile.has_floor = true
+		else:
+			if tile == null:return
+			if ceiling: tile.has_ceiling = false; return
+			tile.has_floor = false
 
 class Wall_Mode extends Paint_Mode:
 	
@@ -456,7 +477,7 @@ class Wall_Mode extends Paint_Mode:
 	
 	func while_dragging(alt:bool, left, right):
 		super(alt, left, right)
-		if me.within_map and me.pallet.get_paint_tool() == "Single":
+		if me.pallet.get_paint_tool() == "Single":
 			if has_placed == false or (last_placed != me.map_hover_tile):
 				has_placed = true
 				last_placed = me.map_hover_tile
@@ -472,7 +493,7 @@ class Wall_Mode extends Paint_Mode:
 			return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func left_press(alt:bool):
-		if me.within_map and me.pallet.get_paint_tool() == "Single":
+		if me.pallet.get_paint_tool() == "Single":
 			if has_placed == false or (last_placed != me.map_hover_tile):
 				has_placed = true
 				last_placed = me.map_hover_tile
@@ -486,14 +507,13 @@ class Wall_Mode extends Paint_Mode:
 	func right_press(alt:bool):
 		match me.pallet.get_paint_tool():
 			"Single":
-				if me.within_map:
-					if has_placed == false or (last_placed != me.map_hover_tile):
-						has_placed = true
-						last_placed = me.map_hover_tile
-						me.rem_tile_asset(me.map_hover_tile, me.hover_tile_side)
-						queue_update(me.map_hover_tile)
-						if alt:
-							me.rem_tile_asset(me.map_hover_tile + me.hover_tile_side, me.hover_tile_side_opposite)
+				if has_placed == false or (last_placed != me.map_hover_tile):
+					has_placed = true
+					last_placed = me.map_hover_tile
+					me.rem_tile_asset(me.map_hover_tile, me.hover_tile_side)
+					queue_update(me.map_hover_tile)
+					if alt:
+						me.rem_tile_asset(me.map_hover_tile + me.hover_tile_side, me.hover_tile_side_opposite)
 		return super(alt)
 	
 	func left_release(alt:bool):
@@ -566,26 +586,24 @@ class Spawner_Mode extends TacEditorState:
 		me.pallet.force_paint_tool(&"Single")
 	
 	func left_release(alt:bool):
-		if me.within_map:
-			if me.map_hover_tile in me.curr_map.spawners:
-				me.curr_map.rem_spawner(me.map_hover_tile)
+		if me.map_hover_tile in me.curr_map.spawners:
+			me.curr_map.rem_spawner(me.map_hover_tile)
+		else:
+			var spawner_class = me.pallet.get_spawner()
+			var spawner : TacEntitySpawner
+			if not spawner_copy == null and spawner_copy.display_name() == spawner_class:
+				spawner = spawner_copy.duplicate_deep()
 			else:
-				var spawner_class = me.pallet.get_spawner()
-				var spawner : TacEntitySpawner
-				if not spawner_copy == null and spawner_copy.display_name() == spawner_class:
-					spawner = spawner_copy.duplicate_deep()
-				else:
-					spawner = Tac.spawners[spawner_class].new()
-				spawner.orientation = Tac.DIR_VEC.values().find(me.hover_tile_side)
-				me.curr_map.add_spawner(me.map_hover_tile, spawner)
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
+				spawner = Tac.spawners[spawner_class].new()
+			spawner.orientation = Tac.DIR_VEC.values().find(me.hover_tile_side)
+			me.curr_map.add_spawner(me.map_hover_tile, spawner)
+		return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	func pick_tool(alternate:bool):
-		if me.within_map:
-			if me.map_hover_tile in me.curr_map.spawners:
-				spawner_copy = me.curr_map.spawners[me.map_hover_tile]
-				me.pallet.show_spawner_copy(spawner_copy)
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
+		if me.map_hover_tile in me.curr_map.spawners:
+			spawner_copy = me.curr_map.spawners[me.map_hover_tile]
+			me.pallet.show_spawner_copy(spawner_copy)
+		return EditorPlugin.AFTER_GUI_INPUT_STOP
 
 class Coord_Capture extends TacEditorState:
 	func help() -> String:
@@ -594,13 +612,12 @@ class Coord_Capture extends TacEditorState:
 		me.pallet.force_paint_tool(&"Single")
 	
 	func left_release(alternate:bool):
-		if me.within_map:
-			var hover_tile_nav = me.curr_nav.map2nav(me.map_hover_tile, me.curr_map)
-			var coordi = Vector3i(me.hover_tile.x, me.curr_map.get_layer(), me.hover_tile.y)
-			me.pallet.set_tile_info(
-				me.hover_tile,
-				hover_tile_nav,
-				me.map_hover_tile,
-				me.curr_nav.navproxy.get(coordi),
-				me.curr_map.tiles.get(me.map_hover_tile))
-			return EditorPlugin.AFTER_GUI_INPUT_STOP
+		var hover_tile_nav = me.curr_nav.map2nav(me.map_hover_tile, me.curr_map)
+		var coordi = Vector3i(me.hover_tile.x, me.curr_map.get_layer(), me.hover_tile.y)
+		me.pallet.set_tile_info(
+			me.hover_tile,
+			hover_tile_nav,
+			me.map_hover_tile,
+			me.curr_nav.navproxy.get(coordi),
+			me.curr_map.tiles.get(me.map_hover_tile))
+		return EditorPlugin.AFTER_GUI_INPUT_STOP

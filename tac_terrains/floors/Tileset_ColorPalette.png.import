@@ -2,17 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bcjpurkroyf86"
-path.s3tc="res://.godot/imported/generic.png-576b2311a907b732328966c5859a1094.s3tc.ctex"
+uid="uid://yxdvd4p115jw"
+path.s3tc="res://.godot/imported/Tileset_ColorPalette.png-8d63f14ed248028e1444e3f1c999c6c9.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
+generator_parameters={
+"md5": "af196013d613085f1336a2873591639c"
+}
 
 [deps]
 
-source_file="res://addons/tactical_map/assets/terrains/floor/assets/generic.png"
-dest_files=["res://.godot/imported/generic.png-576b2311a907b732328966c5859a1094.s3tc.ctex"]
+source_file="res://tac_terrains/floors/Tileset_ColorPalette.png"
+dest_files=["res://.godot/imported/Tileset_ColorPalette.png-8d63f14ed248028e1444e3f1c999c6c9.s3tc.ctex"]
 
 [params]
 

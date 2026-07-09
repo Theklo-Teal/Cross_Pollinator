@@ -14,8 +14,7 @@ signal entities_changed(added_entities:Array[TacEntity], removed_entities:Array[
 # TacMap during execution will modify «navsession» variable, which initally is a copy of the graphs.
 
 @export var tile_size : float = 1.0  ## (meters) The lateral length of square tiles that all children maps abide to.
-@export var tile_height : float = 2.0  ## How high walls can get.
-@export var tile_margin : float = 0.0  ## (Not Implemented; Tentative idea) An extra margin so ceilings have thickness and won't overlap floors above, or characters may sink in to the floor, for water-logged places, for example.
+@export var tile_height : float = 2.0  ## How high walls can get, if you neglect any margin for floor or ceiling thickness.
 
 var entities : Array[TacEntity]  ## Reference to placed entities.
 var unique_spawners : Dictionary[StringName, Dictionary]

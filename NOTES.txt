@@ -1,9 +1,16 @@
 General ideas for implementing in the game.
 
 There's no cell phone or satellite uplinks underground, so characters need to lay down telephone cable to progress, like a secondary save system.
+Places connected by cable can be fast travelled.
+Maybe the player base of operations is an Agarthian ruin and cable only fast travels to there or from there.
 The cable requires connecting to particular sockets. Sometimes only accessible in crawl spaces.
 It allows to replay the combat on visited maps.
 The map of the underground follows the path of the wires layed down.
+
+
+Each character has a carry weight limit for non-combat items. To take the most items, the items must be distributed among the team.
+During combat, characters can only use items in their inventory, not those on another character.
+
 
 Human characters can be promoted in rank. Each rank allows one of two abilities to add to the character.
 Agarthian characters don't rank up, but can use abilities unique to them that deplete a common "spritilo" and "ectoplasm" pool. Capturing certain Agarthian technology either increases one or the other.

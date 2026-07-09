@@ -86,10 +86,10 @@ var sel_action : CharaState
 var actions : Dictionary[StringName, Resource]
 
 # Level Editor Things
-var spawners : Dictionary[StringName, Resource]  # List of available spawners.
-var pallet_fam : Dictionary[StringName, PackedStringArray]  # Associate UID of asset info to a terrain family.
-var pallet_info : Dictionary[StringName, Resource]  # Associate UID of asset info to defining Resource
-var tag_info : Dictionary[StringName, Array]  #  [tag][idx] -> info_uid
+var spawners : Dictionary[StringName, Resource]  ## List of available spawners.
+var pallet_fam : Dictionary[StringName, PackedStringArray]  ## Associate UID of asset info to a terrain family.
+var pallet_info : Dictionary[StringName, Resource]  ## Associate UID of asset info to defining Resource
+var tag_info : Dictionary[StringName, Array]  ##  [tag][idx] -> info_uid
 
 #FIXME These should probably be part of settings.ini
 var ui_tile_charac : Texture = load("res://assets/spatial_textures/grid_tile.png")

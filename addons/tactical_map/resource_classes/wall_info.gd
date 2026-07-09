@@ -1,11 +1,23 @@
 extends Resource
 class_name WallInfo
 
+enum VISION{
+	RGB,  ## visible Light
+	IR,  ## High Infrared
+	THERMAL,  ## Low Infrared
+	UV,  ## Ultraviolet
+	XRAY,  ## Frequency above UV
+	AURAL,  ## Using sonar, echolocation or hearing
+	SCENT,  ## By smelling
+	RADAR,  ## Electromagnetic Waves
+	GRAVI,  ## Gravimetry
+}
+
 @export var name : StringName = "Wall"
 @export var thumbnail : Texture2D
 @export var tags : PackedStringArray
 @export var transition : Tac.Trans  ## Defines which characters can cross this wall.
-@export var see_thru : bool  ## Can a character see things through this wall? Eg. there's a window, it's jail bars or glass pane.
+@export var see_thru : Dictionary[VISION, bool]  ## Can a character see things through this wall? Eg. there's a window, it's jail bars or glass pane.
 
 @export_group("Assets", "asset_")  ## UID of packed scene or 3D model
 @export var asset_pillar : StringName  ## When connecting two perpendicular walls on adjacent tiles, making a convex corner.

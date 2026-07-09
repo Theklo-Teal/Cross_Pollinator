@@ -31,16 +31,54 @@ var ectoplasm : int
 func walk_range() -> int:
 	return stamina * speed
 
+func _traversal_finish(condition:Error=OK) -> Error:
+	if condition == OK:
+		var dir = strongest_cover(get_nav_coord())
+		if dir != Vector2i.ZERO:
+			rotation_degrees.y = Tac.DIR_ANG[dir]
+	return condition
+
 #region Character's senses
 var enemy_spotted : Dictionary[TacCharacter, Vector2i]  ## Remember which enemies were detected and where.
 
-## Is the "chara" in range and line of sight of this character?[br]
-## NOTE: This assumes both this character the "chara" are in the same TacMap.
-func can_see(_chara:TacCharacter) -> bool:
+## What direction of the tile at [code]from[/code] is cover better?[br]
+## Returns [code]Vector2i.ZERO[/code] if there's no valid cover.
+func strongest_cover(from:Vector2i) -> Vector2i:
+	var code = get_tacnav().navproxy[Vector3i(from.x, get_nav_layer(), from.y)]
+	var best := Tac.Dir.EAST
+	for dir in range(4):
+		if code[dir] > code[best]:
+			best = dir as Tac.Dir
+	if code[best] == Tac.Trans.PASS:
+		return Vector2i.ZERO
+	return Tac.DIR_VEC.values()[best]
+
+## Returns the direction on a tile to look for cover against a target or enemy.
+func target_effective_cover(from:Vector2i, target:Vector2i) -> Vector2i:
+	var alignment = Saliko.alignment(from - target)
+	var max_axis = alignment.abs().max_axis_index()
+	var direction = Vector2.ZERO
+	direction[max_axis] = roundi(alignment[max_axis])
+	return direction
+
+## Is the [code]chara[/code] in range and line of sight of this character?
+func can_see(chara:TacCharacter) -> bool:
+	var layer = get_nav_layer()
+	if chara.get_nav_layer() != layer:
+		return false
 	if "Blinded_Ailment" in info.ailment:
 		return false
-	if "Conceal_Bonus" in info.perks: #and not chara.is_in_group(team):
+	if "Conceal_Bonus" in info.perks:
 		return false
+	if "Camouflage_Perk" in info.perks:
+		return false
+	var my_coord := get_nav_coord()
+	var chara_coord := chara.get_nav_coord()
+	var direction = target_effective_cover(my_coord, chara_coord)
+	direction = Tac.DIR_VEC.values().find(direction)
+	for cell in Geometry2D.bresenham_line(my_coord, chara_coord):
+		if not get_tacmap().is_see_thru(get_map_coord(), direction):
+			return false
 	return true
 
 ## Returns a list of cells around the character associated with their terrain codes.
@@ -53,18 +91,4 @@ func terrain_in_range() -> Dictionary[Vector2i, Dictionary]:
 		terrain[cell] = loc.tacnav.navproxy.get(Vector3i(cell.x, loc.layer, cell.y), TacTile.get_empty_codes())
 	return terrain
 
-## Returns a list of tiles with obstacles that connect to the character's current cover.
-func curr_cover_contour() -> Array[Vector2i]:
-	var contour : Array[Vector2i]  ## Tiles next to an obstacle.
-	var terrain := terrain_in_range()
-	var skip_cell := false
-	for cell in terrain:
-		skip_cell = false
-		for dir_code in terrain[cell]:
-			if dir_code in [Tac.Trans.HALF, Tac.Trans.TALL]:
-				contour.append(cell)
-				skip_cell = true
-				break
-		if skip_cell: continue
-	return contour
 #endregion

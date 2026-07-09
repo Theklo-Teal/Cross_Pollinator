@@ -25,7 +25,6 @@ func _ready() -> void:
 	pallet.paint_tool_changed.connect(_on_paint_tool_changed)
 	pallet.offset_map.connect(_on_offset_map)
 	pallet.nav_overlay.connect(func(shown):update_cam_view(last_cam))
-	pallet.floor_overlay.connect(func(shown):update_cam_view(last_cam); curr_map.floors.visible = not shown)
 
 func _enter_tree() -> void:
 	super()
@@ -35,18 +34,17 @@ func _enter_tree() -> void:
 		alt_view[EditorInterface.get_editor_viewport_3d(i).get_camera_3d()] = null
 	
 	modes = {
-		"floor": Floor_Mode.new(self),
 		"tall": Tall_Wall_Mode.new(self),
 		"half": Half_Wall_Mode.new(self),
 		"crawl": Crawl_Wall_Mode.new(self),
 		"zoning": Zone_Mode.new(self),
 		"ladders": Ladder_Mode.new(self),
 		"spawner": Spawner_Mode.new(self),
+		"floors": Floors_Mode.new(self),
 		"coordcapt": Coord_Capture.new(self)
 		}
 	
 	add_custom_type("CharaState", "RefCounted", preload("res://addons/tactical_map/entity_classes/chara_state.gd"), preload("res://addons/tactical_map/icons/TacCharaAction.svg"))
-	add_custom_type("FloorInfo", "Resource", preload("res://addons/tactical_map/resource_classes/floor_info.gd"), preload("res://addons/tactical_map/icons/FloorInfo.svg"))
 	add_custom_type("WallInfo", "Resource", preload("res://addons/tactical_map/resource_classes/wall_info.gd"), preload("res://addons/tactical_map/icons/WallInfo.svg"))
 	add_custom_type("TacTile", "Resource", preload("res://addons/tactical_map/resource_classes/tac_tile.gd"), preload("res://addons/tactical_map/icons/TacTile.svg"))
 	add_custom_type("TacEntitySpawner", "Resource", preload("res://addons/tactical_map/resource_classes/tac_spawner.gd"), preload("res://addons/tactical_map/icons/TacEntitySpawner.svg"))
@@ -59,7 +57,6 @@ func _enter_tree() -> void:
 
 func _exit_tree() -> void:
 	remove_custom_type("Action")
-	remove_custom_type("FloorInfo")
 	remove_custom_type("WallInfo")
 	remove_custom_type("TacTile")
 	remove_custom_type("TacEntitySpawner")
@@ -91,7 +88,6 @@ func _handles(object) -> bool:
 			curr_map = null
 			pallet.map_changed(null)
 			# Clear overlays
-			pallet.set_floor_overlay(false)
 			pallet.set_navigation_overlay(false)
 		return false
 
@@ -210,7 +206,6 @@ func _forward_3d_gui_input(camera:Camera3D, event:InputEvent):
 
 
 func _forward_3d_draw_over_viewport(view: Control) -> void:
-	
 	# An hack to distinguish the different 3D view cameras and their associated overlay canvas.
 	if cam_view.get(last_cam) == null and last_cam != null:
 		cam_view[last_cam] = view
@@ -440,11 +435,6 @@ func rem_tile_asset(coord:Vector2i, side:=Vector2i.ZERO):
 		return
 	var fam = pallet.get_mode()
 	match fam:
-		"floor":
-			curr_map.queue_place(coord)
-			tile.floor = ""
-			tile.has_floor = false
-			tile.is_ceiling = false
 		"tall", "half", "crawl":
 			curr_map.queue_place(coord)
 			const sides = {

@@ -49,7 +49,11 @@ metallic_specular = 1.0
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f1u3u"]
 albedo_color = Color(0.14509805, 0.36078432, 1, 1)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qusxn"]
+albedo_color = Color(1, 0, 0, 1)
+
 [node name="SimpleCharacter" type="Area3D" unique_id=345150261]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 0.5)
 script = SubResource("GDScript_f1u3u")
 metadata/_custom_type_script = "uid://d3bsnibqlxnig"
 
@@ -78,3 +82,8 @@ transform = Transform3D(0.66272473, -0.7488631, -3.2733848e-08, 0, -4.371139e-08
 polygon = PackedVector2Array(0, 0, 0.056072682, 0.23558542, 0.22661367, 0.057356164)
 depth = 0.35
 material = SubResource("StandardMaterial3D_f1u3u")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="CSGCombiner3D" unique_id=1546433281]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14083344, 1.0264827, 0.010553181)
+size = Vector3(0.26062012, 0.5148926, 0.09082031)
+material = SubResource("StandardMaterial3D_qusxn")

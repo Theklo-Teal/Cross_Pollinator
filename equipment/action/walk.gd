@@ -1,5 +1,7 @@
 extends CharaAction
 
+## Overriding default "Walk" behavior for Tactical Combat.
+
 func _init(character:TacCharacter, act_name:StringName) -> void:
 	super(character, act_name)
 	cause_busy = true

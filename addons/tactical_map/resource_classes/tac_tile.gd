@@ -2,22 +2,8 @@
 extends Resource
 class_name TacTile
 
-@export_storage var is_ceiling : bool  ## The floor is actually a ceiling.
-@export_storage var force_floor : bool = false  ## Whether the current [code]has_floor[/code] was enforced manually, or is set by the definition of [code]floor[/code].
+@export_storage var has_ceiling : bool = true  ## Things can't climb up from the map with this tile.
 @export_storage var has_floor : bool = false  ## Regardless of a floor asset, can characters walk over this tile?
-@export_storage var floor : StringName :   ## UID FloorInfo that defines the assets. Setting it empty will set [code]has_floor[/code], [code]force_floor[/code] and [code]is_ceiling[/code] to [code]false[/code].
-	set(val):
-		var new = _asset_checker(floor, val)
-		if new != floor and new.is_empty():
-			has_floor = false
-			force_floor = false
-			is_ceiling = false
-		floor = new
-@export_storage var floor_name : StringName  ## Which of the sprites referred in the FloorInfo.
-@export_storage var floor_dir := Vector2i.LEFT :  ## The orientation of the floor.
-	set(val):
-		if val in Tac.DIR_ANG:
-			floor_dir = val
 @export_storage var wall_east: StringName :  ## UID of the WallInfo that defines the assets.
 	set(val):
 		wall_east = _asset_checker(wall_east, val)
@@ -48,8 +34,7 @@ func is_empty() -> bool:
 	for dir in range(4):
 		if not get_wall(dir).is_empty():
 			return false
-	if not floor.is_empty() or has_floor:
-		return false
+	if has_floor or has_ceiling: return false
 	return true
 
 func find_codes() -> PackedInt32Array:
@@ -77,19 +62,20 @@ func get_wall_dir(direction:StringName):
 		&"NORTH": wall_north,
 	}[direction]
 
-func get_floor_asset(tile_size:int = 32) -> Sprite3D:
-	if floor.is_empty():
-		return null
-	var info = Tac.pallet_info[floor]
-	var new_floor := Sprite3D.new()
-	new_floor.texture = info.atlas.duplicate()
-	new_floor.texture.region.position = Vector2(info.tiles.values()[0])  #NOTE when auto-tilling this should could be different.
-	new_floor.shaded = true
-	new_floor.double_sided = false
-	new_floor.pixel_size = tile_size / new_floor.texture.region.size.x
-	new_floor.rotation_degrees.x = -90
-	new_floor.rotation_degrees.y = Tac.DIR_ANG[floor_dir]
-	return new_floor
+
+func get_wall_info(direction:Tac.Dir) -> WallInfo:
+	var wall = get_wall(direction)
+	return Tac.pallet_info.get(wall)
+
+## Could a character be able to see through the obstacle in the given direction?[br]
+## Also accounts type of obstacle, where anything not TALL or CRAWL is considered visible.
+## The [code]medthod[/code] allows specifying what senses the character has.
+## If that info is not available in the tile, it's assumed to be false.
+func can_see_thru(direction:Tac.Dir, method:=WallInfo.VISION.RGB) -> bool:
+	var wall := get_wall_info(direction)
+	if not wall.transition in [Tac.Trans.TALL, Tac.Trans.CRAWL]:
+		return true
+	return wall.see_thru.get(method)
 
 func get_walls_asset() -> Array[Node3D]:
 	var walls : Array[Node3D]

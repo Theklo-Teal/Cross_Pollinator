@@ -3,7 +3,7 @@ extends Area3D
 class_name TacMap
 
 ## A node edited by the TacMap Plugin that stores location of obstacles and
-## places walls and floors for levels of a grid-based turn-based tactical combat game
+## places walls for levels of a grid-based turn-based tactical combat game
 ## like XCom, Phantom Doctrine or Phoenix Point.[br]
 ## It includes a collision shape meant to detect mouse clicks so the player can interact
 ## with the map, like telling a character where to go.[br]
@@ -134,7 +134,6 @@ func update_area():
 
 var area_collider := CollisionShape3D.new()
 var sprites := Node3D.new()
-var floors := Node3D.new()
 var walls := Node3D.new()
 var spawns := Node3D.new()
 func _ready() -> void:
@@ -144,11 +143,9 @@ func _ready() -> void:
 	
 	add_child(area_collider, true, INTERNAL_MODE_BACK)
 	add_child(sprites, true, INTERNAL_MODE_BACK)
-	add_child(floors, true, INTERNAL_MODE_BACK)
 	add_child(walls, true, INTERNAL_MODE_FRONT)
 	area_collider.name = "TacMapArea"
 	sprites.name = "TacMapSprites"
-	floors.name = "TacMapFloors"
 	walls.name = "TacMapWalls"
 	
 	# Place objects with stored references.
@@ -203,16 +200,6 @@ func place_assets(cell:Vector2i):
 		return
 		
 	var tile : TacTile = tiles.get(cell)
-	var floor = tile.get_floor_asset(get_tile_size())
-	if not floor == null:
-		floor.position = tacnav.tile2spatial(cell, 0, true)
-		if tile.is_ceiling:
-			floor.position.y += get_tile_height()
-		floors.add_child(floor, false, Node.INTERNAL_MODE_BACK)
-		if not placed.has(cell):
-			placed[cell] = []
-		placed[cell].append(floor)
-		
 	for wall in tile.get_walls_asset():
 		wall.position = tacnav.tile2spatial(cell, 0, true,)
 		walls.add_child(wall, false, Node.INTERNAL_MODE_FRONT)
@@ -225,19 +212,21 @@ func set_tile_asset(cell:Vector2i, side:Vector2i, info_uid:String):
 	queue_place(cell)
 	var asset_info : Resource = Tac.pallet_info[info_uid]
 	var tile = tiles.get_or_add(cell, TacTile.new())
-	if asset_info is FloorInfo:
-		tiles[cell].floor = info_uid
-		tiles[cell].floor_dir = side
-		tiles[cell].has_floor = asset_info.is_solid
-	elif asset_info is WallInfo:
-		const wall_side = {
-			Vector2i.RIGHT : "wall_east",
-			Vector2i.LEFT : "wall_west",
-			Vector2i.UP : "wall_north",
-			Vector2i.DOWN : "wall_south",
-		}
-		tiles[cell].set(wall_side[side], info_uid)
+	const wall_side = {
+		Vector2i.RIGHT : "wall_east",
+		Vector2i.LEFT : "wall_west",
+		Vector2i.UP : "wall_north",
+		Vector2i.DOWN : "wall_south",
+	}
+	tiles[cell].set(wall_side[side], info_uid)
 
+## Should character be able to see through the obstacle on a tile?[br]
+## [code]sneaky[/code] implies the character is small enough to hide behind Tac.Trans.HALF.
+func is_see_thru(cell:Vector2i, side:Tac.Dir, sneaky:=false) -> bool:
+	var tile : TacTile = tiles[cell]
+	if tile.get_wall_info(side).transition == Tac.Trans.HALF and sneaky:
+		return false
+	return tile.can_see_thru(side)
 
 func set_spawn_indicator(id:String, where:Vector2i, which:TacEntitySpawner):
 	# Create new sprite.
