@@ -18,7 +18,7 @@ var stride := 3.5
 var nav_error : Error
 
 func enter(prev:CharaState):
-	print("WALKEN HERE")
+	super(prev)
 	var to_cell = entry_info.args.get("cell_coord", Tac.hover_tile)
 	var to_map = entry_info.args.get("tacmap", Tac.hover_map)
 	nav_error = me.traversal_start(to_cell, to_map)

@@ -48,16 +48,16 @@ func allow_switch() -> bool:
 ## If it's desired to change state here use [code]call_deferred()[/code] or
 ## things will break.
 func resume(prev:CharaState):
-	return &""
+	pass
 
 ## Constructor of the state. If it's desired to change state here use
 ## [code]call_deferred()[/code] or things will break.
 func enter(prev:CharaState):
-	return &""
+	pass
 
 ## Deconstructor of the state. Please don't try to change state here.
 func exit(next:CharaState):
-	return
+	pass
 
 func process(delta:float):
 	pass

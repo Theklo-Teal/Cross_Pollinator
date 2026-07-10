@@ -7,7 +7,9 @@
 script = ExtResource("1_kxj5w")
 name = &"Plain Window"
 thumbnail = ExtResource("2_rhypm")
+tags = PackedStringArray("window", "debug", "solid")
 transition = 3
 asset_single = &"uid://bi3fvela4rdfv"
 asset_corner = &"uid://c0axll76s4mar"
 metadata/_custom_type_script = "uid://d2naahh01f7l8"
+metadata/terrain_family = "tall"

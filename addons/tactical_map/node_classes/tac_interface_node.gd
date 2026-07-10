@@ -127,3 +127,9 @@ func select_target_character(chara:TacCharacter):
 ## Override to define what happens when a character is set as the target of an action.
 func _select_target_character(chara:TacCharacter):
 	chara.on_being_targetted()
+
+func select_active_action(action:CharaState):
+	Tac.sel_action = action
+	_select_active_action(action)
+func _select_active_action(action:CharaState):
+	pass

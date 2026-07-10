@@ -414,7 +414,7 @@ class Floors_Mode extends Paint_Mode:
 						var tile : TacTile = me.curr_map.tiles.get_or_add(coord, TacTile.new())
 						queue_update(coord)
 						if alt:
-							tile.has_ceil = true
+							tile.has_ceiling = true
 						else:
 							tile.has_floor = true
 		return super(alt)
@@ -436,7 +436,7 @@ class Floors_Mode extends Paint_Mode:
 						var tile : TacTile = me.curr_map.tiles.get_or_add(coord, TacTile.new())
 						queue_update(coord)
 						if alt:
-							tile.has_ceil = false
+							tile.has_ceiling = false
 						else:
 							tile.has_floor = false
 		return super(alt)

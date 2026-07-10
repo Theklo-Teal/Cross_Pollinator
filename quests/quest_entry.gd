@@ -56,16 +56,25 @@ func trigger_added(entity:TacEntity):
 ## Define events for situation that entities are spawned or despawned.
 func on_entities_changed(added:Array[TacEntity], removed:Array[TacEntity]):
 	pass
+## The event of the selected active character changing.
 func selected_chara(entity:TacEntity):
 	pass
+## The event of the active character's selected action changing.
+func selected_action(action:CharaState):
+	pass
+## The event of an entity stepping on a trigger zone.
 func zone_entered(entity:TacEntity, zone:StringName):
 	pass
+## The event of an entity leaving a trigger zone.
 func zone_exited(entity:TacEntity, zone:StringName):
 	pass
+## The event of an entity producing an interation.
 func emitted_interaction(entity:TacEntity, distance:int):
 	pass
+## The event of an entity being affected by an interation.
 func received_interaction(entity:TacEntity, distance:int):
 	pass
+##  The event of the player directly interacting with an entity.
 func player_interaction(entity:TacEntity):
 	pass
 #endregion

@@ -77,6 +77,10 @@ func _setup_fsm() -> StringName:
 	func target_chara_selected(chara:TacCharacter):
 		return
 	
+	## The active character changed action.
+	func selected_action(action:CharaState):
+		return
+	
 	## The selected character has switched state.
 	func sel_chara_switched(curr_action:CharaState, chara:TacCharacter):
 		return
@@ -104,10 +108,16 @@ func _ready() -> void:
 	Ses.scenario = self
 	setup_fsm()
 	assert(states.size() > 0, "There are no states set up for the FSM.")
-	
-	# SET UP CHARACTERS
+	Ses.player.clear()
+	setup_player()
+
+func setup_player() -> void:
+	# The spawner is what decides the total of which characters are available.
+	# Here we decide which ones the player can use (hiding others) and setting their
+	# gameplay parameters.
 	for chara_name in Ses.save.get_value("Team", "characters", []):
 		if $TacNav.has_node(chara_name):
+			Ses.player.append($TacNav.get_node(chara_name))
 			var chara : Character = $TacNav.get_node(chara_name)
 			chara.max_health = Ses.save.get_value(chara_name, "health", 1)
 			chara.health = chara.max_health
@@ -126,11 +136,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _input(event: InputEvent) -> void:
 	super(event)
 	if event is InputEventKey and event.is_released() and event.keycode == KEY_ESCAPE:
-		request_pause()
-
-## Override to define what happens when attempting to pause the game. All events that pause the game should call this.
-func request_pause():
-	return
+		Ses.pausing(true)
 
 func _select_active_character(chara:TacCharacter):
 	var last = Tac.sel_chara
@@ -152,6 +158,11 @@ func _select_target_character(chara:TacCharacter):
 	stt.target_chara_selected(chara)
 	super(chara)
 
+func _select_active_action(action:CharaState):
+	stt.selected_action(action)
+	for quest_set in quests.get(Tac.sel_chara,[]):
+		quest_set.selected_action(action)
+
 ## Called when the active player character has changed state.
 func sel_chara_switched(curr_action:CharaState, chara:TacCharacter):
 	stt.sel_chara_switched(curr_action, chara)
@@ -171,15 +182,15 @@ func _on_entities_changed(added:Array[TacEntity], removed:Array[TacEntity]):
 		if each.curr_team == TacCharacter.Team.PLAYER:
 			if not each in Ses.player:
 				Ses.player.append(each)
-		elif not each in Ses.belligerents:
-			Ses.belligerents.append(each)
+		elif not each in Ses.robots:
+			Ses.robots.append(each)
 	for each in removed:
 		if not each is TacCharacter:
 			continue
 		if each.curr_team == TacCharacter.Team.PLAYER:
 			Ses.player.erase(each)
 		else:
-			Ses.belligerents.append(each)
+			Ses.robots.append(each)
 
 func _tacnav_entered(tacnav:TacNav):
 	super(tacnav)

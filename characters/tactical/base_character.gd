@@ -23,8 +23,6 @@ func get_alias():
 var health : int
 var stamina : int
 var mental : int
-var spritilo : int
-var ectoplasm : int
 
 
 ## The longest amount of tiles a character can move without obstructions.
@@ -37,6 +35,13 @@ func _traversal_finish(condition:Error=OK) -> Error:
 		if dir != Vector2i.ZERO:
 			rotation_degrees.y = Tac.DIR_ANG[dir]
 	return condition
+
+func cannot_act() -> bool:
+	for act in actions.values():
+		if not act is CharaAction: continue
+		if act.stamina_cost <= stamina: return false
+		if act.can_use(): return false
+	return true
 
 #region Character's senses
 var enemy_spotted : Dictionary[TacCharacter, Vector2i]  ## Remember which enemies were detected and where.

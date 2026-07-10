@@ -73,5 +73,3 @@ visible = false
 process_mode = 1
 script = ExtResource("2_ick2d")
 metadata/_custom_type_script = "uid://b624fpjrvtg43"
-
-[connection signal="pause_requested" from="TacticalUI/TacticalSessionPanel" to="." method="request_pause"]

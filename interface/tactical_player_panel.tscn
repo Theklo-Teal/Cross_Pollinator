@@ -95,6 +95,13 @@ func set_character(chara:Character):
 			slots[slot].texture_pressed.region.position.x = 128
 			slots[slot].texture_disabled.region.position.x = 192
 
+func update_character(chara:Character):
+	%Health.value = chara.health
+	%Stamina.value = chara.stamina
+	%Mental.value = chara.mental
+	%Traits.text = \"WLL: \" + str(chara.will) + \"\\nSPD: \" + str(chara.speed) + \"\\nAPL: \" + str(chara.appeal)
+	
+
 func _on_action_title_toggled(toggled_on: bool) -> void:
 	%Action_Descript.visible = toggled_on
 	%Actions.visible = not toggled_on

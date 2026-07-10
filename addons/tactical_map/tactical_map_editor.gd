@@ -6,6 +6,7 @@ class_name TacticalMapEditor
 #TODO Refactor zone and Ladder add/rem is prone to glitches, accounting to how it's listed in the panels and change of active when adding, changing maps, ect.
 
 #FIXME Problem with `handles()`? Maybe just an illusion when the selected tool is not what is expected. Sometimes maps lose input reponse.
+#FIXME Navigation overlay is always outdated, relative to edits on tiles.
 
 #WARNING We must not call for "Tac" (tac_map_global.gd) in this script. It can only enable or disable it.
 
@@ -25,6 +26,7 @@ func _ready() -> void:
 	pallet.paint_tool_changed.connect(_on_paint_tool_changed)
 	pallet.offset_map.connect(_on_offset_map)
 	pallet.nav_overlay.connect(func(shown):update_cam_view(last_cam))
+	pallet.ceil_overlay.connect(func(shown):update_cam_view(last_cam))
 
 func _enter_tree() -> void:
 	super()
@@ -254,12 +256,24 @@ func on_cam_view_draw(canvas:Control, cam:Camera3D) -> void:
 	if pallet.is_floor_overlay_visible():
 		for map_tile : Vector2i in curr_map.tiles:
 			var has_floor = int(curr_map.tiles[map_tile].has_floor)
-			var nav_tile = curr_nav.map3nav(map_tile, curr_map)
 			if cam.is_position_in_frustum(curr_nav.map3spatial(map_tile, curr_map, true)):
 				var polygon = get_map_area(map_tile, map_tile, curr_map)
 				for i in (polygon.size()):
 					polygon[i] = polygon[i] + [Vector3(0.05,0,0.05),Vector3(0.05,0,-0.05),Vector3(-0.05,0,-0.05),Vector3(-0.05,0,0.05),][i]
 				draw_area_polygon(canvas, polygon, [Color(0.729, 0.219, 0.169, 0.3), Color(0.338, 0.513, 0.887, 0.3)][has_floor])
+	
+	# Ceiling Overlay
+	if pallet.is_ceiling_overlay_visible():
+		for map_tile : Vector2i in curr_map.tiles:
+			var has_ceil = int(curr_map.tiles[map_tile].has_ceiling)
+			var coord = curr_nav.map3spatial(map_tile, curr_map, true)
+			coord.y += curr_nav.tile_height
+			if cam.is_position_in_frustum(coord):
+				var polygon = get_map_area(map_tile, map_tile, curr_map) 
+				for i in (polygon.size()):
+					polygon[i] = polygon[i] + [Vector3(0.05,coord.y,0.05),Vector3(0.05,coord.y,-0.05),Vector3(-0.05,coord.y,-0.05),Vector3(-0.05,coord.y,0.05),][i]
+				draw_area_polygon(canvas, polygon, [Color(0.729, 0.22, 0.169, 0.0), Color(0.71, 0.581, 0.064, 0.416)][has_ceil])
+			
 	
 	# Navigation Graph Overlay
 	if pallet.is_nav_overlay_visible():

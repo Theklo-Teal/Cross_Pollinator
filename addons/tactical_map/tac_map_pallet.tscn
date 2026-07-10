@@ -22,6 +22,7 @@ signal ladders_selected(ladders:PackedStringArray)
 signal ladder_renamed(old_ladder:String, new_ladder:String)
 signal ladder_deleted(ladder:String)
 signal nav_overlay(shown:bool)
+signal ceil_overlay(shown:bool)
 signal floor_overlay(shown:bool)
 
 var active_assets : Dictionary[StringName, ButtonGroup]
@@ -115,6 +116,11 @@ func is_nav_overlay_visible() -> bool:
 	return %show_navigation.button_pressed
 func set_navigation_overlay(shown:bool):
 	%show_navigation.button_pressed = shown
+
+func _on_show_ceilings_toggled(toggled_on: bool) -> void:
+	ceil_overlay.emit(toggled_on)
+func is_ceiling_overlay_visible() -> bool:
+	return %show_ceilings.button_pressed
 
 func is_floor_overlay_visible() -> bool:
 	return get_mode() == &\"floors\"
@@ -333,18 +339,37 @@ func set_tile_info(space_coord:Vector2i, nav_coord:Vector2i, map_coord:Vector2i,
 		%Obstacles.tooltip_text = \"Transitions:\\nEast:\\t\"+str(obstacle_code[0])+\"\\nSouth:\\t\"+str(obstacle_code[.1])+\"\\nWest:\\t\"+str(obstacle_code[2])+\"\\nNorth:\\t\"+str(obstacle_code[3])
 #endregion
 
+
+var tags : Dictionary[StringName, Dictionary]
+var filter : Array[StringName] : 
+	set(val):
+		var new_filter : Array[StringName]
+		for tag in val:
+			if not tag in new_filter: new_filter.append(tag)
+		filter = new_filter
+var thumbs : Dictionary[StringName, Dictionary]
+func tag_pressed(indeed:bool, a_tag:StringName):
+	if indeed: filter.append(a_tag)
+	else: filter.erase(a_tag)
+	for tag in thumbs.get(get_mode(), {}):
+		for thumb in thumbs[get_mode()][tag]:
+			thumb.visible = thumb in filter or filter.is_empty()
+
 func populate_thumbs():
 	for terr_fam in Tac.pallet_fam:
 		active_assets[terr_fam] = ButtonGroup.new()
 		var thumb_container = %Terrains.get_node(terr_fam + \"/ScrollContainer2/Thumbnails\")
 		var tag_container = %Terrains.get_node(terr_fam + \"/TagContainer/ScrollContainer/Tags\")
+		tags[terr_fam] = {}
+		thumbs[terr_fam] = {}
 		var past_first := false
 		for info_uid in Tac.pallet_fam[terr_fam]:
+			var info : WallInfo = Tac.pallet_info[info_uid]
+			
 			var thumb : Texture
 			var title : String
 			match terr_fam:
 				\"tall\", \"half\", \"crawl\":
-					var info : WallInfo = Tac.pallet_info[info_uid]
 					thumb = info.thumbnail
 					title = info.name
 			
@@ -360,6 +385,31 @@ func populate_thumbs():
 			if not past_first:
 				past_first = true
 				button.set_pressed_no_signal(true)
+			
+			for tag in info.tags:
+				var tag_butt : Button
+				if not tag in tags[terr_fam]:
+					tag_butt = Button.new()
+					tag_butt.text = tag
+					tag_butt.toggle_mode = true
+					tag_butt.toggled.connect(tag_pressed.bind(tag))
+					tags[terr_fam][tag] = tag_butt
+					thumbs[terr_fam][tag] = []
+					tag_container.add_child(tag_butt)
+				thumbs[terr_fam][tag].append(button)
+
+
+func _on_filter_text_submitted(new_text: String) -> void:
+	#TODO Test this
+	var entries = new_text.to_lower().split(\" \", false)
+	var show_active = \"active\" in entries
+	var show_inactive = \"inactive\" in entries
+	for tag in tags.get(get_mode(), []):
+		var button : Button = tags[get_mode()][tag]
+		if tag in entries or entries.is_empty() or (show_active and tag in filter) or (show_inactive and not tag in filter):
+			button.show()
+		else:
+			button.hide()
 "
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_lmyxv"]
@@ -379,35 +429,6 @@ region = Rect2(0, 64, 32, 32)
 [sub_resource type="AtlasTexture" id="AtlasTexture_vit1w"]
 atlas = ExtResource("1_lmyxv")
 region = Rect2(64, 64, 32, 32)
-
-[sub_resource type="GDScript" id="GDScript_8tvhu"]
-resource_name = "Tag_Filter"
-script/source = "@tool
-extends AutoLineEdit
-
-## Example extending script for an instance of AutoLineEdit
-
-func _ready() -> void:  # Set size forthe LineEdit
-	custom_minimum_size.x = 400
-	#super()
-
-const SIMI = 0.6  # How similar the input token and a word must be to be accepted as suggestion token.
-
-## Return list of pairs of words, which are text to display as suggestion and the actual token that's added in the prompt if suggestion is selected.
-func get_suggestions(token:String) -> Array[PackedStringArray]:
-	var suggestions : Array[PackedStringArray]
-	var i : int = 0
-	for terr in Tac.tags:
-		for word in Tac.tags[terr]:
-			if fuzzy_match(word, token) >= SIMI:
-				suggestions.append([
-					token + \" -> \" + word,  # What to show as entry in the suggestion box.
-					word,  # The token that's actually added to the prompt on selection.
-					Color(1,1,1)  # Icon color for this entry.
-					] as PackedStringArray)
-			i += 1
-	return suggestions
-"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8tvhu"]
 content_margin_left = 4.0
@@ -519,7 +540,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-current_tab = 3
+current_tab = 0
 close_with_middle_mouse = false
 tab_count = 4
 tab_0/title = "Tall"
@@ -533,41 +554,22 @@ custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Filter Tags..."
-script = SubResource("GDScript_8tvhu")
+clear_button_enabled = true
 
 [node name="Terrains" type="TabContainer" parent="VBoxContainer2" unique_id=681975207]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_8tvhu")
-current_tab = 3
+current_tab = 0
 tabs_visible = false
 
 [node name="tall" type="HBoxContainer" parent="VBoxContainer2/Terrains" unique_id=1685025191]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
 [node name="TagContainer" type="VBoxContainer" parent="VBoxContainer2/Terrains/tall" unique_id=1686031772]
 layout_mode = 2
-
-[node name="FoldableContainer" type="FoldableContainer" parent="VBoxContainer2/Terrains/tall/TagContainer" unique_id=767672475]
-layout_mode = 2
-size_flags_vertical = 3
-title = "Selected Tags"
-title_alignment = 1
-
-[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer2/Terrains/tall/TagContainer/FoldableContainer" unique_id=1293367850]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-vertical_scroll_mode = 4
-
-[node name="Sel_Tags" type="HFlowContainer" parent="VBoxContainer2/Terrains/tall/TagContainer/FoldableContainer/ScrollContainer" unique_id=1049625404]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer2/Terrains/tall/TagContainer" unique_id=1170338957]
 custom_minimum_size = Vector2(200, 0)
@@ -711,6 +713,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="other" type="HBoxContainer" parent="VBoxContainer2/Terrains" unique_id=960753359]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 3
 
@@ -816,7 +819,6 @@ text = "Show Navigation"
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Display an overlay of tiles that can be walked on, even if there is not floor asset associated."
-disabled = true
 text = "Show Ceilings"
 
 [node name="Spacer" type="Control" parent="VBoxContainer2/Terrains/other/VBoxContainer4" unique_id=542254274]
@@ -935,4 +937,6 @@ size_flags_horizontal = 3
 text = "Help info about active tool and mode."
 autowrap_mode = 3
 
+[connection signal="text_submitted" from="VBoxContainer2/HBoxContainer/Filter" to="." method="_on_filter_text_submitted"]
 [connection signal="toggled" from="VBoxContainer2/Terrains/other/VBoxContainer4/show_navigation" to="." method="_on_show_navigation_toggled"]
+[connection signal="toggled" from="VBoxContainer2/Terrains/other/VBoxContainer4/show_ceilings" to="." method="_on_show_ceilings_toggled"]

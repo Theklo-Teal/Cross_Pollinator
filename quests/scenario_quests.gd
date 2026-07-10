@@ -67,6 +67,10 @@ func selected_chara(entity:TacEntity):
 	for entry : QuestEntry in triggers.get(entity, []):
 		entry.selected_chara(entity)
 
+func selected_action(action:CharaState):
+	for entry: QuestEntry in triggers.get(Tac.sel_chara, []):
+		entry.selected_action(action)
+
 func entity_zone_entered(entity:TacEntity, zone:StringName):
 	for entry : QuestEntry in triggers.get(entity, []):
 		entry.zone_entered(entity, zone)

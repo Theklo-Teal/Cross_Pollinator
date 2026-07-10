@@ -3,7 +3,7 @@ extends Node
 ## Global data about a play session.
 var scenario : ScenarioDirector
 var player : Array[Character]
-var belligerents : Array[Character]
+var robots : Array[Character]  ## Characters other than player characters.
 var player_centroid : Dictionary[int, Vector2i]  ## [tacnav_layer] -> average position of player character in that layer.
 
 #WARNING getting values from ConfigFile will return a reference, if a data type
@@ -24,3 +24,10 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	save.save(save_filename)
+
+
+func pausing(to_pause:bool):
+	if not get_tree().paused and to_pause:
+		scenario.switch_state_of.call_deferred(&"pause")
+	elif scenario.stt == scenario.states[&"pause"]:
+		scenario.switch_state(scenario.stt.interrupted)

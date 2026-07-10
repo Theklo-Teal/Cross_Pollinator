@@ -17,7 +17,7 @@ config/features=PackedStringArray("4.6", "Forward Plus")
 run/max_fps=30
 boot_splash/image="uid://bfhy2gq6ql3b5"
 config/icon="uid://b001fw7qgf0b6"
-boot_splash/minimum_display_time=250
+boot_splash/minimum_display_time=150
 
 [audio]
 
